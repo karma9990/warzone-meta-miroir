@@ -1,0 +1,902 @@
+[
+  {
+    "id": "broodmother-45-kit-promo-mwiii",
+    "name": "Broodmother .45 Kit Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/1b/Broodmother_.45_Kit_Promo_MWIII.jpg/revision/latest?cb=20231123144356"
+  },
+  {
+    "id": "jak-annihilator-bullpup-kit-promo-mwiii",
+    "name": "JAK Annihilator Bullpup Kit Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/79/JAK_Annihilator_Bullpup_Kit_Promo_MWIII.jpg/revision/latest?cb=20231124045537"
+  },
+  {
+    "id": "jak-beholder-rifle-kit-gunsmith-mwiii",
+    "name": "JAK Beholder Rifle Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/78/JAK_Beholder_Rifle_Kit_Gunsmith_MWIII.png/revision/latest?cb=20231221043500"
+  },
+  {
+    "id": "jak-bfb-model-mwiii",
+    "name": "JAK BFB Model MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/27/JAK_BFB_Model_MWIII.png/revision/latest?cb=20240118023505"
+  },
+  {
+    "id": "jak-bullseye-model-mwiii",
+    "name": "JAK Bullseye Model MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/92/JAK_Bullseye_Model_MWIII.jpg/revision/latest?cb=20240121223627"
+  },
+  {
+    "id": "burrow-500-drill-charge-gunsmith-mwiii",
+    "name": "Burrow 500 Drill Charge Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/32/Burrow_500_Drill_Charge_Gunsmith_MWIII.png/revision/latest?cb=20240126235142"
+  },
+  {
+    "id": "burrow-500-drill-charge-model-mwiii",
+    "name": "Burrow 500 Drill Charge Model MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/9d/Burrow_500_Drill_Charge_Model_MWIII.png/revision/latest?cb=20240126235215"
+  },
+  {
+    "id": "jak-backsaw-kit-promo-mwiii",
+    "name": "JAK Backsaw Kit Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/3d/JAK_Backsaw_Kit_Promo_MWIII.png/revision/latest?cb=20240204023006"
+  },
+  {
+    "id": "intlas-cas-14-pulemyot-762-mwiii",
+    "name": "Intlas CAS-14 Pulemyot 762 MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ea/Intlas_CAS-14_Pulemyot_762_MWIII.jpg/revision/latest?cb=20240308113451"
+  },
+  {
+    "id": "jak-burnout-kit-gunsmith-mwiii",
+    "name": "JAK Burnout Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/8/83/JAK_Burnout_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240308143141"
+  },
+  {
+    "id": "jak-backsaw-kit-gunsmith-mwiii",
+    "name": "JAK Backsaw Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/1d/JAK_Backsaw_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240313171337"
+  },
+  {
+    "id": "jak-bullseye-gunsmith-mwiii",
+    "name": "JAK Bullseye Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/ba/JAK_Bullseye_Gunsmith_MWIII.png/revision/latest?cb=20240331051143"
+  },
+  {
+    "id": "cronen-intlas-msp-12-gunsmith-mwiii",
+    "name": "Cronen Intlas MSP-12 Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/5c/Cronen_Intlas_MSP-12_Gunsmith_MWIII.png/revision/latest?cb=20240331050507"
+  },
+  {
+    "id": "jak-annihilator-bullpup-kit-gunsmith-mwiii",
+    "name": "JAK Annihilator Bullpup Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/de/JAK_Annihilator_Bullpup_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240320021714"
+  },
+  {
+    "id": "jak-bfb-muzzle-gunsmith-mwiii",
+    "name": "JAK BFB Muzzle Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/4/4d/JAK_BFB_Muzzle_Gunsmith_MWIII.png/revision/latest?cb=20240320022510"
+  },
+  {
+    "id": "hellscream-40mm-gunsmith-mwii",
+    "name": "Hellscream 40mm Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/4/4c/Hellscream_40mm_Gunsmith_MWII.png/revision/latest?cb=20240320023404"
+  },
+  {
+    "id": "broodmother-45-kit-gunsmith-mwiii",
+    "name": "Broodmother .45 Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d5/Broodmother_.45_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240323151757"
+  },
+  {
+    "id": "intlas-cas-14-optic-gunsmith-mwiii",
+    "name": "Intlas CAS-14 Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d2/Intlas_CAS-14_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240331050708"
+  },
+  {
+    "id": "jak-cutthroat-m4-promo-mwiii",
+    "name": "JAK Cutthroat M4 Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d3/JAK_Cutthroat_M4_Promo_MWIII.png/revision/latest?cb=20240402132056"
+  },
+  {
+    "id": "jak-cutthroat-stock-gunsmith-mwiii",
+    "name": "JAK Cutthroat Stock Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/fe/JAK_Cutthroat_Stock_Gunsmith_MWIII.png/revision/latest?cb=20240603102629"
+  },
+  {
+    "id": "cronen-intlas-msp-12-ads-mwiii",
+    "name": "Cronen Intlas MSP-12 ADS MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d3/Cronen_Intlas_MSP-12_ADS_MWIII.png/revision/latest?cb=20240421003428"
+  },
+  {
+    "id": "jak-atlas-kit-gunsmith-mwiii",
+    "name": "JAK Atlas Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/2d/JAK_Atlas_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240515160539"
+  },
+  {
+    "id": "jak-decimator-promo-mwiii",
+    "name": "JAK Decimator Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ec/JAK_Decimator_Promo_MWIII.png/revision/latest?cb=20240521123955"
+  },
+  {
+    "id": "aok-4-0x-rq-9-recon-gunsmith-mwiii",
+    "name": "AOK 4.0x RQ-9 Recon Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/e2/AOK_4.0x_RQ-9_Recon_Gunsmith_MWIII.png/revision/latest?cb=20240615025118"
+  },
+  {
+    "id": "aok-4-0x-rq-9-recon-ads-mwiii",
+    "name": "AOK 4.0x RQ-9 Recon ADS MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/fb/AOK_4.0x_RQ-9_Recon_ADS_MWIII.png/revision/latest?cb=20240527130729"
+  },
+  {
+    "id": "cronen-mini-dot-gunsmith-mwii",
+    "name": "Cronen Mini Dot Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/35/Cronen_Mini_Dot_Gunsmith_MWII.png/revision/latest?cb=20240528233105"
+  },
+  {
+    "id": "cronen-mini-pro-gunsmith-mwii",
+    "name": "Cronen Mini Pro Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/77/Cronen_Mini_Pro_Gunsmith_MWII.png/revision/latest?cb=20240528233108"
+  },
+  {
+    "id": "fss-spectre-microtherm-gunsmith-mwiii",
+    "name": "FSS Spectre Microtherm Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d1/FSS_Spectre_Microtherm_Gunsmith_MWIII.png/revision/latest?cb=20240529043011"
+  },
+  {
+    "id": "jak-decimator-gunsmith-launch-mwiii",
+    "name": "JAK Decimator Gunsmith launch MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ef/JAK_Decimator_Gunsmith_launch_MWIII.png/revision/latest?cb=20240602054716"
+  },
+  {
+    "id": "beast-fifty-long-barrel-gunsmith-mwiii",
+    "name": "Beast Fifty Long Barrel Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/3f/Beast_Fifty_Long_Barrel_Gunsmith_MWIII.png/revision/latest?cb=20240602061815"
+  },
+  {
+    "id": "holo-craft-optic-gunsmith-mwiii",
+    "name": "Holo-Craft Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ec/Holo-Craft_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240615025131"
+  },
+  {
+    "id": "heinrichter-hybrid-scope-gunsmith-mwiii",
+    "name": "Heinrichter Hybrid Scope Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/a/a8/Heinrichter_Hybrid_Scope_Gunsmith_MWIII.png/revision/latest?cb=20240615030844"
+  },
+  {
+    "id": "corvus-ghostview-gunsmith-mwiii",
+    "name": "Corvus Ghostview Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/eb/Corvus_Ghostview_Gunsmith_MWIII.png/revision/latest?cb=20240615030855"
+  },
+  {
+    "id": "dxs-coriolis-v4-gunsmith-mwii",
+    "name": "DXS Coriolis V4 Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/2c/DXS_Coriolis_V4_Gunsmith_MWII.png/revision/latest?cb=20240626133144"
+  },
+  {
+    "id": "ftac-locus-sp-gunsmith-mwii",
+    "name": "FTAC Locus SP Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/7d/FTAC_Locus_SP_Gunsmith_MWII.png/revision/latest?cb=20240626133152"
+  },
+  {
+    "id": "hurricane-9-variable-optic-gunsmith-mwiii",
+    "name": "Hurricane 9 Variable Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/6b/Hurricane_9_Variable_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240626133651"
+  },
+  {
+    "id": "6-3x-14x-carrack-gunsmith-mwii",
+    "name": "6.3x-14x Carrack Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/51/6.3x-14x_Carrack_Gunsmith_MWII.png/revision/latest?cb=20240703024028"
+  },
+  {
+    "id": "6x-short-zoom-optic-gunsmith-mwiii",
+    "name": "6x Short-Zoom Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/53/6x_Short-Zoom_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240703024030"
+  },
+  {
+    "id": "akilina-lr-stalk-optic-gunsmith-mwiii",
+    "name": "Akilina LR-Stalk Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/17/Akilina_LR-Stalk_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240703024109"
+  },
+  {
+    "id": "imperium-12x-gunsmith-mwii",
+    "name": "Imperium 12x Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/db/Imperium_12x_Gunsmith_MWII.png/revision/latest?cb=20240703024657"
+  },
+  {
+    "id": "carrack-300-11x-gunsmith-mwii",
+    "name": "Carrack .300 11x Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/a/a4/Carrack_.300_11x_Gunsmith_MWII.png/revision/latest?cb=20240703024706"
+  },
+  {
+    "id": "corio-13x-vrs-gunsmith-mwii",
+    "name": "Corio 13x VRS Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/1a/Corio_13x_VRS_Gunsmith_MWII.png/revision/latest?cb=20240703024417"
+  },
+  {
+    "id": "corio-sz-hs-800-gunsmith-mwii",
+    "name": "Corio SZ-HS 800 Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/0/01/Corio_SZ-HS_800_Gunsmith_MWII.png/revision/latest?cb=20240703024418"
+  },
+  {
+    "id": "jak-decimator-gunsmith-mwiii",
+    "name": "JAK Decimator Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/c/c2/JAK_Decimator_Gunsmith_MWIII.png/revision/latest?cb=20250303022751"
+  },
+  {
+    "id": "jak-deathmarch-promo-mwiii",
+    "name": "JAK Deathmarch Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/2c/JAK_Deathmarch_Promo_MWIII.png/revision/latest?cb=20240719142801"
+  },
+  {
+    "id": "jak-cataclysm-gunsmith-mwiii",
+    "name": "JAK Cataclysm Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/c/c6/JAK_Cataclysm_Gunsmith_MWIII.png/revision/latest?cb=20240807154054"
+  },
+  {
+    "id": "blastcap-arrow-gunsmith-mwiii",
+    "name": "Blastcap Arrow Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d3/Blastcap_Arrow_Gunsmith_MWIII.png/revision/latest?cb=20240826021707"
+  },
+  {
+    "id": "blaze-arrow-gunsmith-mwiii",
+    "name": "Blaze Arrow Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/1b/Blaze_Arrow_Gunsmith_MWIII.png/revision/latest?cb=20240826021709"
+  },
+  {
+    "id": "caustic-arrow-gunsmith-mwiii",
+    "name": "Caustic Arrow Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/6c/Caustic_Arrow_Gunsmith_MWIII.png/revision/latest?cb=20240826021710"
+  },
+  {
+    "id": "jak-deathmarch-gunsmith-mwiii",
+    "name": "JAK Deathmarch Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d3/JAK_Deathmarch_Gunsmith_MWIII.png/revision/latest?cb=20240830114451"
+  },
+  {
+    "id": "jak-raven-kit-promo-mwiii",
+    "name": "JAK Raven Kit Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/0/05/JAK_Raven_Kit_Promo_MWIII.jpg/revision/latest?cb=20231123142344"
+  },
+  {
+    "id": "jak-heretic-carbine-kit-promo-mwiii",
+    "name": "JAK Heretic Carbine Kit Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/fe/JAK_Heretic_Carbine_Kit_Promo_MWIII.jpg/revision/latest?cb=20231123143351"
+  },
+  {
+    "id": "jak-ferocity-carbine-kit-promo-mwiii",
+    "name": "JAK Ferocity Carbine Kit Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/e6/JAK_Ferocity_Carbine_Kit_Promo_MWIII.jpg/revision/latest?cb=20231124045823"
+  },
+  {
+    "id": "jak-raven-kit-gunsmith-mwiii",
+    "name": "JAK Raven Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/37/JAK_Raven_Kit_Gunsmith_MWIII.png/revision/latest?cb=20231129085423"
+  },
+  {
+    "id": "jak-nightshade-rifle-kit-gunsmith-mwiii",
+    "name": "JAK Nightshade Rifle Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/f8/JAK_Nightshade_Rifle_Kit_Gunsmith_MWIII.png/revision/latest?cb=20231129090246"
+  },
+  {
+    "id": "jak-headhunter-carbine-conversion-gunsmith-mwiii",
+    "name": "JAK Headhunter Carbine Conversion Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/1a/JAK_Headhunter_Carbine_Conversion_Gunsmith_MWIII.png/revision/latest?cb=20231207125354"
+  },
+  {
+    "id": "jak-signal-burst-gunsmith-mwiii",
+    "name": "JAK Signal Burst Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/20/JAK_Signal_Burst_Gunsmith_MWIII.png/revision/latest?cb=20240111234608"
+  },
+  {
+    "id": "jak-thunder-lmg-kit-model-mwiii",
+    "name": "JAK Thunder LMG Kit Model MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/1a/JAK_Thunder_LMG_Kit_Model_MWIII.png/revision/latest?cb=20240118023500"
+  },
+  {
+    "id": "jak-thunder-lmg-kit-gunsmith-mwiii",
+    "name": "JAK Thunder LMG Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/bf/JAK_Thunder_LMG_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240126161940"
+  },
+  {
+    "id": "jak-limb-ripper-promo-mwiii",
+    "name": "JAK Limb Ripper Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/59/JAK_Limb_Ripper_Promo_MWIII.jpg/revision/latest?cb=20240202155442"
+  },
+  {
+    "id": "jak-limb-ripper-mcw-promo-mwiii",
+    "name": "JAK Limb Ripper MCW Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ee/JAK_Limb_Ripper_MCW_Promo_MWIII.png/revision/latest?cb=20240204023007"
+  },
+  {
+    "id": "jak-maglift-kit-promo-mwiii",
+    "name": "JAK Maglift Kit Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/62/JAK_Maglift_Kit_Promo_MWIII.png/revision/latest?cb=20240204023008"
+  },
+  {
+    "id": "jak-outlaw-277-kit-promo-mwiii",
+    "name": "JAK Outlaw-277 Kit Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/b3/JAK_Outlaw-277_Kit_Promo_MWIII.png/revision/latest?cb=20240204023009"
+  },
+  {
+    "id": "jak-ferocity-carbine-kit-gunsmith-mwiii",
+    "name": "JAK Ferocity Carbine Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/7b/JAK_Ferocity_Carbine_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240531195134"
+  },
+  {
+    "id": "jak-tyrant-762-kit-gunsmith-mwiii",
+    "name": "JAK Tyrant 762 Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/e0/JAK_Tyrant_762_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240308143243"
+  },
+  {
+    "id": "jak-maglift-kit-gunsmith-mwiii",
+    "name": "JAK Maglift Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/4/4d/JAK_Maglift_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240308143414"
+  },
+  {
+    "id": "jak-heretic-carbine-kit-gunsmith-mwiii",
+    "name": "JAK Heretic Carbine Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ee/JAK_Heretic_Carbine_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240308143718"
+  },
+  {
+    "id": "jak-limb-ripper-gunsmith-mwiii",
+    "name": "JAK Limb Ripper Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/fc/JAK_Limb_Ripper_Gunsmith_MWIII.png/revision/latest?cb=20240320022110"
+  },
+  {
+    "id": "jak-glassless-optic-sva-545-mwiii",
+    "name": "JAK Glassless Optic SVA 545 MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/f2/JAK_Glassless_Optic_SVA_545_MWIII.png/revision/latest?cb=20240320023002"
+  },
+  {
+    "id": "jak-glassless-optic-gunsmith-mwiii",
+    "name": "JAK Glassless Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/91/JAK_Glassless_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240331050834"
+  },
+  {
+    "id": "jak-outlaw-277-kit-gunsmith-mwiii",
+    "name": "JAK Outlaw-277 Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/c/c3/JAK_Outlaw-277_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240320215000"
+  },
+  {
+    "id": "jak-revenger-kit-promo-mwiii",
+    "name": "JAK Revenger Kit Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/73/JAK_Revenger_Kit_Promo_MWIII.png/revision/latest?cb=20240402132840"
+  },
+  {
+    "id": "jak-shadow-titan-kit-promo-mwiii",
+    "name": "JAK Shadow Titan Kit Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/56/JAK_Shadow_Titan_Kit_Promo_MWIII.png/revision/latest?cb=20240402133829"
+  },
+  {
+    "id": "jak-shadow-titan-kit-gunsmith-mwiii",
+    "name": "JAK Shadow Titan Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/38/JAK_Shadow_Titan_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240531195255"
+  },
+  {
+    "id": "jak-jawbreaker-gunsmith-mwiii",
+    "name": "JAK Jawbreaker Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/69/JAK_Jawbreaker_Gunsmith_MWIII.png/revision/latest?cb=20240418115707"
+  },
+  {
+    "id": "jak-revenger-kit-gunsmith-mwiii",
+    "name": "JAK Revenger Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/13/JAK_Revenger_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240427023204"
+  },
+  {
+    "id": "jak-patriot-gunsmith-mwiii",
+    "name": "JAK Patriot Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/94/JAK_Patriot_Gunsmith_MWIII.png/revision/latest?cb=20240515160434"
+  },
+  {
+    "id": "jak-requiem-promo-mwiii",
+    "name": "JAK Requiem Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ed/JAK_Requiem_Promo_MWIII.png/revision/latest?cb=20240521123959"
+  },
+  {
+    "id": "jak-scimitar-kit-promo-mwiii",
+    "name": "JAK Scimitar Kit Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/32/JAK_Scimitar_Kit_Promo_MWIII.png/revision/latest?cb=20240521124005"
+  },
+  {
+    "id": "jak-thumper-656-promo-mwiii",
+    "name": "JAK Thumper-656 Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/9b/JAK_Thumper-656_Promo_MWIII.png/revision/latest?cb=20240521124007"
+  },
+  {
+    "id": "jak-wardens-gunsmith-mwiii",
+    "name": "JAK Wardens Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/32/JAK_Wardens_Gunsmith_MWIII.png/revision/latest?cb=20240521142042"
+  },
+  {
+    "id": "jak-harbinger-kit-gunsmith-mwiii",
+    "name": "JAK Harbinger Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/23/JAK_Harbinger_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240530024630"
+  },
+  {
+    "id": "jak-requiem-gunsmith-mwiii",
+    "name": "JAK Requiem Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/0/0d/JAK_Requiem_Gunsmith_MWIII.png/revision/latest?cb=20240608094636"
+  },
+  {
+    "id": "jak-scimitar-kit-gunsmith-mwiii",
+    "name": "JAK Scimitar Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/98/JAK_Scimitar_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240613023723"
+  },
+  {
+    "id": "jak-thumper-656-gunsmith-mwiii",
+    "name": "JAK Thumper-656 Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/fc/JAK_Thumper-656_Gunsmith_MWIII.png/revision/latest?cb=20240621193358"
+  },
+  {
+    "id": "jak-protean-promo-mwiii",
+    "name": "JAK Protean Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d0/JAK_Protean_Promo_MWIII.png/revision/latest?cb=20240719142748"
+  },
+  {
+    "id": "jak-slash-promo-mwiii",
+    "name": "JAK Slash Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/0/03/JAK_Slash_Promo_MWIII.png/revision/latest?cb=20240719142752"
+  },
+  {
+    "id": "jak-widemouth-barrel-gunsmith-mwiii",
+    "name": "JAK Widemouth Barrel Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/bd/JAK_Widemouth_Barrel_Gunsmith_MWIII.png/revision/latest?cb=20240731145941"
+  },
+  {
+    "id": "jak-intimidator-gunsmith-mwiii",
+    "name": "JAK Intimidator Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/0/0b/JAK_Intimidator_Gunsmith_MWIII.png/revision/latest?cb=20240807154005"
+  },
+  {
+    "id": "jak-volkh-kv-inhibitor-gunsmith-mwiii",
+    "name": "JAK Volkh KV Inhibitor Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/60/JAK_Volkh_KV_Inhibitor_Gunsmith_MWIII.png/revision/latest?cb=20240807154020"
+  },
+  {
+    "id": "jak-volkh-kvd-enforcer-gunsmith-mwiii",
+    "name": "JAK Volkh KVD Enforcer Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/5d/JAK_Volkh_KVD_Enforcer_Gunsmith_MWIII.png/revision/latest?cb=20240807154029"
+  },
+  {
+    "id": "jak-gunslinger-gunsmith-mwiii",
+    "name": "JAK Gunslinger Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/75/JAK_Gunslinger_Gunsmith_MWIII.png/revision/latest?cb=20240807154043"
+  },
+  {
+    "id": "jak-protean-gunsmith-mwiii",
+    "name": "JAK Protean Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/dd/JAK_Protean_Gunsmith_MWIII.png/revision/latest?cb=20240814211556"
+  },
+  {
+    "id": "jak-slash-underbarrel-gunsmith-mwiii",
+    "name": "JAK Slash Underbarrel Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/b7/JAK_Slash_Underbarrel_Gunsmith_MWIII.png/revision/latest?cb=20240814211954"
+  },
+  {
+    "id": "jak-voltstorm-promo-mwiii",
+    "name": "JAK Voltstorm Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/53/JAK_Voltstorm_Promo_MWIII.jpg/revision/latest?cb=20240910184703"
+  },
+  {
+    "id": "jak-lance-promo-mwiii",
+    "name": "JAK Lance Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/c/c0/JAK_Lance_Promo_MWIII.jpg/revision/latest?cb=20240910184716"
+  },
+  {
+    "id": "jak-lance-gunsmith-mwiii",
+    "name": "JAK Lance Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d4/JAK_Lance_Gunsmith_MWIII.png/revision/latest?cb=20240926121639"
+  },
+  {
+    "id": "jak-salvo-gunsmith-mwiii",
+    "name": "JAK Salvo Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/b6/JAK_Salvo_Gunsmith_MWIII.png/revision/latest?cb=20240926121800"
+  },
+  {
+    "id": "jak-devastators-gunsmith-mwiii",
+    "name": "JAK Devastators Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/dc/JAK_Devastators_Gunsmith_MWIII.png/revision/latest?cb=20240926121940"
+  },
+  {
+    "id": "jak-voltstorm-gunsmith-mwiii",
+    "name": "JAK Voltstorm Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/95/JAK_Voltstorm_Gunsmith_MWIII.png/revision/latest?cb=20241009204731"
+  },
+  {
+    "id": "wsp-akimbo-brace-stock-promo-mwiii",
+    "name": "WSP Akimbo Brace Stock Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/6c/WSP_Akimbo_Brace_Stock_Promo_MWIII.jpg/revision/latest?cb=20231002231844"
+  },
+  {
+    "id": "xrk-ip-v2-conversion-kit-promo-mwiii",
+    "name": "XRK IP-V2 Conversion Kit Promo MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/22/XRK_IP-V2_Conversion_Kit_Promo_MWIII.jpg/revision/latest?cb=20231124045639"
+  },
+  {
+    "id": "the-ettin-gunsmith-mwiii",
+    "name": "The Ettin Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/fd/The_Ettin_Gunsmith_MWIII.png/revision/latest?cb=20240111234602"
+  },
+  {
+    "id": "slate-reflector-gunsmith-mwiii",
+    "name": "Slate Reflector Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/94/Slate_Reflector_Gunsmith_MWIII.png/revision/latest?cb=20240331051050"
+  },
+  {
+    "id": "tpsincendioreflex-optic-icon-aftermarketparts-mwiii",
+    "name": "TPSIncendioReflex Optic Icon AftermarketParts MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/bf/TPSIncendioReflex_Optic_Icon_AftermarketParts_MWIII.png/revision/latest?cb=20240928203430"
+  },
+  {
+    "id": "mcw-6-8-full-auto-conversion-gunsmith-mwiii",
+    "name": "MCW 6.8 Full-Auto Conversion Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/f1/MCW_6.8_Full-Auto_Conversion_Gunsmith_MWIII.png/revision/latest?cb=20240307000644"
+  },
+  {
+    "id": "kr-intlas-lsj-3-pulemyot-762-mwiii",
+    "name": "KR Intlas LSJ-3 Pulemyot 762 MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/9b/KR_Intlas_LSJ-3_Pulemyot_762_MWIII.jpg/revision/latest?cb=20240308113113"
+  },
+  {
+    "id": "xrk-ip-v2-conversion-kit-gunsmith-mwiii",
+    "name": "XRK IP-V2 Conversion Kit Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/f2/XRK_IP-V2_Conversion_Kit_Gunsmith_MWIII.png/revision/latest?cb=20240531195200"
+  },
+  {
+    "id": "wsp-akimbo-brace-stock-gunsmith-mwiii",
+    "name": "WSP Akimbo Brace Stock Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/21/WSP_Akimbo_Brace_Stock_Gunsmith_MWIII.png/revision/latest?cb=20240531195225"
+  },
+  {
+    "id": "ttl-gs-40-gunsmith-mwiii",
+    "name": "TTL-GS 40 Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/8/8e/TTL-GS_40_Gunsmith_MWIII.png/revision/latest?cb=20240320015551"
+  },
+  {
+    "id": "tps-incendio-reflex-gunsmith-mwiii",
+    "name": "TPS Incendio Reflex Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/1/15/TPS_Incendio_Reflex_Gunsmith_MWIII.png/revision/latest?cb=20240331050942"
+  },
+  {
+    "id": "tps-incendio-reflex-ads-mwiii",
+    "name": "TPS Incendio Reflex ADS MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/7e/TPS_Incendio_Reflex_ADS_MWIII.png/revision/latest?cb=20240320020301"
+  },
+  {
+    "id": "tl40-fire-drake-gunsmith-mwii",
+    "name": "TL40 Fire Drake Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/a/a8/TL40_Fire_Drake_Gunsmith_MWII.png/revision/latest?cb=20240320020532"
+  },
+  {
+    "id": "kl40-m2-gunsmith-mwii",
+    "name": "KL40-M2 Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/4/41/KL40-M2_Gunsmith_MWII.png/revision/latest?cb=20240320023815"
+  },
+  {
+    "id": "kr-intlas-lsj-3-optic-gunsmith-mwiii",
+    "name": "KR Intlas LSJ-3 Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/22/KR_Intlas_LSJ-3_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240331051350"
+  },
+  {
+    "id": "xten-intlas-as-7-optic-gunsmith-mwiii",
+    "name": "XTEN Intlas AS-7 Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/f3/XTEN_Intlas_AS-7_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240418031909"
+  },
+  {
+    "id": "xten-intlas-as-7-ads-mwiii",
+    "name": "XTEN Intlas AS-7 ADS MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/23/XTEN_Intlas_AS-7_ADS_MWIII.png/revision/latest?cb=20240418032147"
+  },
+  {
+    "id": "kr-minitac-40-riser-gunsmith-mwiii",
+    "name": "KR Minitac-40 Riser Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/74/KR_Minitac-40_Riser_Gunsmith_MWIII.png/revision/latest?cb=20240610022914"
+  },
+  {
+    "id": "kr-minitac-40-riser-ads-mwiii",
+    "name": "KR Minitac-40 Riser ADS MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/20/KR_Minitac-40_Riser_ADS_MWIII.png/revision/latest?cb=20240527131313"
+  },
+  {
+    "id": "mors-dot-sight-gunsmith-mwiii",
+    "name": "MORS Dot Sight Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/98/MORS_Dot_Sight_Gunsmith_MWIII.png/revision/latest?cb=20240528230118"
+  },
+  {
+    "id": "slimline-pro-gunsmith-mwii",
+    "name": "Slimline Pro Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/b3/Slimline_Pro_Gunsmith_MWII.png/revision/latest?cb=20240528230119"
+  },
+  {
+    "id": "sz-mini-gunsmith-mwii",
+    "name": "SZ Mini Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/b4/SZ_Mini_Gunsmith_MWII.png/revision/latest?cb=20240528230120"
+  },
+  {
+    "id": "xten-erx-10-mini-gunsmith-mwiii",
+    "name": "XTEN ERX-10 Mini Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ec/XTEN_ERX-10_Mini_Gunsmith_MWIII.png/revision/latest?cb=20240528230122"
+  },
+  {
+    "id": "sz-minitac-40-gunsmith-mwii",
+    "name": "SZ Minitac-40 Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/e8/SZ_Minitac-40_Gunsmith_MWII.png/revision/latest?cb=20240528233110"
+  },
+  {
+    "id": "sz-sigma-iv-optic-gunsmith-mwii",
+    "name": "SZ Sigma-IV Optic Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d0/SZ_Sigma-IV_Optic_Gunsmith_MWII.png/revision/latest?cb=20240528233114"
+  },
+  {
+    "id": "qtg-reflex-sight-gunsmith-mwiii",
+    "name": "QTG Reflex Sight Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/79/QTG_Reflex_Sight_Gunsmith_MWIII.png/revision/latest?cb=20240529043020"
+  },
+  {
+    "id": "mortar-50-short-barrel-gunsmith-mwiii",
+    "name": "Mortar 50 Short Barrel Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/28/Mortar_50_Short_Barrel_Gunsmith_MWIII.png/revision/latest?cb=20240602061808"
+  },
+  {
+    "id": "kastov-545-jak-requiem-mwiii",
+    "name": "Kastov 545 JAK Requiem MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/dd/Kastov_545_JAK_Requiem_MWIII.png/revision/latest?cb=20240608094646"
+  },
+  {
+    "id": "kr-marauder-9-riser-gunsmith-mwiii",
+    "name": "KR Marauder 9 Riser Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/e1/KR_Marauder_9_Riser_Gunsmith_MWIII.png/revision/latest?cb=20240615025138"
+  },
+  {
+    "id": "sl-truesight-2-5x-gunsmith-mwiii",
+    "name": "SL Truesight 2.5x Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/5c/SL_Truesight_2.5x_Gunsmith_MWIII.png/revision/latest?cb=20240615025140"
+  },
+  {
+    "id": "tos-nightfall-2-5x-thermal-optic-gunsmith-mwiii",
+    "name": "TOS Nightfall 2.5x Thermal Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/66/TOS_Nightfall_2.5x_Thermal_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240615025142"
+  },
+  {
+    "id": "tx4-havoc-gunsmith-mwiii",
+    "name": "TX4 Havoc Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/8/84/TX4_Havoc_Gunsmith_MWIII.png/revision/latest?cb=20240615025150"
+  },
+  {
+    "id": "sz-hm5-precision-hybrid-optic-gunsmith-mwiii",
+    "name": "SZ HM5 Precision Hybrid Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/7e/SZ_HM5_Precision_Hybrid_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240615030852"
+  },
+  {
+    "id": "lachmann-impact-9-gunsmith-mwii",
+    "name": "Lachmann Impact 9 Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/31/Lachmann_Impact_9_Gunsmith_MWII.png/revision/latest?cb=20240626133205"
+  },
+  {
+    "id": "luca-field-6-gunsmith-mwii",
+    "name": "Luca Field-6 Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/b/b9/Luca_Field-6_Gunsmith_MWII.png/revision/latest?cb=20240626133213"
+  },
+  {
+    "id": "sightmax-clear-shot-gunsmith-mwii",
+    "name": "Sightmax Clear Shot Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d3/Sightmax_Clear_Shot_Gunsmith_MWII.png/revision/latest?cb=20240626133216"
+  },
+  {
+    "id": "sp-x-80-6-6x-gunsmith-mwii",
+    "name": "SP-X 80 6.6x Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/5/52/SP-X_80_6.6x_Gunsmith_MWII.png/revision/latest?cb=20240626133223"
+  },
+  {
+    "id": "sz-heatsource-800-gunsmith-mwii",
+    "name": "SZ Heatsource 800 Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/f/f2/SZ_Heatsource_800_Gunsmith_MWII.png/revision/latest?cb=20240626133231"
+  },
+  {
+    "id": "sz-ultra-11-5x-gunsmith-mwii",
+    "name": "SZ Ultra 11.5x Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/6b/SZ_Ultra_11.5x_Gunsmith_MWII.png/revision/latest?cb=20240626133238"
+  },
+  {
+    "id": "journeyman-32-scope-gunsmith-mwiii",
+    "name": "Journeyman-32 Scope Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/a/a9/Journeyman-32_Scope_Gunsmith_MWIII.png/revision/latest?cb=20240703024019"
+  },
+  {
+    "id": "mors-hexer-optic-gunsmith-mwiii",
+    "name": "MORS Hexer Optic Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/9/92/MORS_Hexer_Optic_Gunsmith_MWIII.png/revision/latest?cb=20240703024027"
+  },
+  {
+    "id": "kr-katt-50-8x-scope-gunsmith-mwiii",
+    "name": "KR KATT-50 8x Scope Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/e/ed/KR_KATT-50_8x_Scope_Gunsmith_MWIII.png/revision/latest?cb=20240703024205"
+  },
+  {
+    "id": "mcpr-300-9-5x-gunsmith-mwii",
+    "name": "MCPR-300 9.5x Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/3/38/MCPR-300_9.5x_Gunsmith_MWII.png/revision/latest?cb=20240703024356"
+  },
+  {
+    "id": "raptor-fvm40-gunsmith-mwii",
+    "name": "Raptor-FVM40 Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/6/6e/Raptor-FVM40_Gunsmith_MWII.png/revision/latest?cb=20240703024358"
+  },
+  {
+    "id": "signal-50-8x-gunsmith-mwii",
+    "name": "Signal 50 8x Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/a/a8/Signal_50_8x_Gunsmith_MWII.png/revision/latest?cb=20240703024405"
+  },
+  {
+    "id": "victus-13x-gunsmith-mwii",
+    "name": "Victus 13x Gunsmith MWII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/7/70/Victus_13x_Gunsmith_MWII.png/revision/latest?cb=20240703024647"
+  },
+  {
+    "id": "jak-widemouth-barrel-promo-mwiii",
+    "name": "JAK Widemouth Barrel Promo MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/c/c0/JAK_Widemouth_Barrel_Promo_MWIII.png/revision/latest?cb=20240719142755"
+  },
+  {
+    "id": "ripper-arrows-gunsmith-mwiii",
+    "name": "Ripper Arrows Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/4/40/Ripper_Arrows_Gunsmith_MWIII.png/revision/latest?cb=20240826021711"
+  },
+  {
+    "id": "snapshot-arrow-gunsmith-mwiii",
+    "name": "Snapshot Arrow Gunsmith MWIII",
+    "mime": "image/png",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/d/d3/Snapshot_Arrow_Gunsmith_MWIII.png/revision/latest?cb=20240826021712"
+  },
+  {
+    "id": "jakferocitycarbinekit-conceptart-mwiii",
+    "name": "JAKFerocityCarbineKit ConceptArt MWIII",
+    "mime": "image/jpeg",
+    "url": "https://static.wikia.nocookie.net/callofduty/images/2/2e/JAKFerocityCarbineKit_ConceptArt_MWIII.jpg/revision/latest?cb=20251030184729"
+  }
+]

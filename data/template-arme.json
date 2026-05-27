@@ -1,0 +1,15 @@
+{
+  "id": "lowercase-weapon-name",
+  "name": "Nom de l'Arme",
+  "category": "Assault Rifle",
+  "meta_score": 0,
+  "attachments": {
+    "muzzle": "nom-de-l-accessoire",
+    "barrel": "nom-de-l-accessoire",
+    "optic": "nom-de-l-accessoire",
+    "stock": "nom-de-l-accessoire",
+    "underbarrel": "nom-de-l-accessoire"
+  },
+  "last_updated": "2026-05-01",
+  "description": "Short explanation of why this weapon is meta."
+}

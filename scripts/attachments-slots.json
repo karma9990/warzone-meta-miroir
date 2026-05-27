@@ -1,0 +1,1118 @@
+[
+  {
+    "slot": "Muzzle",
+    "name": "Purifier Muzzle Brake",
+    "game": "mw3",
+    "uid": 1
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Shadowstrike Suppressor",
+    "game": "mw3",
+    "uid": 2
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Bruen Pendulum",
+    "game": "mw3",
+    "uid": 3
+  },
+  {
+    "slot": "Muzzle",
+    "name": "FTAC Castle Comp",
+    "game": "mw3",
+    "uid": 4
+  },
+  {
+    "slot": "Muzzle",
+    "name": "ZEHMN35 Compensated Flash Hider",
+    "game": "mw3",
+    "uid": 5
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Monolithic Suppressor",
+    "game": "mw3",
+    "uid": 6
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Harbinger D20",
+    "game": "mw3",
+    "uid": 7
+  },
+  {
+    "slot": "Muzzle",
+    "name": "ZLR Talon 5",
+    "game": "mw3",
+    "uid": 8
+  },
+  {
+    "slot": "Muzzle",
+    "name": "SAKIN TREAD-40",
+    "game": "mw3",
+    "uid": 9
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Sonic Suppressor S",
+    "game": "mw3",
+    "uid": 10
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Sonic Suppressor M",
+    "game": "mw3",
+    "uid": 11
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Sonic Suppressor L",
+    "game": "mw3",
+    "uid": 12
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Kastovia DX90",
+    "game": "mw3",
+    "uid": 13
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Nilsound 90",
+    "game": "mw3",
+    "uid": 14
+  },
+  {
+    "slot": "Muzzle",
+    "name": "VT-7 Spitfire Suppressor",
+    "game": "mw3",
+    "uid": 15
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Polar Fire-S",
+    "game": "mw3",
+    "uid": 16
+  },
+  {
+    "slot": "Muzzle",
+    "name": "XTEN Ported 290",
+    "game": "mw3",
+    "uid": 17
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Bruen Flash Hider",
+    "game": "mw3",
+    "uid": 18
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Echoless-80",
+    "game": "mw3",
+    "uid": 19
+  },
+  {
+    "slot": "Muzzle",
+    "name": "WP 5 Suppressor",
+    "game": "mw3",
+    "uid": 20
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Bore-490",
+    "game": "mw3",
+    "uid": 21
+  },
+  {
+    "slot": "Muzzle",
+    "name": "DEMO-X2 Choke",
+    "game": "mw3",
+    "uid": 22
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Cronen Choke",
+    "game": "mw3",
+    "uid": 23
+  },
+  {
+    "slot": "Muzzle",
+    "name": "XRK Breacher Device",
+    "game": "mw3",
+    "uid": 24
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Cronen Flash Hider 76",
+    "game": "mw3",
+    "uid": 25
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Monolithic Suppressor",
+    "game": "bo6",
+    "uid": 26
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Compensator",
+    "game": "bo6",
+    "uid": 27
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Muzzle Brake",
+    "game": "bo6",
+    "uid": 28
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Flash Hider",
+    "game": "bo6",
+    "uid": 29
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Suppressor",
+    "game": "bo6",
+    "uid": 30
+  },
+  {
+    "slot": "Muzzle",
+    "name": "Extended Barrel",
+    "game": "bo6",
+    "uid": 31
+  },
+  {
+    "slot": "Muzzle",
+    "name": "SHADOWSTRIKE SUPPRESSOR",
+    "game": "bo6",
+    "uid": 32
+  },
+  {
+    "slot": "Muzzle",
+    "name": "PORTED COMPENSATOR",
+    "game": "bo6",
+    "uid": 33
+  },
+  {
+    "slot": "Muzzle",
+    "name": "MONOLITHIC SUPPRESSOR",
+    "game": "bo7",
+    "uid": 34
+  },
+  {
+    "slot": "Muzzle",
+    "name": "PORTED FLASH HIDER",
+    "game": "bo7",
+    "uid": 35
+  },
+  {
+    "slot": "Muzzle",
+    "name": "SHADOW TITAN SUPPRESSOR",
+    "game": "bo7",
+    "uid": 36
+  },
+  {
+    "slot": "Barrel",
+    "name": "16.5\" MCW Cyclone Long Barrel",
+    "game": "mw3",
+    "uid": 37
+  },
+  {
+    "slot": "Barrel",
+    "name": "14\" MCW Cyclone Barrel",
+    "game": "mw3",
+    "uid": 38
+  },
+  {
+    "slot": "Barrel",
+    "name": "10\" MCW Cyclone Short Barrel",
+    "game": "mw3",
+    "uid": 39
+  },
+  {
+    "slot": "Barrel",
+    "name": "HRM Aggressor Barrel",
+    "game": "mw3",
+    "uid": 40
+  },
+  {
+    "slot": "Barrel",
+    "name": "HRM Long Barrel",
+    "game": "mw3",
+    "uid": 41
+  },
+  {
+    "slot": "Barrel",
+    "name": "HRM Contour Barrel",
+    "game": "mw3",
+    "uid": 42
+  },
+  {
+    "slot": "Barrel",
+    "name": "MTZ Drifter Barrel",
+    "game": "mw3",
+    "uid": 43
+  },
+  {
+    "slot": "Barrel",
+    "name": "MTZ Precision Barrel",
+    "game": "mw3",
+    "uid": 44
+  },
+  {
+    "slot": "Barrel",
+    "name": "BAS-B Heavy Barrel",
+    "game": "mw3",
+    "uid": 45
+  },
+  {
+    "slot": "Barrel",
+    "name": "BAS-B Stockless Barrel",
+    "game": "mw3",
+    "uid": 46
+  },
+  {
+    "slot": "Barrel",
+    "name": "Holger 26 Factory Barrel",
+    "game": "mw3",
+    "uid": 47
+  },
+  {
+    "slot": "Barrel",
+    "name": "Riveter Heavy Barrel",
+    "game": "mw3",
+    "uid": 48
+  },
+  {
+    "slot": "Barrel",
+    "name": "FR Avancer Barrel",
+    "game": "mw3",
+    "uid": 49
+  },
+  {
+    "slot": "Barrel",
+    "name": "Bruen Venom Long Barrel",
+    "game": "mw3",
+    "uid": 50
+  },
+  {
+    "slot": "Barrel",
+    "name": "DM56 Barrel",
+    "game": "mw3",
+    "uid": 51
+  },
+  {
+    "slot": "Barrel",
+    "name": "Kastov-74u Short Barrel",
+    "game": "mw3",
+    "uid": 52
+  },
+  {
+    "slot": "Barrel",
+    "name": "Tempus P20 Precision Barrel",
+    "game": "mw3",
+    "uid": 53
+  },
+  {
+    "slot": "Barrel",
+    "name": "KATT 350mm Verdant",
+    "game": "mw3",
+    "uid": 54
+  },
+  {
+    "slot": "Barrel",
+    "name": "17.1\" ABDICATOR BARREL",
+    "game": "bo7",
+    "uid": 55
+  },
+  {
+    "slot": "Barrel",
+    "name": "14.9\" ABDICATOR BARREL",
+    "game": "bo7",
+    "uid": 56
+  },
+  {
+    "slot": "Barrel",
+    "name": "20\" ABDICATOR BARREL",
+    "game": "bo7",
+    "uid": 57
+  },
+  {
+    "slot": "Optic",
+    "name": "Slate 2.5x Custom",
+    "game": "mw3",
+    "uid": 58
+  },
+  {
+    "slot": "Optic",
+    "name": "Slate Reflector",
+    "game": "mw3",
+    "uid": 59
+  },
+  {
+    "slot": "Optic",
+    "name": "Corvus Sol-76",
+    "game": "mw3",
+    "uid": 60
+  },
+  {
+    "slot": "Optic",
+    "name": "MK.23 Reflector",
+    "game": "mw3",
+    "uid": 61
+  },
+  {
+    "slot": "Optic",
+    "name": "JAK Glassless Optic",
+    "game": "mw3",
+    "uid": 62
+  },
+  {
+    "slot": "Optic",
+    "name": "SZ Recon",
+    "game": "mw3",
+    "uid": 63
+  },
+  {
+    "slot": "Optic",
+    "name": "Cronen 2x",
+    "game": "mw3",
+    "uid": 64
+  },
+  {
+    "slot": "Optic",
+    "name": "Aim-Op Reflex Sight",
+    "game": "mw3",
+    "uid": 65
+  },
+  {
+    "slot": "Optic",
+    "name": "Corio Eagleseye 2.5x",
+    "game": "mw3",
+    "uid": 66
+  },
+  {
+    "slot": "Optic",
+    "name": "SP-X 80 6.6x",
+    "game": "mw3",
+    "uid": 67
+  },
+  {
+    "slot": "Optic",
+    "name": "SZ Mini",
+    "game": "mw3",
+    "uid": 68
+  },
+  {
+    "slot": "Optic",
+    "name": "Tac Delta 4",
+    "game": "mw3",
+    "uid": 69
+  },
+  {
+    "slot": "Optic",
+    "name": "Monocle Reflector",
+    "game": "mw3",
+    "uid": 70
+  },
+  {
+    "slot": "Optic",
+    "name": "VLK 4.0 Optic",
+    "game": "mw3",
+    "uid": 71
+  },
+  {
+    "slot": "Optic",
+    "name": "SZ Holotherm",
+    "game": "mw3",
+    "uid": 72
+  },
+  {
+    "slot": "Optic",
+    "name": "MK 3 Reflector",
+    "game": "mw3",
+    "uid": 73
+  },
+  {
+    "slot": "Optic",
+    "name": "SZ Vortex-90",
+    "game": "mw3",
+    "uid": 74
+  },
+  {
+    "slot": "Optic",
+    "name": "Cronen Chasm Pro 4x",
+    "game": "mw3",
+    "uid": 75
+  },
+  {
+    "slot": "Optic",
+    "name": "Corio Eagleseye 2.5x",
+    "game": "mw3",
+    "uid": 76
+  },
+  {
+    "slot": "Optic",
+    "name": "SZ Reaper-56",
+    "game": "mw3",
+    "uid": 77
+  },
+  {
+    "slot": "Optic",
+    "name": "Kairos Sight",
+    "game": "mw3",
+    "uid": 78
+  },
+  {
+    "slot": "Optic",
+    "name": "4.0x Magnification",
+    "game": "bo6",
+    "uid": 79
+  },
+  {
+    "slot": "Optic",
+    "name": "2.0x Magnification",
+    "game": "bo6",
+    "uid": 80
+  },
+  {
+    "slot": "Optic",
+    "name": "Iron Sights",
+    "game": "bo6",
+    "uid": 81
+  },
+  {
+    "slot": "Optic",
+    "name": "Recon Sight",
+    "game": "bo6",
+    "uid": 82
+  },
+  {
+    "slot": "Optic",
+    "name": "FANG HOVERPOINT ELO",
+    "game": "bo7",
+    "uid": 83
+  },
+  {
+    "slot": "Optic",
+    "name": "CRONEN 2.5X",
+    "game": "bo7",
+    "uid": 84
+  },
+  {
+    "slot": "Optic",
+    "name": "HOLLOWPOINT 4X",
+    "game": "bo7",
+    "uid": 85
+  },
+  {
+    "slot": "Optic",
+    "name": "RAZE MICRO",
+    "game": "bo7",
+    "uid": 86
+  },
+  {
+    "slot": "Optic",
+    "name": "RAZOR HYB 3-5X THERMAL",
+    "game": "bo7",
+    "uid": 87
+  },
+  {
+    "slot": "Stock",
+    "name": "RB Regal Assault Stock",
+    "game": "mw3",
+    "uid": 88
+  },
+  {
+    "slot": "Stock",
+    "name": "CQB Stock",
+    "game": "mw3",
+    "uid": 89
+  },
+  {
+    "slot": "Stock",
+    "name": "Demo Fade Pro Stock",
+    "game": "mw3",
+    "uid": 90
+  },
+  {
+    "slot": "Stock",
+    "name": "MTZ Marauder Stock",
+    "game": "mw3",
+    "uid": 91
+  },
+  {
+    "slot": "Stock",
+    "name": "No Stock",
+    "game": "mw3",
+    "uid": 92
+  },
+  {
+    "slot": "Stock",
+    "name": "Bruen Flash V4 Stock",
+    "game": "mw3",
+    "uid": 93
+  },
+  {
+    "slot": "Stock",
+    "name": "Ravage-8 Stock",
+    "game": "mw3",
+    "uid": 94
+  },
+  {
+    "slot": "Stock",
+    "name": "Cronen Smooth Bone Stock",
+    "game": "mw3",
+    "uid": 95
+  },
+  {
+    "slot": "Stock",
+    "name": "Striker Elite Stock",
+    "game": "mw3",
+    "uid": 96
+  },
+  {
+    "slot": "Stock",
+    "name": "Bruen Pivot Stock",
+    "game": "mw3",
+    "uid": 97
+  },
+  {
+    "slot": "Stock",
+    "name": "MCW CQB Stock",
+    "game": "mw3",
+    "uid": 98
+  },
+  {
+    "slot": "Stock",
+    "name": "HRM Infiltrator Stock",
+    "game": "mw3",
+    "uid": 99
+  },
+  {
+    "slot": "Stock",
+    "name": "MTZ Aggressor Stock",
+    "game": "mw3",
+    "uid": 100
+  },
+  {
+    "slot": "Stock",
+    "name": "Folded Stock",
+    "game": "mw3",
+    "uid": 101
+  },
+  {
+    "slot": "Stock",
+    "name": "No Stock",
+    "game": "bo6",
+    "uid": 102
+  },
+  {
+    "slot": "Stock",
+    "name": "WEIGHTED STOCK",
+    "game": "bo7",
+    "uid": 103
+  },
+  {
+    "slot": "Stock",
+    "name": "RECOIL REDUCING STOCK PAD",
+    "game": "bo7",
+    "uid": 104
+  },
+  {
+    "slot": "Stock",
+    "name": "NO STOCK",
+    "game": "bo7",
+    "uid": 105
+  },
+  {
+    "slot": "Stock",
+    "name": "LIGHT ASSAULT STOCK",
+    "game": "bo7",
+    "uid": 106
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "D15 Grip",
+    "game": "mw3",
+    "uid": 107
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "Sakin ZX Grip",
+    "game": "mw3",
+    "uid": 108
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "Bruen Q900 Grip",
+    "game": "mw3",
+    "uid": 109
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "Schlager Soldier Grip",
+    "game": "mw3",
+    "uid": 110
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "Bruen Flash Grip",
+    "game": "mw3",
+    "uid": 111
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "Cronen Lima-6 Grip Tape",
+    "game": "mw3",
+    "uid": 112
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "Xten Grip",
+    "game": "mw3",
+    "uid": 113
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "Komodo Recoil Grip",
+    "game": "mw3",
+    "uid": 114
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "MTZ Aggressor Rear Grip",
+    "game": "mw3",
+    "uid": 115
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "HRM Raptor-90 Grip",
+    "game": "mw3",
+    "uid": 116
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "BAS-B Bruen Grip Tape",
+    "game": "mw3",
+    "uid": 117
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "COMBAT GRIP",
+    "game": "bo7",
+    "uid": 118
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "ERGONOMIC GRIP",
+    "game": "bo7",
+    "uid": 119
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "QUICKDRAW GRIP",
+    "game": "bo7",
+    "uid": 120
+  },
+  {
+    "slot": "Rear Grip",
+    "name": "RUBBERIZED GRIP TAPE",
+    "game": "bo7",
+    "uid": 121
+  },
+  {
+    "slot": "Magazine",
+    "name": "30 Round Mag",
+    "game": "mw3",
+    "uid": 122
+  },
+  {
+    "slot": "Magazine",
+    "name": "40 Round Mag",
+    "game": "mw3",
+    "uid": 123
+  },
+  {
+    "slot": "Magazine",
+    "name": "45 Round Mag",
+    "game": "mw3",
+    "uid": 124
+  },
+  {
+    "slot": "Magazine",
+    "name": "50 Round Mag",
+    "game": "mw3",
+    "uid": 125
+  },
+  {
+    "slot": "Magazine",
+    "name": "60 Round Mag",
+    "game": "mw3",
+    "uid": 126
+  },
+  {
+    "slot": "Magazine",
+    "name": "100 Round Drum",
+    "game": "mw3",
+    "uid": 127
+  },
+  {
+    "slot": "Magazine",
+    "name": "25 Round Mag",
+    "game": "mw3",
+    "uid": 128
+  },
+  {
+    "slot": "Magazine",
+    "name": "20 Round Mag",
+    "game": "mw3",
+    "uid": 129
+  },
+  {
+    "slot": "Magazine",
+    "name": "35 Round Mag",
+    "game": "mw3",
+    "uid": 130
+  },
+  {
+    "slot": "Magazine",
+    "name": "45 Round Drum",
+    "game": "mw3",
+    "uid": 131
+  },
+  {
+    "slot": "Magazine",
+    "name": "50 Round Drum",
+    "game": "mw3",
+    "uid": 132
+  },
+  {
+    "slot": "Magazine",
+    "name": "9mm 50 Round Drum",
+    "game": "mw3",
+    "uid": 133
+  },
+  {
+    "slot": "Magazine",
+    "name": "9mm 40 Round Mag",
+    "game": "mw3",
+    "uid": 134
+  },
+  {
+    "slot": "Magazine",
+    "name": "5.56 NATO 60-Round Mag",
+    "game": "mw3",
+    "uid": 135
+  },
+  {
+    "slot": "Magazine",
+    "name": "32 Round Mag",
+    "game": "bo6",
+    "uid": 136
+  },
+  {
+    "slot": "Magazine",
+    "name": "48 Round Mag",
+    "game": "bo6",
+    "uid": 137
+  },
+  {
+    "slot": "Magazine",
+    "name": "GRIFFON RESERVE EXTENDED 2",
+    "game": "bo7",
+    "uid": 138
+  },
+  {
+    "slot": "Magazine",
+    "name": "GRIFFON RESERVE EXTENDED 3",
+    "game": "bo7",
+    "uid": 139
+  },
+  {
+    "slot": "Magazine",
+    "name": "STANDARD MAG",
+    "game": "bo7",
+    "uid": 140
+  },
+  {
+    "slot": "Magazine",
+    "name": "FAST MAG I",
+    "game": "bo7",
+    "uid": 141
+  },
+  {
+    "slot": "Magazine",
+    "name": "FAST MAG II",
+    "game": "bo7",
+    "uid": 142
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "VX Pineapple",
+    "game": "mw3",
+    "uid": 143
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "Kimura RYN-03",
+    "game": "mw3",
+    "uid": 144
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "XTEN Phantom-5",
+    "game": "mw3",
+    "uid": 145
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "Merc Foregrip",
+    "game": "mw3",
+    "uid": 146
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "DR-6 Handstop",
+    "game": "mw3",
+    "uid": 147
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "Parabellum Grip Pod",
+    "game": "mw3",
+    "uid": 148
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "FTAC Ripper 56",
+    "game": "mw3",
+    "uid": 149
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "SL Skeletal Vertical",
+    "game": "mw3",
+    "uid": 150
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "Operator Foregrip",
+    "game": "mw3",
+    "uid": 151
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "XTEN Sidegrip",
+    "game": "mw3",
+    "uid": 152
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "Bruen Pivot Vertical Grip",
+    "game": "mw3",
+    "uid": 153
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "Phase-3 Grip",
+    "game": "mw3",
+    "uid": 154
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "SA ZX Grip",
+    "game": "mw3",
+    "uid": 155
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "Chewk Angled Grip",
+    "game": "mw3",
+    "uid": 156
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "VERTICAL FOREGRIP",
+    "game": "bo6",
+    "uid": 157
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "RANGER FOREGRIP",
+    "game": "bo6",
+    "uid": 158
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "FIELD AGENT GRIP",
+    "game": "bo6",
+    "uid": 159
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "BRUISER GRIP",
+    "game": "bo7",
+    "uid": 160
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "FIELD AGENT GRIP",
+    "game": "bo7",
+    "uid": 161
+  },
+  {
+    "slot": "Underbarrel",
+    "name": "VERTICAL FOREGRIP",
+    "game": "bo7",
+    "uid": 162
+  },
+  {
+    "slot": "Laser",
+    "name": "FSS OLE-V Laser",
+    "game": "mw3",
+    "uid": 163
+  },
+  {
+    "slot": "Laser",
+    "name": "SCHLAGER ULO-66 Laser",
+    "game": "mw3",
+    "uid": 164
+  },
+  {
+    "slot": "Laser",
+    "name": "VLK LZR 7MW",
+    "game": "mw3",
+    "uid": 165
+  },
+  {
+    "slot": "Laser",
+    "name": "CORIO LAZ-44 V3",
+    "game": "mw3",
+    "uid": 166
+  },
+  {
+    "slot": "Laser",
+    "name": "Accu-Shot 5MW Laser",
+    "game": "mw3",
+    "uid": 167
+  },
+  {
+    "slot": "Laser",
+    "name": "1MW Laser Diode",
+    "game": "mw3",
+    "uid": 168
+  },
+  {
+    "slot": "Laser",
+    "name": "Schlager PEQ Box IV",
+    "game": "mw3",
+    "uid": 169
+  },
+  {
+    "slot": "Laser",
+    "name": "Point-G3P 04",
+    "game": "mw3",
+    "uid": 170
+  },
+  {
+    "slot": "Laser",
+    "name": "Kimura RYN-03 Laser",
+    "game": "mw3",
+    "uid": 171
+  },
+  {
+    "slot": "Laser",
+    "name": "STOVL Tac Laser",
+    "game": "mw3",
+    "uid": 172
+  },
+  {
+    "slot": "Laser",
+    "name": "Hollow Point Laser",
+    "game": "bo6",
+    "uid": 173
+  },
+  {
+    "slot": "Laser",
+    "name": "STRELOK LASER",
+    "game": "bo7",
+    "uid": 174
+  },
+  {
+    "slot": "Laser",
+    "name": "VERDANT LASER",
+    "game": "bo7",
+    "uid": 175
+  },
+  {
+    "slot": "Comb",
+    "name": "Ravage-8 Hollow",
+    "game": "mw3",
+    "uid": 176
+  },
+  {
+    "slot": "Comb",
+    "name": "Bruen Q900 Comb",
+    "game": "mw3",
+    "uid": 177
+  },
+  {
+    "slot": "Comb",
+    "name": "Infiltrator Comb",
+    "game": "mw3",
+    "uid": 178
+  },
+  {
+    "slot": "Comb",
+    "name": "Demo Comb 1",
+    "game": "mw3",
+    "uid": 179
+  },
+  {
+    "slot": "Comb",
+    "name": "MTZ Marauder Comb",
+    "game": "mw3",
+    "uid": 180
+  },
+  {
+    "slot": "Comb",
+    "name": "HRM Contour Comb",
+    "game": "mw3",
+    "uid": 181
+  },
+  {
+    "slot": "Guard",
+    "name": "FTAC Coldforge Guard",
+    "game": "mw3",
+    "uid": 182
+  },
+  {
+    "slot": "Guard",
+    "name": "XRK IP-V2 Handguard",
+    "game": "mw3",
+    "uid": 183
+  },
+  {
+    "slot": "Guard",
+    "name": "Bruen Flash Guard",
+    "game": "mw3",
+    "uid": 184
+  },
+  {
+    "slot": "Guard",
+    "name": "MTZ Ambush Guard",
+    "game": "mw3",
+    "uid": 185
+  },
+  {
+    "slot": "Guard",
+    "name": "HRM Precision Guard",
+    "game": "mw3",
+    "uid": 186
+  }
+]

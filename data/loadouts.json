@@ -1,0 +1,285 @@
+[
+  {
+    "id": "2",
+    "weapon": "Kogot-7",
+    "weaponId": "kogot-7",
+    "category": "SMG",
+    "tier": "S",
+    "playstyle": "Close-Range",
+    "attachments": [
+      {
+        "slot": "Muzzle",
+        "name": "Hawker-9"
+      },
+      {
+        "slot": "Barrel",
+        "name": "Canis-05 Barrel 13.5\""
+      },
+      {
+        "slot": "Underbarrel",
+        "name": "Vas Convergence Foregrip"
+      },
+      {
+        "slot": "Magazine",
+        "name": "Vex Expanse Mag"
+      },
+      {
+        "slot": "Stock",
+        "name": "Cinder Stock"
+      }
+    ],
+    "stats": {
+      "damage": 84,
+      "range": 68,
+      "mobility": 96,
+      "control": 84
+    },
+    "notes": "",
+    "updatedAt": "2026-05-25"
+  },
+  {
+    "id": "1777660094808",
+    "weapon": "DS20 Mirage",
+    "weaponId": "ds20-mirage",
+    "category": "Assault Rifle",
+    "tier": "S",
+    "playstyle": "Mid-Range",
+    "attachments": [
+      {
+        "slot": "Optic",
+        "name": "FANG HOVERPOINT ELO"
+      },
+      {
+        "slot": "Muzzle",
+        "name": "Monolithic Suppressor"
+      },
+      {
+        "slot": "Barrel",
+        "name": "17.1\" ABDICATOR BARREL"
+      },
+      {
+        "slot": "Magazine",
+        "name": "GRIFFON RESERVE EXTENDED 2"
+      },
+      {
+        "slot": "Stock",
+        "name": "WEIGHTED STOCK"
+      }
+    ],
+    "stats": {
+      "damage": 80,
+      "range": 80,
+      "mobility": 70,
+      "control": 70
+    },
+    "notes": "",
+    "updatedAt": "2026-05-09"
+  },
+  {
+    "id": "meta-voyak-kt3",
+    "weapon": "Voyak KT-3",
+    "weaponId": "voyak-kt-3",
+    "category": "Assault Rifle",
+    "tier": "S",
+    "playstyle": "Long-Range",
+    "attachments": [
+      {
+        "slot": "Muzzle",
+        "name": "Monolithic Suppressor"
+      },
+      {
+        "slot": "Barrel",
+        "name": "17.6\" LTI Grav-4 Barrel"
+      },
+      {
+        "slot": "Optic",
+        "name": "FANG HoverPoint ELO"
+      },
+      {
+        "slot": "Stock",
+        "name": "V-Last Control Pad"
+      },
+      {
+        "slot": "Magazine",
+        "name": "SK-Garrison Drum"
+      }
+    ],
+    "stats": {
+      "damage": 88,
+      "range": 92,
+      "mobility": 60,
+      "control": 82
+    },
+    "notes": "",
+    "updatedAt": "2026-05-06"
+  },
+  {
+    "id": "meta-vst",
+    "weapon": "VST",
+    "weaponId": "vst",
+    "category": "SMG",
+    "tier": "S",
+    "playstyle": "Close-Range",
+    "attachments": [
+      {
+        "slot": "Muzzle",
+        "name": "Hawker Stabilizer MK.2"
+      },
+      {
+        "slot": "Underbarrel",
+        "name": "Vas Convergence Foregrip"
+      },
+      {
+        "slot": "Stock",
+        "name": "Vas Blench Pad"
+      },
+      {
+        "slot": "Rear Grip",
+        "name": "Quiver Control Grip"
+      },
+      {
+        "slot": "Magazine",
+        "name": "Avarice Extended Mag 2"
+      }
+    ],
+    "stats": {
+      "damage": 72,
+      "range": 42,
+      "mobility": 95,
+      "control": 72
+    },
+    "notes": "",
+    "updatedAt": "2026-05-09"
+  },
+  {
+    "id": "meta-mk78",
+    "weapon": "MK.78",
+    "weaponId": "mk-78",
+    "category": "LMG",
+    "tier": "S",
+    "playstyle": "Long-Range",
+    "attachments": [
+      {
+        "slot": "Barrel",
+        "name": "Canon impulse HB-762 22\""
+      },
+      {
+        "slot": "Optic",
+        "name": "Greaves Accuspot 3x"
+      },
+      {
+        "slot": "Underbarrel",
+        "name": "Vas Convergence"
+      },
+      {
+        "slot": "Muzzle",
+        "name": "Monolithic Suppressor"
+      },
+      {
+        "slot": "Comb",
+        "name": "7.52 Nato"
+      }
+    ],
+    "stats": {
+      "damage": 92,
+      "range": 94,
+      "mobility": 48,
+      "control": 88
+    },
+    "notes": "",
+    "updatedAt": "2026-05-25"
+  },
+  {
+    "id": "meta-dravec-45",
+    "weapon": "Dravec 45",
+    "weaponId": "dravec-45",
+    "category": "SMG",
+    "tier": "A",
+    "playstyle": "Close-Range",
+    "attachments": [
+      {
+        "slot": "Muzzle",
+        "name": "Hawker Series 45"
+      },
+      {
+        "slot": "Barrel",
+        "name": "19\" EAM Horizon Barrel"
+      },
+      {
+        "slot": "Stock",
+        "name": "Serval Q-Step Stock"
+      },
+      {
+        "slot": "Optic",
+        "name": "FANG HoverPoint ELO"
+      },
+      {
+        "slot": "Magazine",
+        "name": "Gator Extended Mag"
+      }
+    ],
+    "stats": {
+      "damage": 68,
+      "range": 55,
+      "mobility": 85,
+      "control": 74
+    },
+    "notes": "",
+    "updatedAt": "2026-05-06"
+  },
+  {
+    "id": "1777666410155",
+    "weapon": "Carbon 57",
+    "weaponId": "carbon-57",
+    "category": "SMG",
+    "tier": "S",
+    "playstyle": "Mid-Range",
+    "attachments": [
+      {
+        "slot": "Stock",
+        "name": "Hammer Platoon Pad"
+      },
+      {
+        "slot": "Barrel",
+        "name": "11\" Greaves Repose"
+      },
+      {
+        "slot": "Rear Grip",
+        "name": "Bombus Quick Grip"
+      },
+      {
+        "slot": "Magazine",
+        "name": "MFS Renown Plus Mag"
+      },
+      {
+        "slot": "Underbarrel",
+        "name": "Sapper Guard"
+      }
+    ],
+    "stats": {
+      "damage": 80,
+      "range": 75,
+      "mobility": 86,
+      "control": 80
+    },
+    "notes": "",
+    "updatedAt": "2026-05-06"
+  },
+  {
+    "id": "1778341026828",
+    "weapon": "M15 MOD 0",
+    "category": "Assault Rifle",
+    "tier": "B",
+    "playstyle": "Mid-Range",
+    "attachments": [],
+    "stats": {
+      "damage": 50,
+      "range": 50,
+      "mobility": 50,
+      "control": 50
+    },
+    "notes": "",
+    "updatedAt": "2026-05-09",
+    "weaponId": "m15-mod-0"
+  }
+]

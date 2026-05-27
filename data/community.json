@@ -1,0 +1,64 @@
+[
+  {
+    "id": "lfg-ranked-resurgence",
+    "type": "lfg",
+    "title": "Cherche deux mates pour ranked resurgence ce soir",
+    "body": "Objectif: rotations propres, callouts courts, pas de rage quit. Je joue SMG support, dispo 21h-00h.",
+    "author": "Nox",
+    "platform": "Crossplay",
+    "region": "EU",
+    "mode": "Ranked Resurgence",
+    "mic": "Mic required",
+    "rank": "Diamond",
+    "tags": ["LFG", "Ranked", "EU"],
+    "createdAt": "2026-05-20T14:30:00.000Z",
+    "score": 18,
+    "replies": [
+      {
+        "id": "reply-1",
+        "author": "Kayz",
+        "body": "Je suis chaud, AR anchor, Diamond aussi. Je peux start vers 21h15.",
+        "createdAt": "2026-05-20T14:45:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "discussion-meta-smg",
+    "type": "discussion",
+    "title": "Vous jouez quoi en SMG depuis le dernier patch ?",
+    "body": "Le Carbon 57 me semble plus fiable en close mais je vois encore beaucoup de VST. Vos builds ?",
+    "author": "Mira",
+    "platform": "All",
+    "region": "Global",
+    "mode": "Loadouts",
+    "mic": "Optional",
+    "rank": "Crimson",
+    "tags": ["Meta", "SMG", "Loadout"],
+    "createdAt": "2026-05-20T12:05:00.000Z",
+    "score": 31,
+    "replies": [
+      {
+        "id": "reply-2",
+        "author": "Pulse",
+        "body": "VST si tu veux full mobility, Carbon si tu veux gagner les duels un peu plus loin.",
+        "createdAt": "2026-05-20T12:28:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "tip-comms-stack",
+    "type": "tip",
+    "title": "Template de callouts pour jouer avec des nouveaux mates",
+    "body": "Avant de lancer: qui IGL, qui porte les smokes, qui call les rotations. En game: position, nombre, armor, intention. Exemple: roof prison, two, cracked one, I hold cross.",
+    "author": "Raven",
+    "platform": "All",
+    "region": "Global",
+    "mode": "Squad Play",
+    "mic": "Mic recommended",
+    "rank": "Iridescent",
+    "tags": ["Comms", "Teamplay", "Guide"],
+    "createdAt": "2026-05-19T22:10:00.000Z",
+    "score": 44,
+    "replies": []
+  }
+]

@@ -1,0 +1,144 @@
+.legal-page {
+  position: relative;
+  z-index: 8;
+  width: min(920px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 5rem 0 4rem;
+  font-family: var(--mono, monospace);
+}
+
+.legal-back a {
+  color: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  opacity: 0.55;
+  text-decoration: none;
+}
+
+.legal-kicker {
+  margin: 2.5rem 0 0.75rem;
+  color: blue;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  opacity: 0.7;
+}
+
+.legal-page h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4.2rem);
+  letter-spacing: 0.08em;
+  line-height: 0.95;
+}
+
+.legal-updated {
+  margin: 1rem 0 0;
+  font-size: 0.72rem;
+  opacity: 0.48;
+}
+
+.legal-intro {
+  max-width: 760px;
+  margin: 1.5rem 0 2rem;
+  font-size: 0.86rem;
+  line-height: 1.8;
+  opacity: 0.7;
+}
+
+.legal-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.legal-stack section {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.54);
+  padding: 1.15rem 1.25rem;
+}
+
+.legal-stack h2 {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.legal-stack p {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.75;
+  opacity: 0.68;
+}
+
+.legal-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding-top: 1rem;
+}
+
+.legal-nav a {
+  color: inherit;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  opacity: 0.58;
+  text-decoration: none;
+}
+
+.legal-footer {
+  position: relative;
+  z-index: 8;
+  width: min(1180px, calc(100vw - 32px));
+  margin: 3rem auto 0;
+  padding: 1.2rem 0 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(239, 238, 232, 0.82);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: space-between;
+  gap: 1.25rem;
+  font-family: var(--mono, monospace);
+}
+
+.legal-footer div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.legal-footer strong {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+}
+
+.legal-footer span {
+  font-size: 0.62rem;
+  line-height: 1.5;
+  opacity: 0.5;
+}
+
+.legal-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem 0.9rem;
+  max-width: 620px;
+}
+
+.legal-footer a {
+  color: inherit;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  opacity: 0.58;
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .legal-footer {
+    flex-direction: column;
+  }
+
+  .legal-footer nav {
+    justify-content: flex-start;
+  }
+}

@@ -1,0 +1,237 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 2600" preserveAspectRatio="xMidYMin slice">
+  <defs>
+    <filter id="rough" x="-8%" y="-8%" width="116%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="2" seed="19"/>
+      <feDisplacementMap in="SourceGraphic" scale="1.4"/>
+    </filter>
+    <style>
+      .s{fill:none;stroke:#10100e;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.32;filter:url(#rough)}
+      .f{fill:none;stroke:#10100e;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;opacity:.2;filter:url(#rough)}
+      .d{fill:none;stroke:#10100e;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:8 12;opacity:.17}
+      .g{fill:none;stroke:#10100e;stroke-width:.8;stroke-linecap:round;stroke-linejoin:round;opacity:.11}
+      .t{fill:#10100e;font-family:monospace;font-size:13px;letter-spacing:2px;opacity:.18}
+      .m{fill:#10100e;font-family:monospace;font-size:9px;letter-spacing:1px;opacity:.13}
+    </style>
+    <g id="cooling">
+      <path d="M0 168H260"/>
+      <path d="M42 168C48 110 62 44 92 0H142C172 44 186 110 192 168Z"/>
+      <path d="M104 0V-38M42 168H0M192 168H246"/>
+      <path d="M50 142C90 124 144 124 184 142M62 98C96 86 138 86 174 98M74 52C104 44 132 44 162 52"/>
+      <path d="M30 168V214H214V168M82 168V214M164 168V214"/>
+    </g>
+    <g id="core">
+      <circle cx="92" cy="92" r="84"/>
+      <circle cx="92" cy="92" r="48"/>
+      <circle cx="92" cy="92" r="16"/>
+      <path d="M92 8V176M8 92H176"/>
+      <path d="M40 38L146 146M146 38L40 146"/>
+    </g>
+    <g id="pipes">
+      <path d="M0 46H94C124 46 138 20 170 20H262C294 20 304 48 338 48H430"/>
+      <path d="M0 112H78C110 112 128 82 164 82H276C308 82 322 114 356 114H430"/>
+      <circle cx="170" cy="20" r="18"/>
+      <circle cx="276" cy="82" r="20"/>
+      <path d="M48 46V112M128 46V112M220 20V82M374 48V114"/>
+    </g>
+    <g id="panel">
+      <path d="M0 0H210V152H0Z"/>
+      <path d="M22 26H188M22 54H188M22 82H188M22 110H188M22 132H188"/>
+      <path d="M70 0V152M140 0V152"/>
+      <circle cx="36" cy="26" r="5"/>
+      <circle cx="176" cy="110" r="5"/>
+    </g>
+    <g id="hazard">
+      <circle cx="78" cy="78" r="66"/>
+      <circle cx="78" cy="78" r="12"/>
+      <path d="M78 66L110 18A56 56 0 0 1 134 78Z"/>
+      <path d="M90 86L144 90A56 56 0 0 1 94 140Z"/>
+      <path d="M66 86L42 132A56 56 0 0 1 22 72Z"/>
+    </g>
+    <g id="site">
+      <path d="M0 0H360V188H0Z"/>
+      <path d="M0 47H360M0 94H360M0 141H360M72 0V188M144 0V188M216 0V188M288 0V188"/>
+      <path d="M48 146C88 92 142 76 208 84C270 92 308 48 342 32"/>
+      <path d="M42 34H100V92H42ZM238 108H318V166H238Z"/>
+      <circle cx="166" cy="132" r="28"/>
+    </g>
+    <g id="drone">
+      <path d="M82 46H172L216 112L174 178H82L40 112Z"/>
+      <path d="M126 46V178M40 112H216M82 46L174 178M174 46L82 178"/>
+      <circle cx="20" cy="112" r="20"/>
+      <circle cx="236" cy="112" r="20"/>
+      <path d="M0 112H40M216 112H256"/>
+    </g>
+    <g id="ruler">
+      <path d="M0 0H260"/>
+      <path d="M0 -14V14M52 -8V8M104 -14V14M156 -8V8M208 -14V14M260 -14V14"/>
+      <path d="M0 34H260M0 68H208M0 102H236" class="g"/>
+    </g>
+    <g id="reticle">
+      <circle cx="72" cy="72" r="64"/>
+      <circle cx="72" cy="72" r="28"/>
+      <path d="M72 -18V36M72 108V162M-18 72H36M108 72H162"/>
+      <path d="M26 26L-10 -10M118 26L154 -10M26 118L-10 154M118 118L154 154" class="g"/>
+    </g>
+    <g id="microchip">
+      <path d="M0 0H154V116H0Z"/>
+      <path d="M24 24H130V92H24Z"/>
+      <path d="M42 42H112V74H42Z"/>
+      <path d="M-18 20H0M-18 48H0M-18 76H0M154 20H172M154 48H172M154 76H172M32 -18V0M76 -18V0M120 -18V0M32 116V134M76 116V134M120 116V134"/>
+    </g>
+  </defs>
+
+  <g transform="translate(82 132) rotate(-1.2)">
+    <text x="0" y="0" class="t">TACTICAL TELEMETRY / WAR TECHNICAL</text>
+    <text x="0" y="28" class="m">AZM 044.019 / ELEV -03 / WIND VECTOR 12 / TRACE UNSTABLE</text>
+    <path d="M0 62H520M0 96H384M0 130H462M0 164H318" class="d"/>
+    <path d="M42 208H412V318H42Z" class="g"/>
+    <path d="M42 244H412M42 280H412M112 208V318M188 208V318M264 208V318M340 208V318" class="g"/>
+    <text x="62" y="236" class="m">RNG</text>
+    <text x="138" y="236" class="m">DROP</text>
+    <text x="218" y="236" class="m">VEL</text>
+    <text x="292" y="236" class="m">ERR</text>
+    <path d="M640 22H910M640 54H840M640 86H960M640 118H790" class="d"/>
+    <text x="640" y="0" class="m">BALLISTIC TABLE // LOW CONFIDENCE</text>
+  </g>
+  <g transform="translate(70 514) rotate(1.4)">
+    <path d="M0 0H710M0 70H520M0 140H640" class="d"/>
+    <path d="M88 34L302 34M302 34L392 94M392 94L612 94" class="f"/>
+    <circle cx="88" cy="34" r="9" class="f"/>
+    <circle cx="302" cy="34" r="9" class="f"/>
+    <circle cx="392" cy="94" r="9" class="f"/>
+    <circle cx="612" cy="94" r="9" class="f"/>
+    <text x="0" y="192" class="m">ROUTE PLOT / CONTACT CHAIN / NOT A SYMBOL</text>
+  </g>
+  <g transform="translate(990 596) rotate(-1.5) scale(.42)">
+    <use href="#ruler" class="f"/>
+    <text x="0" y="-22" class="m">CALIBRATION / RANGE 0-260</text>
+  </g>
+  <g transform="translate(1360 610) rotate(5) scale(.32)">
+    <path d="M0 0H330V126H0Z" class="f"/>
+    <path d="M22 28H302M22 58H244M22 88H286" class="g"/>
+    <path d="M110 0V126M220 0V126" class="g"/>
+    <text x="0" y="164" class="m">OPTICAL ALIGN / DATA</text>
+  </g>
+  <g transform="translate(604 700) rotate(-4) scale(.34)">
+    <use href="#microchip" class="f"/>
+    <text x="-8" y="164" class="m">BUS NODE 12</text>
+  </g>
+
+  <g transform="translate(84 1030) rotate(-1.2) scale(.54)">
+    <use href="#pipes" class="s"/>
+    <text x="0" y="164" class="m">LOOP A</text>
+  </g>
+  <g transform="translate(512 1016) rotate(2.4) scale(.5)">
+    <path d="M0 0H390V146H0Z" class="f"/>
+    <path d="M28 28H356M28 58H300M28 88H338M28 118H258" class="g"/>
+    <path d="M112 0V146M220 0V146M308 0V146" class="g"/>
+    <text x="0" y="184" class="m">PLACARD DATA / TEXT ONLY</text>
+  </g>
+  <g transform="translate(910 1038) rotate(-3) scale(.5)">
+    <use href="#panel" class="s"/>
+    <text x="0" y="192" class="m">CONSOLE RACK</text>
+  </g>
+  <g transform="translate(1248 1004) rotate(1) scale(.48)">
+    <use href="#site" class="s"/>
+    <text x="0" y="226" class="m">SITE GRID B</text>
+  </g>
+  <g transform="translate(1450 1328) rotate(-2) scale(.36)">
+    <use href="#ruler" class="f"/>
+    <text x="2" y="132" class="m">THERMAL BAND / 74C</text>
+  </g>
+  <g transform="translate(604 1304) rotate(3.5) scale(.3)">
+    <path d="M0 0H420V138H0Z" class="f"/>
+    <path d="M28 28H380M28 62H318M28 96H352" class="g"/>
+    <path d="M140 0V138M280 0V138" class="g"/>
+    <text x="0" y="176" class="m">TARGET DENSITY / TABULAR</text>
+  </g>
+
+  <g transform="translate(280 1450) rotate(4) scale(.38)">
+    <use href="#drone" class="s"/>
+    <path d="M-64 24H320M-64 200H320M-10 -24V238M270 -24V238" class="d"/>
+  </g>
+  <g transform="translate(1160 1508) rotate(-5) scale(.42)">
+    <use href="#cooling" class="s"/>
+    <use href="#cooling" x="220" y="22" class="f"/>
+    <path d="M20 246H492M44 286H460" class="d"/>
+  </g>
+
+  <g transform="translate(58 1830) rotate(1.4) scale(.42)">
+    <use href="#site" class="s"/>
+    <text x="10" y="232" class="m">MAP FRAGMENT / OFF AXIS</text>
+  </g>
+  <g transform="translate(714 1782) rotate(-2.2) scale(.5)">
+    <use href="#pipes" class="s"/>
+    <path d="M490 28H690V160H490Z" class="f"/>
+    <path d="M512 54H668M512 86H668M512 118H668" class="g"/>
+  </g>
+  <g transform="translate(1324 1858) rotate(3.4) scale(.44)">
+    <path d="M0 0H322V176H0Z" class="f"/>
+    <path d="M22 34H296M22 68H242M22 102H284M22 136H204" class="g"/>
+    <path d="M106 0V176M214 0V176" class="g"/>
+    <text x="0" y="216" class="m">CORE READOUT / NO ICON</text>
+  </g>
+  <g transform="translate(438 2028) rotate(-3) scale(.32)">
+    <use href="#microchip" class="f"/>
+    <use href="#microchip" x="202" y="16" class="g"/>
+    <path d="M154 58H202M356 74H456" class="d"/>
+    <text x="0" y="174" class="m">CONTROL BUS / INTERMITTENT</text>
+  </g>
+  <g transform="translate(1058 2064) rotate(2.2) scale(.36)">
+    <path d="M0 0H300V118H0Z" class="f"/>
+    <path d="M18 28H272M18 58H216M18 88H248" class="g"/>
+    <text x="0" y="154" class="m">SURVEY MARK 44</text>
+  </g>
+
+  <g transform="translate(142 2250) rotate(-2) scale(.34)">
+    <use href="#panel" class="s"/>
+  </g>
+  <g transform="translate(520 2220) rotate(1.8) scale(.34)">
+    <path d="M0 0H340V132H0Z" class="f"/>
+    <path d="M22 28H312M22 58H260M22 88H296" class="g"/>
+    <text x="0" y="168" class="m">WARN TABLE</text>
+  </g>
+  <g transform="translate(842 2258) rotate(-4) scale(.34)">
+    <use href="#pipes" class="s"/>
+  </g>
+  <g transform="translate(1228 2218) rotate(2.6) scale(.34)">
+    <use href="#drone" class="s"/>
+  </g>
+  <g transform="translate(1506 2268) rotate(-1) scale(.3)">
+    <use href="#cooling" class="s"/>
+  </g>
+
+  <path d="M70 96H410M86 648H318M1020 760H1640M42 1318H258M774 1388H1030M1210 2080H1710" class="d"/>
+  <path d="M1540 88V420M1710 880V1180M640 1560V1710M94 2108V2380" class="g"/>
+  <path d="M752 118H832V198H752ZM766 132H818V184H766ZM910 168H1090M930 214H1036M1162 116H1292V198H1162M1162 156H1258M128 850H220V914H128M142 866H206M142 892H190M1510 1656H1642V1744H1510M1532 1680H1624M1532 1712H1604" class="g"/>
+  <path d="M372 812H530M372 842H488M372 872H548M1120 1428H1282M1120 1458H1238M1120 1488H1308M228 1688H376M228 1718H332M228 1748H402" class="d"/>
+  <path d="M62 922H402M62 952H326M62 982H446M62 1012H290M492 912H760V1048H492ZM518 940H732M518 972H684M518 1004H716M1378 724H1690M1378 754H1588M1378 784H1648M1378 814H1532" class="d"/>
+  <path d="M148 1120H538V1268H148ZM148 1157H538M148 1194H538M148 1231H538M226 1120V1268M304 1120V1268M382 1120V1268M460 1120V1268" class="g"/>
+  <path d="M804 1116H1022M804 1148H958M804 1180H1048M804 1212H918M1098 1100H1294V1252H1098ZM1124 1128H1268M1124 1160H1242M1124 1192H1276M1124 1224H1202" class="d"/>
+  <path d="M1442 1026L1526 946L1618 1038L1534 1120ZM1482 1026H1578M1534 978V1078M1428 1188H1692M1428 1218H1588M1428 1248H1642" class="g"/>
+  <path d="M84 1492H602M84 1532H428M84 1572H544M710 1504H878V1622H710M732 1530H852M732 1562H816M732 1594H866" class="d"/>
+  <path d="M958 1568H1294M958 1608H1198M958 1648H1348M1430 1518H1648V1660H1430ZM1458 1548H1620M1458 1584H1588M1458 1620H1632" class="g"/>
+  <text x="760" y="92" class="m">MONO TRACE / AUX 09</text>
+  <text x="910" y="150" class="m">PRESSURE LOG / 03</text>
+  <text x="126" y="832" class="m">NODE STACK</text>
+  <text x="62" y="904" class="m">FIRE-CONTROL READOUT / DISTORTED</text>
+  <text x="504" y="894" class="m">MAGNETIC LOG</text>
+  <text x="1378" y="704" class="m">SUPPRESSION GRID / SECTOR NINE</text>
+  <text x="148" y="1102" class="m">LOAD MAP // TABLE 8</text>
+  <text x="804" y="1098" class="m">RADAR RETURNS</text>
+  <text x="1098" y="1082" class="m">AMMO TELEMETRY</text>
+  <text x="1428" y="1170" class="m">DRIFT STACK</text>
+  <text x="84" y="1474" class="m">AFTER ACTION MARKS</text>
+  <text x="710" y="1486" class="m">SIGNAL BOX</text>
+  <text x="958" y="1550" class="m">RANGE CORRECTIONS</text>
+  <text x="1430" y="1500" class="m">CONTACT NOTES</text>
+  <text x="1510" y="1634" class="m">FIELD TERMINAL</text>
+  <text x="372" y="796" class="m">READOUT / SCRAMBLED</text>
+  <text x="1120" y="1412" class="m">VALVE NOTES</text>
+  <text x="228" y="1672" class="m">SIGNAL DECAY</text>
+  <text x="1422" y="482" class="m">x:44.019 / y:08.733 / drift +02</text>
+  <text x="138" y="1182" class="m">sector echo //// undocumented equipment</text>
+  <text x="822" y="2420" class="m">checksum fail / blueprint overlay remains provisional</text>
+  <text x="1260" y="292" class="m">stray datum / unconfirmed</text>
+  <text x="76" y="1300" class="m">offset copies intentionally misregistered</text>
+</svg>

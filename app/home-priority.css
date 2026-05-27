@@ -1,0 +1,378 @@
+.glass-demo .liquid-viewport {
+  min-height: 360px !important;
+  padding-bottom: 20px !important;
+}
+
+/* Product pass: keep the tactical layout inside the viewport and add discovery controls. */
+html,
+body {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.glass-demo,
+.pro-tools-page,
+.community-main,
+.setup-main {
+  max-width: 100vw !important;
+  overflow-x: clip !important;
+}
+
+.loadout-filter-panel,
+.favorite-loadouts,
+.loadout-card-tools,
+.compare-bars {
+  font-family: var(--tm-mono) !important;
+}
+
+.loadout-filter-panel {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 1px !important;
+  margin: 0 0 18px !important;
+  border: 1px solid var(--tm-line) !important;
+  background: var(--tm-line) !important;
+}
+
+.loadout-filter-panel > div {
+  display: grid !important;
+  gap: 10px !important;
+  padding: 14px !important;
+  background: rgba(239, 238, 232, 0.78) !important;
+}
+
+.loadout-filter-panel span,
+.favorite-loadouts > span,
+.loadout-card-tools span {
+  color: var(--tm-blue) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+.loadout-filter-panel div div,
+.favorite-loadouts div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.loadout-filter-panel button,
+.favorite-loadouts a,
+.loadout-card-tools button {
+  min-height: 32px !important;
+  border: 1px solid rgba(16, 16, 14, 0.18) !important;
+  background: rgba(239, 238, 232, 0.7) !important;
+  color: var(--tm-ink) !important;
+  cursor: pointer !important;
+  font: inherit !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  padding: 0 10px !important;
+  text-decoration: none !important;
+  text-transform: uppercase !important;
+}
+
+.loadout-filter-panel button.is-active,
+.loadout-card-tools button[aria-pressed="true"] {
+  border-color: var(--tm-blue) !important;
+  background: var(--tm-blue) !important;
+  color: var(--tm-paper) !important;
+}
+
+.favorite-loadouts {
+  display: grid !important;
+  gap: 10px !important;
+  margin: 0 0 18px !important;
+  padding: 14px !important;
+  border: 1px solid rgba(16, 16, 14, 0.18) !important;
+  background: rgba(22, 60, 255, 0.045) !important;
+}
+
+.loadout-card-tools {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin: 10px 0 0 !important;
+}
+
+.loadout-card-tools button {
+  min-height: 28px !important;
+}
+
+.compare-bars {
+  display: grid !important;
+  gap: 8px !important;
+  margin: 14px 0 !important;
+}
+
+.compare-bars div {
+  display: grid !important;
+  grid-template-columns: 74px minmax(0, 1fr) 34px !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.compare-bars span,
+.compare-bars b {
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+.compare-bars i {
+  position: relative !important;
+  height: 8px !important;
+  overflow: hidden !important;
+  background: rgba(16, 16, 14, 0.12) !important;
+}
+
+.compare-bars i::after {
+  position: absolute !important;
+  inset: 0 auto 0 0 !important;
+  width: var(--value) !important;
+  content: "" !important;
+  background: var(--tm-blue) !important;
+}
+
+@media (max-width: 860px) {
+  .loadout-filter-panel {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.glass-demo .hero-title {
+  margin-top: 34px !important;
+}
+
+.glass-demo .hero-title span,
+.glass-demo .hero-title strong {
+  font-size: clamp(52px, 7.2vw, 98px) !important;
+}
+
+.glass-demo .hero-brief {
+  margin-top: 34px !important;
+}
+
+.glass-demo .hero-mobile-break {
+  display: none !important;
+}
+
+.glass-demo .safari-bar {
+  grid-template-columns: minmax(140px, 190px) minmax(360px, 1fr) minmax(240px, 360px) auto !important;
+  margin-top: 24px !important;
+  margin-bottom: 30px !important;
+}
+
+.glass-demo #ranking .content-row {
+  grid-template-columns: 72px minmax(160px, 0.9fr) minmax(180px, 320px) 180px 92px !important;
+  min-height: 112px !important;
+}
+
+.glass-demo #ranking .ranking-weapon-art {
+  position: relative !important;
+  display: grid !important;
+  align-items: center !important;
+  justify-items: center !important;
+  height: 104px !important;
+  padding: 0 14px !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  opacity: 1 !important;
+  background: transparent !important;
+}
+
+.glass-demo #ranking .ranking-weapon-art::before {
+  content: none !important;
+}
+
+.glass-demo #ranking .ranking-weapon-art::after {
+  content: none !important;
+}
+
+.glass-demo #ranking .content-row:hover .ranking-weapon-art {
+  background: transparent !important;
+}
+
+.glass-demo #ranking .ranking-weapon-art img {
+  position: relative !important;
+  z-index: 1 !important;
+  display: block !important;
+  width: min(100%, 280px) !important;
+  height: auto !important;
+  max-height: 96px !important;
+  object-fit: contain !important;
+  opacity: 0.88 !important;
+  filter: grayscale(1) contrast(1.08) brightness(0.96) drop-shadow(0 8px 8px rgba(16, 16, 14, 0.16)) !important;
+  mix-blend-mode: normal !important;
+}
+
+.glass-demo #ranking .ranking-weapon-art[data-weapon-slug="kogot-7"] img {
+  width: min(100%, 214px) !important;
+  max-height: 82px !important;
+}
+
+.glass-demo #ranking .content-row:hover .ranking-weapon-art img {
+  opacity: 0.88 !important;
+  filter: grayscale(1) contrast(1.08) brightness(0.96) drop-shadow(0 8px 8px rgba(16, 16, 14, 0.16)) !important;
+  mix-blend-mode: normal !important;
+}
+
+.glass-demo #ranking .ranking-weapon-art--empty {
+  min-height: 1px !important;
+}
+
+@media (max-width: 720px) {
+  html,
+  body,
+  .glass-demo {
+    overflow-x: hidden !important;
+  }
+
+  .glass-demo .liquid-viewport {
+    min-height: 540px !important;
+    padding-inline: 28px !important;
+  }
+
+  .glass-demo .hero-title {
+    width: 100% !important;
+    margin-top: 54px !important;
+    overflow: visible !important;
+  }
+
+  .glass-demo .hero-title span,
+  .glass-demo .hero-title strong {
+    font-size: clamp(24px, 7.2vw, 34px) !important;
+    line-height: 0.9 !important;
+    letter-spacing: 0 !important;
+    max-width: 100% !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+  }
+
+  .glass-demo .hero-title strong {
+    margin-top: 4px !important;
+  }
+
+  .glass-demo .hero-mobile-break {
+    display: block !important;
+  }
+
+  .glass-demo .hero-title .hero-r-badge,
+  .glass-demo .side-dock,
+  .glass-demo .telemetry-stack,
+  .glass-demo .scanline {
+    display: none !important;
+  }
+
+  .glass-demo .hero-brief {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 34px !important;
+  }
+
+  .glass-demo .hero-brief p {
+    max-width: 30rem !important;
+    font-size: 14px !important;
+  }
+
+  .glass-demo .hero-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-top: 20px !important;
+  }
+
+  .glass-demo .hero-actions a {
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+  }
+
+  .glass-demo .safari-bar {
+    grid-template-columns: 1fr !important;
+    width: calc(100% - 32px) !important;
+    gap: 0 !important;
+    margin-top: 18px !important;
+    margin-bottom: 28px !important;
+  }
+
+  .glass-demo .safari-bar nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .glass-demo #ranking .content-row {
+    grid-template-columns: 48px minmax(0, 1fr) 64px !important;
+    grid-template-rows: auto auto !important;
+    min-height: 128px !important;
+    padding: 8px 0 !important;
+  }
+
+  .glass-demo #ranking .content-row > strong {
+    grid-column: 2 !important;
+  }
+
+  .glass-demo #ranking .ranking-weapon-art {
+    grid-column: 2 / -1 !important;
+    grid-row: 2 !important;
+    justify-items: start !important;
+    height: 68px !important;
+    padding: 0 12px !important;
+  }
+
+  .glass-demo #ranking .ranking-weapon-art img {
+    width: min(100%, 210px) !important;
+    max-height: 64px !important;
+  }
+
+  .glass-demo #ranking .content-row small {
+    display: none !important;
+  }
+
+  .glass-demo #ranking .content-row b {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* Final desktop framing pass: avoid the side-by-side duplicate feel on 1280px viewports. */
+.glass-demo .safari-bar,
+.glass-demo .content-layer,
+.glass-demo .tiers.content-layer {
+  width: min(980px, calc(100% - 56px)) !important;
+}
+
+.glass-demo .hero-title {
+  width: min(980px, calc(100% - 56px)) !important;
+  overflow: hidden !important;
+}
+
+.glass-demo .hero-title span,
+.glass-demo .hero-title strong {
+  font-size: clamp(48px, 6.4vw, 84px) !important;
+  line-height: 0.9 !important;
+}
+
+.glass-demo .safari-bar {
+  grid-template-columns: minmax(130px, 170px) minmax(320px, 1fr) minmax(220px, 300px) auto !important;
+  gap: 14px !important;
+}
+
+.glass-demo .meta-now > div {
+  min-width: 0 !important;
+}
+
+.glass-demo .meta-now strong {
+  overflow-wrap: anywhere !important;
+}
+
+@media (min-width: 1200px) {
+  .glass-demo .content-layer,
+  .glass-demo .tiers.content-layer {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
