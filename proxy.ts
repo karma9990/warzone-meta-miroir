@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { DEFAULT_LOCALE, LOCALE_COOKIE, LOCALE_HEADER, normalizeLocale, stripLocale } from '@/lib/i18n';
 import { rateLimit } from '@/lib/rateLimit';
 import { createSupabaseProxyClient } from '@/lib/supabase/server';
 
-const FALLBACK_ADMIN_PATH = '/admin-db96cdfd2904159b';
+const FALLBACK_ADMIN_PATH = process.env.NODE_ENV === 'production' ? '/admin-disabled' : '/admin-local';
 
 function normalizeAdminPath(value: string | undefined) {
   const path = value?.trim() || FALLBACK_ADMIN_PATH;
@@ -12,27 +13,55 @@ function normalizeAdminPath(value: string | undefined) {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const adminPath = normalizeAdminPath(process.env.ADMIN_ACCESS_PATH);
+  const { locale: localeFromPath, pathname: pathnameWithoutLocale } = stripLocale(pathname);
+  const effectivePathname = localeFromPath ? pathnameWithoutLocale : pathname;
+  const cookieLocale = normalizeLocale(request.cookies.get(LOCALE_COOKIE)?.value);
+  const activeLocale = localeFromPath ?? cookieLocale ?? DEFAULT_LOCALE;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(LOCALE_HEADER, activeLocale);
 
-  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+  function withLocale(response: NextResponse) {
+    response.cookies.set(LOCALE_COOKIE, activeLocale, {
+      path: '/',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 365,
+    });
+    return response;
+  }
+
+  if (pathname === '/' && request.nextUrl.searchParams.has('code')) {
+    const callbackUrl = request.nextUrl.clone();
+    callbackUrl.pathname = '/auth/callback';
+    callbackUrl.searchParams.set('next', '/reset-password');
+    return withLocale(NextResponse.redirect(callbackUrl));
+  }
+
+  if (effectivePathname === '/admin' || effectivePathname.startsWith('/admin/')) {
     return new NextResponse('Not Found', { status: 404 });
   }
 
-  if (pathname === adminPath || pathname.startsWith(`${adminPath}/`)) {
+  if (effectivePathname === adminPath || effectivePathname.startsWith(`${adminPath}/`)) {
     const limited = await rateLimit(request, 'admin-access', 30, 10 * 60_000);
     if (limited) return limited;
 
     const rewriteUrl = request.nextUrl.clone();
-    rewriteUrl.pathname = pathname.replace(adminPath, '/admin');
-    const response = NextResponse.rewrite(rewriteUrl);
+    rewriteUrl.pathname = effectivePathname.replace(adminPath, '/admin');
+    const response = NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } });
     const supabase = createSupabaseProxyClient(request, response);
     if (supabase) await supabase.auth.getUser();
-    return response;
+    return withLocale(response);
   }
 
-  const response = NextResponse.next();
+  if (localeFromPath) {
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = pathnameWithoutLocale === '/' ? '/home' : pathnameWithoutLocale;
+    return withLocale(NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } }));
+  }
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
   const supabase = createSupabaseProxyClient(request, response);
   if (supabase) await supabase.auth.getUser();
-  return response;
+  return withLocale(response);
 }
 
 export const config = {

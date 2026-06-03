@@ -1,0 +1,49 @@
+{
+  "weaponOptions": [
+    "MPC-25",
+    "Sturmwolf 45",
+    "Razor 9mm",
+    "Sokol 545",
+    "MK.78",
+    "XM325",
+    "Kilo 141",
+    "CR-56 AMAX",
+    "LC10",
+    "HDR"
+  ],
+  "defaultWeapon": "MPC-25",
+  "defaultCategory": "SMG",
+  "defaultRole": "Close range",
+  "defaultSignal": "buff",
+  "defaultPatchNote": "Season 03 Reloaded: range, recoil and ADS changes opened a new test window.",
+  "defaultReason": "The patch improved a stat that matters in real fights, and the attachment setup protects the weapon from its main weakness.",
+  "defaultConfidence": 70,
+  "priorityScore": 70,
+  "defaultAttachments": [
+    {
+      "slot": "Muzzle",
+      "name": ""
+    },
+    {
+      "slot": "Barrel",
+      "name": ""
+    },
+    {
+      "slot": "Underbarrel",
+      "name": ""
+    },
+    {
+      "slot": "Magazine",
+      "name": ""
+    },
+    {
+      "slot": "Optic",
+      "name": ""
+    },
+    {
+      "slot": "Stock",
+      "name": ""
+    }
+  ],
+  "updatedAt": "2026-05-21"
+}

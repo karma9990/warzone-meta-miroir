@@ -1,30 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { hasUpstash, upstashCommand } from './upstash';
 
 const EMAIL_TOKEN_FILE = path.join(process.cwd(), 'data', 'used-email-tokens.json');
 const EMAIL_TOKEN_KEY_PREFIX = 'wz:used-email-token:';
-
-function hasUpstash() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-}
-
-async function upstash(command: unknown[]) {
-  const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify([command]),
-  });
-
-  if (!res.ok) {
-    throw new Error('Token replay storage request failed.');
-  }
-
-  const data = await res.json() as Array<{ result: unknown }>;
-  return data[0]?.result;
-}
 
 function readLocalIds() {
   if (process.env.NODE_ENV === 'production') {
@@ -51,7 +30,7 @@ export async function consumeEmailToken(jti: string) {
 
   if (hasUpstash()) {
     const key = `${EMAIL_TOKEN_KEY_PREFIX}${jti}`;
-    return await upstash(['SET', key, '1', 'EX', 60 * 20, 'NX']) === 'OK';
+    return await upstashCommand(['SET', key, '1', 'EX', 60 * 20, 'NX']) === 'OK';
   }
 
   const ids = readLocalIds();

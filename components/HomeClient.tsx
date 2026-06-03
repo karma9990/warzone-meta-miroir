@@ -2,12 +2,17 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ChangeEvent } from 'react';
 import { useMemo, useState } from 'react';
 import AuthButton from '@/components/AuthButton';
 import LoadoutCard from '@/components/LoadoutCard';
 import type { Loadout } from '@/lib/data';
+import type { HomeUiCopy, Locale } from '@/lib/i18n';
+import { DEFAULT_LOCALE, HOME_UI_COPY, localizeLoadoutNote, translateTerm, withLocalePath } from '@/lib/i18n';
 import { calculateMetaScore, formatMetaDate, getLoadoutSlug } from '@/lib/loadoutUtils';
+import type { SiteContent } from '@/lib/siteContent';
+import type { SiteControls } from '@/lib/siteControls';
+import type { UserSession } from '@/lib/userAuth';
 
 export type SearchableProfile = {
   pseudo: string;
@@ -27,11 +32,12 @@ export type SearchableProfile = {
   updatedAt: string;
 };
 
+type HomeCopy = SiteContent['home'];
+
 function score(loadout: Loadout) {
   return calculateMetaScore(loadout);
 }
 
-const CURRENT_META_ORDER = ['MK.78', 'Kogot-7'];
 const ALL_FILTER = 'All';
 const ROLE_FILTERS = [ALL_FILTER, 'Long-Range', 'Close-Range', 'Sniper Support', 'One-shot Sniper', 'Mid-Range'];
 const MODE_FILTERS = [ALL_FILTER, 'Resurgence', 'Ranked', 'Battle Royale', 'Solo'];
@@ -42,17 +48,24 @@ const IMAGE_SOURCES = [
   (slug: string) => `/assets/weapons/${slug}.png`,
 ];
 
-function rankScore(loadout: Loadout) {
-  const metaIndex = CURRENT_META_ORDER.indexOf(loadout.weapon);
+function rankScore(loadout: Loadout, rankingWeaponIds: string[]) {
+  const metaIndex = rankingWeaponIds.findIndex((id) => id === loadout.id || id === loadout.weaponId);
   return score(loadout) + (metaIndex === -1 ? 0 : 300 - metaIndex);
 }
 
-function confidenceLabel(loadout: Loadout) {
+const CONFIDENCE_COPY = {
+  en: ['Patch verified', 'High confidence', 'Watchlist', 'Re-check after patch'],
+  fr: ['Patch verifie', 'Confiance elevee', 'A surveiller', 'Reverifier apres patch'],
+  es: ['Parche verificado', 'Alta confianza', 'Seguimiento', 'Revisar tras parche'],
+} as const;
+
+function confidenceLabel(loadout: Loadout, locale: Locale) {
+  const labels = locale === 'fr' || locale === 'es' ? CONFIDENCE_COPY[locale] : CONFIDENCE_COPY.en;
   const daysSinceUpdate = Math.max(0, Math.round((Date.now() - new Date(loadout.updatedAt).getTime()) / 86400000));
-  if (daysSinceUpdate <= 3) return 'Patch verified';
-  if (loadout.tier === 'S') return 'High confidence';
-  if (daysSinceUpdate <= 14) return 'Watchlist';
-  return 'Re-check after patch';
+  if (daysSinceUpdate <= 3) return labels[0];
+  if (loadout.tier === 'S') return labels[1];
+  if (daysSinceUpdate <= 14) return labels[2];
+  return labels[3];
 }
 
 function bestPairFor(loadout: Loadout, options: Loadout[]) {
@@ -61,6 +74,23 @@ function bestPairFor(loadout: Loadout, options: Loadout[]) {
 
   const wantsClose = !loadout.playstyle.toLowerCase().includes('close') && loadout.category !== 'SMG';
   return options.find((candidate) => candidate.id !== loadout.id && (wantsClose ? candidate.category === 'SMG' : candidate.category !== 'SMG')) ?? options.find((candidate) => candidate.id !== loadout.id);
+}
+
+function pickLoadout(loadouts: Loadout[], id: string) {
+  return loadouts.find((loadout) => loadout.id === id || loadout.weaponId === id);
+}
+
+function orderedByIds(loadouts: Loadout[], ids: string[]) {
+  const used = new Set<string>();
+  const picked = ids
+    .map((id) => pickLoadout(loadouts, id))
+    .filter((loadout): loadout is Loadout => {
+      if (!loadout || used.has(loadout.id)) return false;
+      used.add(loadout.id);
+      return true;
+    });
+
+  return [...picked, ...loadouts.filter((loadout) => !used.has(loadout.id))];
 }
 
 function RankingWeaponImage({ loadout }: { loadout: Loadout }) {
@@ -126,7 +156,27 @@ function PerkIcon({ type }: { type: 'scavenger' | 'sprinter' | 'hunter' }) {
   );
 }
 
-export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]; profiles: SearchableProfile[] }) {
+export default function HomeClient({
+  loadouts,
+  profiles,
+  copy,
+  controls,
+  uiCopy = HOME_UI_COPY.en,
+  locale = DEFAULT_LOCALE,
+  initialCompareA,
+  initialCompareB,
+  initialUser,
+}: {
+  loadouts: Loadout[];
+  profiles: SearchableProfile[];
+  copy: HomeCopy;
+  controls: SiteControls;
+  uiCopy?: HomeUiCopy;
+  locale?: Locale;
+  initialCompareA?: string;
+  initialCompareB?: string;
+  initialUser?: UserSession | null;
+}) {
   const [query, setQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState(ALL_FILTER);
   const [modeFilter, setModeFilter] = useState(ALL_FILTER);
@@ -139,9 +189,10 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
       return [];
     }
   });
-  const [compareA, setCompareA] = useState(loadouts[0]?.id ?? '');
-  const [compareB, setCompareB] = useState(loadouts[1]?.id ?? '');
+  const [compareA, setCompareA] = useState(pickLoadout(loadouts, initialCompareA ?? controls.home.compareWeaponIds[0])?.id ?? loadouts[0]?.id ?? '');
+  const [compareB, setCompareB] = useState(pickLoadout(loadouts, initialCompareB ?? controls.home.compareWeaponIds[1])?.id ?? loadouts[1]?.id ?? '');
   const normalizedQuery = query.trim().toLowerCase();
+  const rankingOrder = controls.home.rankingWeaponIds;
 
   function toggleFavorite(id: string) {
     setFavorites((current) => {
@@ -178,8 +229,8 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
       return haystack.includes(normalizedQuery);
     });
 
-    return [...filtered].sort((a, b) => rankScore(b) - rankScore(a));
-  }, [loadouts, modeFilter, normalizedQuery, roleFilter]);
+    return [...filtered].sort((a, b) => rankScore(b, rankingOrder) - rankScore(a, rankingOrder));
+  }, [loadouts, modeFilter, normalizedQuery, rankingOrder, roleFilter]);
 
   const topLoadouts = filteredLoadouts.slice(0, 8);
   const matchingProfiles = useMemo(() => {
@@ -201,25 +252,21 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
   }, [normalizedQuery, profiles]);
 
   const currentMeta = {
-    main: filteredLoadouts.find((loadout) => loadout.weapon === 'MK.78'),
-    close: filteredLoadouts.find((loadout) => loadout.weapon === 'Kogot-7'),
+    main: pickLoadout(loadouts, controls.home.currentLongRangeId) ?? filteredLoadouts[0],
+    close: pickLoadout(loadouts, controls.home.closeMetaId) ?? filteredLoadouts.find((loadout) => loadout.category === 'SMG'),
   };
-  const bestMeta = filteredLoadouts[0] ?? loadouts[0];
-  const dailyPartner = bestMeta ? bestPairFor(bestMeta, loadouts) : undefined;
+  const bestMeta = pickLoadout(loadouts, controls.home.dailyDuoIds[0]) ?? filteredLoadouts[0] ?? loadouts[0];
+  const dailyPartner = pickLoadout(loadouts, controls.home.dailyDuoIds[1]) ?? (bestMeta ? bestPairFor(bestMeta, loadouts) : undefined);
   const favoriteLoadouts = favorites
     .map((id) => loadouts.find((loadout) => loadout.id === id))
     .filter((loadout): loadout is Loadout => Boolean(loadout));
 
-  const loadoutPairNames = [
-    ['MK.78', 'Kogot-7'],
-    ['DS20 Mirage', 'VST'],
-    ['M15 MOD 0', 'Carbon 57'],
-  ];
-  const loadoutPairs = loadoutPairNames
+  const visibleLoadoutsByAdminOrder = orderedByIds(filteredLoadouts, rankingOrder);
+  const loadoutPairs = controls.home.loadoutPairIds
     .map((pair) => pair
-      .map((weapon) => filteredLoadouts.find((loadout) => loadout.weapon === weapon))
+      .map((id) => pickLoadout(loadouts, id))
       .filter((loadout): loadout is Loadout => Boolean(loadout)))
-    .filter((pair) => pair.length > 0);
+    .filter((pair) => pair.length === 2);
 
   const lastUpdated = loadouts
     .map((l) => l.updatedAt)
@@ -228,10 +275,10 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
     .at(-1);
 
   const compared = [
-    loadouts.find((loadout) => loadout.id === compareA),
-    loadouts.find((loadout) => loadout.id === compareB),
-  ].filter((loadout): loadout is Loadout => Boolean(loadout));
-  const compareMax = Math.max(...compared.flatMap((loadout) => [
+    { slot: 'a', loadout: pickLoadout(loadouts, compareA) },
+    { slot: 'b', loadout: pickLoadout(loadouts, compareB) },
+  ].filter((entry): entry is { slot: string; loadout: Loadout } => Boolean(entry.loadout));
+  const compareMax = Math.max(...compared.flatMap(({ loadout }) => [
     loadout.stats.damage,
     loadout.stats.range,
     loadout.stats.mobility,
@@ -239,6 +286,18 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
   ]), 100);
 
   const buildCount = loadouts.length;
+  const href = (pathname: string) => withLocalePath(pathname, locale);
+
+  function syncCompareUrl(event: ChangeEvent<HTMLFormElement>) {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+
+    const form = event.currentTarget;
+    const params = new URLSearchParams(new FormData(form) as unknown as Record<string, string>);
+    const url = new URL(form.getAttribute('action') || window.location.href, window.location.href);
+    url.search = params.toString();
+    url.hash = 'compare';
+    window.location.assign(url.toString());
+  }
 
   const perks = [
     { name: 'Scavenger', type: 'scavenger' as const },
@@ -273,94 +332,66 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
           <div className="scanline">META DATABASE / LOADOUTS / LIVE SORT</div>
         </div>
 
-        <aside className="side-dock glass-lens" aria-label="Quick actions">
+        <aside className="side-dock glass-lens" aria-label={uiCopy.ariaQuickActions}>
           <a href="#ranking">M</a>
           <a href="#all-loadouts">L</a>
         </aside>
 
         <div className="hero-meta">
-          <span>WZ_META / GD_FOUNDRY</span>
-          <span>TYPEFACE / TACTICAL MONO</span>
-          <span>AO-17 VERDANSK NORTH</span>
+          <span>{copy.metaLeft}</span>
+          <span>{copy.metaCenter}</span>
+          <span>{copy.metaRight}</span>
         </div>
-        <h1 className="hero-title">
-          <span>WARZONE</span>
-          <b
-            className="hero-r-badge"
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              top: '-24px',
-              right: '8.5vw',
-              zIndex: 20,
-              boxSizing: 'border-box',
-              display: 'grid',
-              width: '82px',
-              height: '82px',
-              placeItems: 'center',
-              border: '6px solid #080807',
-              borderRadius: '999px',
-              color: '#080807',
-              background: 'transparent',
-              fontFamily: 'Arial, Helvetica, sans-serif',
-              fontSize: '48px',
-              fontStyle: 'normal',
-              fontWeight: 400,
-              lineHeight: 1,
-              letterSpacing: 0,
-              textTransform: 'none',
-            }}
-          >
-            R
-          </b>
+        <h1 className="hero-title" aria-label="Warzone Meta System">
+          <span className="hero-title-line">{copy.titleTop}<b className="hero-r-badge" aria-hidden="true">R</b></span>
           <strong>
-            META <br className="hero-mobile-break" />
-            SYSTEM
+            {copy.titleMiddle} <br className="hero-mobile-break" />
+            {copy.titleBottom}
           </strong>
         </h1>
         <div className="hero-brief">
-          <span>[ META LIVE ]</span>
-          <p>Find the best Warzone loadout, compare meta weapons and tune your setup before the lobby even loads.</p>
+          <span>{copy.eyebrow}</span>
+          <p>{copy.description}</p>
           <span>[ {String(buildCount).padStart(2, '0')} BUILDS ]</span>
         </div>
         <div className="hero-actions">
-          <a href="#all-loadouts">View loadouts</a>
-          <Link href="/pro-tools">Open Pro Tools</Link>
+          <a href="#all-loadouts">{copy.primaryCta}</a>
+          <Link href={href('/pro-tools')}>{copy.secondaryCta}</Link>
         </div>
       </section>
 
       <div className="safari-bar">
-        <Link className="brand-pill" href="/">
+        <Link className="brand-pill" href={href('/')}>
           <b>WZ</b>
           <span>Meta</span>
         </Link>
         <nav>
-          <Link href="/pro-tools">Pro Tools</Link>
-          <a href="#all-loadouts" aria-current="page">Loadouts</a>
-          <Link href="/set-up">Set-up</Link>
-          <Link href="/esport">Esport</Link>
-          <Link href="/community">Community</Link>
+          <Link href={href('/pro-tools')}>{uiCopy.proTools}</Link>
+          <a href="#all-loadouts" aria-current="page">{uiCopy.loadouts}</a>
+          <Link href={href('/set-up')}>{uiCopy.setUp}</Link>
+          <Link href={href('/esport')}>{uiCopy.esport}</Link>
+          <Link href={href('/community')}>{uiCopy.community}</Link>
         </nav>
         <div className="global-search-panel">
           <label>
-            <span>Search</span>
+            <span>{uiCopy.search}</span>
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Weapon, player, attachment"
+              placeholder={uiCopy.searchPlaceholder}
             />
           </label>
           {normalizedQuery && (
             <div className="player-search-results" aria-label="Player results">
               <div className="player-search-title">
-                <span>Players</span>
+                <span>{uiCopy.players}</span>
                 <b>{matchingProfiles.length}</b>
               </div>
               {matchingProfiles.map((profile) => (
                 <Link
                   key={profile.pseudo}
                   className="player-search-card"
-                  href={`/profile/${encodeURIComponent(profile.pseudo)}`}
+                  href={href(`/profile/${encodeURIComponent(profile.pseudo)}`)}
                 >
                   <span className="player-search-avatar">
                     {profile.profilePicture ? (
@@ -378,9 +409,9 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
                   <span className="player-search-body">
                     <strong>{profile.pseudo}</strong>
                     <small>
-                      {profile.stats ? `K/D ${profile.stats.kd.toFixed(2)} - ${profile.stats.games} games` : 'Private or empty stats'}
+                      {profile.stats ? `K/D ${profile.stats.kd.toFixed(2)} - ${profile.stats.games} games` : uiCopy.privateStats}
                     </small>
-                    <em>{profile.favoriteWeapons.length ? profile.favoriteWeapons.join(' / ') : 'No favorite weapon yet'}</em>
+                    <em>{profile.favoriteWeapons.length ? profile.favoriteWeapons.join(' / ') : uiCopy.noFavoriteWeapon}</em>
                   </span>
                   <span className="player-search-meta">
                     {profile.mainPlatform ? profile.mainPlatform.replace('-', ' ') : 'player'}
@@ -388,58 +419,58 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
                 </Link>
               ))}
               {matchingProfiles.length === 0 && (
-                <p>No public player found for this search.</p>
+                <p>{uiCopy.noPublicPlayer}</p>
               )}
             </div>
           )}
         </div>
-        <AuthButton />
+        <AuthButton initialUser={initialUser} />
         <div className="nav-readout" aria-hidden="true">
-          <span>{filteredLoadouts.length + matchingProfiles.length} MATCHES</span>
-          <span>{lastUpdated ? `UPDATED ${formatMetaDate(lastUpdated)}` : 'UPDATE PENDING'}</span>
-          <span>{profiles.length} PUBLIC PLAYERS</span>
+          <span>{filteredLoadouts.length + matchingProfiles.length} {uiCopy.matches}</span>
+          <span>{lastUpdated ? `${uiCopy.updated} ${formatMetaDate(lastUpdated)}` : uiCopy.updatePending}</span>
+          <span>{profiles.length} {uiCopy.publicPlayers}</span>
         </div>
       </div>
 
       <section className="tiers content-layer home-loadout-priority" id="all-loadouts">
         <section className="tier-section">
           <div className="tier-title">
-            <h2>Loadouts</h2>
-            <span>{loadoutPairs.length} recommended duos</span>
+            <h2>{uiCopy.loadouts}</h2>
+            <span>{loadoutPairs.length} {uiCopy.recommendedDuos}</span>
           </div>
           <div className="home-proof-strip" aria-label="Trust signals">
-            <span>{lastUpdated ? `Patch checked ${formatMetaDate(lastUpdated)}` : 'Patch check active'}</span>
-            <span>Meta + handling + control score</span>
-            <span>Shareable builds</span>
+            <span>{lastUpdated ? `${uiCopy.trustPatchChecked} ${formatMetaDate(lastUpdated)}` : uiCopy.trustPatchActive}</span>
+            <span>{uiCopy.trustScore}</span>
+            <span>{uiCopy.trustShareable}</span>
           </div>
           <div className="meta-now">
             <div>
-              <span>Current long range</span>
+              <span>{uiCopy.currentLongRange}</span>
               <strong>{currentMeta.main?.weapon ?? 'MK.78'}</strong>
               <p>
                 {currentMeta.main
-                  ? `${currentMeta.main.category} / ${currentMeta.main.playstyle} - ${score(currentMeta.main)} meta`
+                  ? `${translateTerm(currentMeta.main.category, locale)} / ${translateTerm(currentMeta.main.playstyle, locale)} - ${score(currentMeta.main)} meta`
                   : 'Current long-range pick to verify in the loadouts.'}
               </p>
             </div>
             <div>
-              <span>Close meta</span>
+              <span>{uiCopy.closeMeta}</span>
               <strong>{currentMeta.close?.weapon ?? 'Kogot-7'}</strong>
               <p>
                 {currentMeta.close
-                  ? `${currentMeta.close.category} / ${currentMeta.close.playstyle} - ${score(currentMeta.close)} meta`
+                  ? `${translateTerm(currentMeta.close.category, locale)} / ${translateTerm(currentMeta.close.playstyle, locale)} - ${score(currentMeta.close)} meta`
                   : 'Current SMG for fast fights and coordinated pushes.'}
               </p>
             </div>
             <div>
-              <span>Daily duo</span>
-              <strong>{bestMeta && dailyPartner ? `${bestMeta.weapon} + ${dailyPartner.weapon}` : 'Build your duo'}</strong>
-              <p>Use filters and the comparison lab to lock a reliable pair before your session.</p>
+              <span>{uiCopy.dailyDuo}</span>
+              <strong>{bestMeta && dailyPartner ? `${bestMeta.weapon} + ${dailyPartner.weapon}` : uiCopy.buildYourDuo}</strong>
+              <p>{uiCopy.dailyDuoText}</p>
             </div>
           </div>
           <div className="loadout-filter-panel" aria-label="Loadout filters">
             <div>
-              <span>Role</span>
+              <span>{uiCopy.role}</span>
               <div>
                 {ROLE_FILTERS.map((filter) => (
                   <button
@@ -448,13 +479,13 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
                     className={roleFilter === filter ? 'is-active' : undefined}
                     onClick={() => setRoleFilter(filter)}
                   >
-                    {filter}
+                    {translateTerm(filter, locale)}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <span>Mode</span>
+              <span>{uiCopy.mode}</span>
               <div>
                 {MODE_FILTERS.map((filter) => (
                   <button
@@ -463,7 +494,7 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
                     className={modeFilter === filter ? 'is-active' : undefined}
                     onClick={() => setModeFilter(filter)}
                   >
-                    {filter}
+                    {translateTerm(filter, locale)}
                   </button>
                 ))}
               </div>
@@ -471,32 +502,33 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
           </div>
           {favoriteLoadouts.length > 0 && (
             <div className="favorite-loadouts" aria-label="Saved loadouts">
-              <span>Saved builds</span>
+              <span>{uiCopy.savedBuilds}</span>
               <div>
                 {favoriteLoadouts.slice(0, 6).map((loadout) => (
-                  <Link key={loadout.id} href={`/loadouts/${loadout.id}`}>{loadout.weapon}</Link>
+                  <Link key={loadout.id} href={href(`/loadouts/${loadout.id}`)}>{loadout.weapon}</Link>
                 ))}
               </div>
             </div>
           )}
           {lastUpdated && (
             <p className="loadout-freshness">
-              Live board - last updated {formatMetaDate(lastUpdated)}
+              {uiCopy.liveBoard} {formatMetaDate(lastUpdated)}
             </p>
           )}
-          <p className="loadout-intro">
-            Rankings combine weapon stats, practical range, handling, recoil control and Resurgence pace.
-            Re-check after major balance patches: a meta can move faster than raw stat sheets.
-          </p>
+          <p className="loadout-intro">{uiCopy.intro}</p>
           <div className="home-loadout-actions">
-            <a href="#ranking">View full ranking</a>
-            <a href="#compare">Compare two weapons</a>
+            <a href="#ranking">{uiCopy.viewFullRanking}</a>
+            <a href="#compare">{uiCopy.compareTwoWeapons}</a>
           </div>
           <div className="loadout-grid full-loadout-grid" style={{ marginBottom: '34px' }}>
-            {loadoutPairs.map((pair) => (
+            {(loadoutPairs.length ? loadoutPairs : visibleLoadoutsByAdminOrder.slice(0, 6).reduce<Loadout[][]>((pairs, loadout, index) => {
+              if (index % 2 === 0) pairs.push([loadout]);
+              else pairs[pairs.length - 1].push(loadout);
+              return pairs;
+            }, [])).map((pair) => (
               <div key={pair.map((loadout) => loadout.id).join('-')} className="loadout-pair embedded-loadout-pair">
                 <div className="pair-header">
-                  <span>Duo</span>
+                  <span>{uiCopy.duo}</span>
                   <strong>{pair.map((loadout) => loadout.weapon).join(' - ')}</strong>
                 </div>
                 <div className="pair-cards">
@@ -505,19 +537,20 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
                       key={loadout.id}
                       loadout={loadout}
                       metaScore={score(loadout)}
-                      confidence={confidenceLabel(loadout)}
+                      confidence={confidenceLabel(loadout, locale)}
                       isFavorite={favorites.includes(loadout.id)}
                       onToggleFavorite={() => toggleFavorite(loadout.id)}
+                      locale={locale}
                     />
                   ))}
                 </div>
-                <div className="perk-panel" aria-label="Recommended perks">
+                <div className="perk-panel" aria-label={uiCopy.recommendedPerks}>
                   {perks.map((perk) => (
                     <div key={perk.name} className={`perk-item perk-${perk.type}`}>
                       <span className="perk-mark">
                         <PerkIcon type={perk.type} />
                       </span>
-                      <strong>{perk.name}</strong>
+                      <strong>{translateTerm(perk.name, locale)}</strong>
                     </div>
                   ))}
                 </div>
@@ -529,8 +562,8 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
 
       <section className="content-layer" id="ranking">
         <div className="section-heading">
-          <span>Ranking from current filters</span>
-          <h2>Top weapons</h2>
+          <span>{uiCopy.rankingFromFilters}</span>
+          <h2>{uiCopy.topWeapons}</h2>
         </div>
         <div className="ranking-list">
           {topLoadouts.map((loadout, index) => (
@@ -538,16 +571,16 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
               <span>{String(index + 1).padStart(2, '0')}</span>
               <strong>{loadout.weapon}</strong>
               <RankingWeaponImage loadout={loadout} />
-              <small>{loadout.category}</small>
+              <small>{translateTerm(loadout.category, locale)}</small>
               <b>{score(loadout)}</b>
             </div>
           ))}
           {topLoadouts.length === 0 && (
             <div className="content-row" style={{ textDecoration: 'none' }}>
               <span>--</span>
-              <strong>No weapon found</strong>
+              <strong>{uiCopy.noWeaponFound}</strong>
               <span className="ranking-weapon-art ranking-weapon-art--empty" aria-hidden="true" />
-              <small>Try another search</small>
+              <small>{uiCopy.tryAnotherSearch}</small>
               <b>0</b>
             </div>
           )}
@@ -556,35 +589,46 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
 
       <section className="content-layer meta-lab" id="compare">
         <div className="section-heading">
-          <span>Data lab</span>
-          <h2>Compare</h2>
+          <span>{uiCopy.dataLab}</span>
+          <h2>{uiCopy.compare}</h2>
         </div>
-        <div className="meta-compare-controls">
-          <select value={compareA} onChange={(event) => setCompareA(event.target.value)}>
+        <form className="meta-compare-controls" action={href('/')} method="get" onChange={syncCompareUrl}>
+          <select
+            name="compareA"
+            value={compareA}
+            onChange={(event) => setCompareA(event.currentTarget.value)}
+            onInput={(event) => setCompareA(event.currentTarget.value)}
+          >
             {loadouts.map((loadout) => <option key={loadout.id} value={loadout.id}>{loadout.weapon}</option>)}
           </select>
-          <select value={compareB} onChange={(event) => setCompareB(event.target.value)}>
+          <select
+            name="compareB"
+            value={compareB}
+            onChange={(event) => setCompareB(event.currentTarget.value)}
+            onInput={(event) => setCompareB(event.currentTarget.value)}
+          >
             {loadouts.map((loadout) => <option key={loadout.id} value={loadout.id}>{loadout.weapon}</option>)}
           </select>
-        </div>
+          <button type="submit">{uiCopy.compare}</button>
+        </form>
         <div className="meta-compare-grid">
-          {compared.map((loadout) => (
-            <article key={loadout.id}>
-              <span>{loadout.category} / {loadout.playstyle}</span>
+          {compared.map(({ slot, loadout }) => (
+            <article key={`${slot}-${loadout.id}`}>
+              <span>{translateTerm(loadout.category, locale)} / {translateTerm(loadout.playstyle, locale)}</span>
               <h3>{loadout.weapon}</h3>
               <strong>{score(loadout)} META</strong>
               <dl>
-                <div><dt>TTK close</dt><dd>{loadout.advanced?.ttkClose ? `${loadout.advanced.ttkClose} ms` : 'N/A'}</dd></div>
-                <div><dt>TTK mid</dt><dd>{loadout.advanced?.ttkMid ? `${loadout.advanced.ttkMid} ms` : 'N/A'}</dd></div>
-                <div><dt>ADS</dt><dd>{loadout.advanced?.ads ? `${loadout.advanced.ads} ms` : 'N/A'}</dd></div>
-                <div><dt>Velocity</dt><dd>{loadout.advanced?.bulletVelocity ? `${loadout.advanced.bulletVelocity} m/s` : 'N/A'}</dd></div>
+                <div><dt>{uiCopy.ttkClose}</dt><dd>{loadout.advanced?.ttkClose ? `${loadout.advanced.ttkClose} ms` : 'N/A'}</dd></div>
+                <div><dt>{uiCopy.ttkMid}</dt><dd>{loadout.advanced?.ttkMid ? `${loadout.advanced.ttkMid} ms` : 'N/A'}</dd></div>
+                <div><dt>{uiCopy.ads}</dt><dd>{loadout.advanced?.ads ? `${loadout.advanced.ads} ms` : 'N/A'}</dd></div>
+                <div><dt>{uiCopy.velocity}</dt><dd>{loadout.advanced?.bulletVelocity ? `${loadout.advanced.bulletVelocity} m/s` : 'N/A'}</dd></div>
               </dl>
               <div className="compare-bars" aria-label={`${loadout.weapon} stat comparison`}>
                 {[
-                  ['Damage', loadout.stats.damage],
-                  ['Range', loadout.stats.range],
-                  ['Mobility', loadout.stats.mobility],
-                  ['Control', loadout.stats.control],
+                  [uiCopy.damage, loadout.stats.damage],
+                  [uiCopy.range, loadout.stats.range],
+                  [uiCopy.mobility, loadout.stats.mobility],
+                  [uiCopy.control, loadout.stats.control],
                 ].map(([label, value]) => (
                   <div key={label}>
                     <span>{label}</span>
@@ -593,7 +637,7 @@ export default function HomeClient({ loadouts, profiles }: { loadouts: Loadout[]
                   </div>
                 ))}
               </div>
-              <p>{loadout.notes || `${loadout.weapon} is a practical ${loadout.playstyle.toLowerCase()} build focused on role fit and repeatable fights.`}</p>
+              <p>{localizeLoadoutNote(loadout.weapon, loadout.playstyle, loadout.notes, locale)}</p>
             </article>
           ))}
         </div>

@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import ProToolsShell from '@/components/ProToolsShell';
 import ProToolsWeaponScene from '@/components/ProToolsWeaponScene';
+import { withLocalePath } from '@/lib/i18n';
+import { getProToolsPageCopy } from '@/lib/pageCopy';
+import { getRequestLocale } from '@/lib/requestLocale';
+import { translateRuntimeText } from '@/lib/runtimeTranslations';
 import './pro-tools.css';
 
 export const dynamic = 'force-dynamic';
@@ -27,24 +31,6 @@ type Section = {
   tips: Tip[];
   spawnGroups?: SpawnGroup[];
 };
-
-const proofCards = [
-  {
-    label: 'Fast decision',
-    value: '6 modules',
-    body: 'Aim, meta, movement, spawns, mindset and optimization in one focused path.',
-  },
-  {
-    label: 'Free preview',
-    value: 'visible',
-    body: 'Every tool shows the problem, expected result and a useful preview before purchase.',
-  },
-  {
-    label: 'Patch ready',
-    value: 'patch-ready',
-    body: 'The structure is built to update advice after meta changes.',
-  },
-];
 
 const sections: Section[] = [
   {
@@ -219,27 +205,48 @@ function SpawnGroups({ groups }: { groups: SpawnGroup[] }) {
   );
 }
 
-export default function ProToolsPage() {
+export default async function ProToolsPage() {
+  const locale = await getRequestLocale();
+  const copy = getProToolsPageCopy(locale);
+  const href = (pathname: string) => withLocalePath(pathname, locale);
+  const t = (value: string) => translateRuntimeText(value, locale);
+  const localizedSections = sections.map((section) => ({
+    ...section,
+    ...copy.modulesCopy[section.id],
+    tag: t(copy.modulesCopy[section.id]?.tag ?? section.tag),
+    label: t(copy.modulesCopy[section.id]?.label ?? section.label),
+    result: t(copy.modulesCopy[section.id]?.result ?? section.result),
+    preview: t(copy.modulesCopy[section.id]?.preview ?? section.preview),
+    lead: t(copy.modulesCopy[section.id]?.lead ?? section.lead),
+    sub: section.sub ? t(section.sub) : section.sub,
+    description: section.description ? t(section.description) : section.description,
+    tips: section.tips.map((tip) => ({ key: t(tip.key), body: t(tip.body) })),
+    spawnGroups: section.spawnGroups?.map((group) => ({
+      title: t(group.title),
+      cards: group.cards.map((card) => ({ label: t(card.label), body: t(card.body) })),
+    })),
+  }));
+
   return (
     <div className="pro-tools-page">
       <div className="pt-technical-backdrop" aria-hidden="true" />
       <ProToolsWeaponScene />
 
       <div className="safari-bar">
-        <Link className="brand-pill" href="/">
+        <Link className="brand-pill" href={href('/')}>
           <b>WZ</b>
           <span>Meta</span>
         </Link>
         <nav>
-          <Link href="/pro-tools" aria-current="page">Pro Tools</Link>
-          <Link href="/#all-loadouts">Loadouts</Link>
-          <Link href="/set-up">Set-up</Link>
-          <Link href="/esport">Esport</Link>
-          <Link href="/community">Community</Link>
+          <Link href={href('/pro-tools')} aria-current="page">{copy.nav.proTools}</Link>
+          <Link href={href('/#all-loadouts')}>{copy.nav.loadouts}</Link>
+          <Link href={href('/set-up')}>{copy.nav.setUp}</Link>
+          <Link href={href('/esport')}>{copy.nav.esport}</Link>
+          <Link href={href('/community')}>{copy.nav.community}</Link>
         </nav>
         <label>
-          <span>Search</span>
-          <input placeholder="Weapon or loadout" />
+          <span>{copy.nav.search}</span>
+          <input placeholder={copy.nav.searchPlaceholder} />
         </label>
         <div className="nav-readout" aria-hidden="true">
           <span>THEATER // AL MAZRAH</span>
@@ -257,35 +264,35 @@ export default function ProToolsPage() {
           </div>
           <div className="pt-wt-hero-grid">
             <div>
-              <p className="pt-wt-hero-kicker">Operator intelligence // blue protocol</p>
-              <h1 className="pt-wt-hero-title">Pro Tools</h1>
+              <p className="pt-wt-hero-kicker">{copy.heroKicker}</p>
+              <h1 className="pt-wt-hero-title">{copy.heroTitle}</h1>
               <p className="pt-wt-hero-lead">
-                Short, actionable tools to tune your aim, read the meta, move better and prepare Warzone sessions.
+                {copy.heroLead}
               </p>
               <div className="pt-wt-hero-actions">
-                <Link href="/tools-individual">View tools</Link>
-                <Link href="/pro-access">Go Pro</Link>
+                <Link href={href('/tools-individual')}>{copy.viewTools}</Link>
+                <Link href={href('/pro-access')}>{copy.goPro}</Link>
               </div>
             </div>
             <dl className="pt-wt-hero-stats">
               <div>
-                <dt>Modules</dt>
+                <dt>{copy.modules}</dt>
                 <dd>06</dd>
               </div>
               <div>
-                <dt>Tools</dt>
+                <dt>{copy.tools}</dt>
                 <dd>6</dd>
               </div>
               <div>
-                <dt>From</dt>
+                <dt>{copy.from}</dt>
                 <dd>9€</dd>
               </div>
             </dl>
           </div>
         </header>
 
-        <section className="pt-wt-proof-grid" aria-label="Why use Pro Tools">
-          {proofCards.map((card) => (
+        <section className="pt-wt-proof-grid" aria-label={copy.accessAria}>
+          {copy.proof.map((card) => (
             <article key={card.label}>
               <span>{card.label}</span>
               <strong>{card.value}</strong>
@@ -294,8 +301,26 @@ export default function ProToolsPage() {
           ))}
         </section>
 
-        <ProToolsShell sections={sections.map(({ id, num, label, tag }) => ({ id, num, label, tag }))}>
-            {sections.map((section, index) => (
+        <section className="pt-access-compare" aria-label={copy.accessAria}>
+          <article>
+            <span>{copy.free}</span>
+            <strong>{copy.freeTitle}</strong>
+            <p>{copy.freeBody}</p>
+          </article>
+          <article>
+            <span>{copy.pro}</span>
+            <strong>{copy.proTitle}</strong>
+            <p>{copy.proBody}</p>
+          </article>
+          <Link href={href('/pro-access')}>{copy.compareAccess}</Link>
+        </section>
+
+        <ProToolsShell
+          sections={localizedSections.map(({ id, num, label, tag }) => ({ id, num, label, tag }))}
+          copy={copy.rail}
+          toolsHref={href('/tools-individual')}
+        >
+            {localizedSections.map((section, index) => (
               <article
                 key={section.id}
                 id={section.id}
@@ -310,14 +335,14 @@ export default function ProToolsPage() {
                 <div className="pt-wt-module-body">
                   <div className="pt-wt-product-preview">
                     <div>
-                      <span>Result</span>
+                      <span>{copy.result}</span>
                       <p>{section.result}</p>
                     </div>
                     <div>
-                      <span>Free preview</span>
+                      <span>{copy.freePreview}</span>
                       <p>{section.preview}</p>
-                      <Link className="pt-wt-preview-btn" href={`/pro-tools/${section.id}`}>
-                        Open preview
+                      <Link className="pt-wt-preview-btn" href={href(`/pro-tools/${section.id}`)}>
+                        {copy.openPreview}
                       </Link>
                     </div>
                   </div>
@@ -330,7 +355,7 @@ export default function ProToolsPage() {
                   {section.sub && <p className="pt-wt-sub">{section.sub}</p>}
 
                   {section.id === 'pro-spawn' && (
-                    <p className="pt-wt-section-label">Spawn protocols</p>
+                    <p className="pt-wt-section-label">{copy.spawnProtocols}</p>
                   )}
 
                   <TipBriefing tips={section.tips} />
@@ -342,59 +367,43 @@ export default function ProToolsPage() {
 
         <section id="access" className="pt-wt-pricing">
           <header className="pt-wt-pricing-head">
-            <span className="pt-wt-pricing-tag">Clearance level</span>
-            <h2 className="pt-wt-pricing-title">Access tiers</h2>
+            <span className="pt-wt-pricing-tag">{copy.clearance}</span>
+            <h2 className="pt-wt-pricing-title">{copy.accessTiers}</h2>
           </header>
 
           <div className="pt-wt-plans">
             <div className="pt-wt-plan">
-              <span className="pt-wt-plan-tier">Tier 00 — Free</span>
-              <div className="pt-wt-plan-price">0 €<span> / always</span></div>
-              <p className="pt-wt-plan-desc">Stay informed. Never miss a meta shift or a patch that changes the game.</p>
+              <span className="pt-wt-plan-tier">{copy.plans.freeTier}</span>
+              <div className="pt-wt-plan-price">0 EUR<span>{copy.plans.always}</span></div>
+              <p className="pt-wt-plan-desc">{copy.plans.freeDesc}</p>
               <ul className="pt-wt-plan-list">
-                <li>Weekly meta newsletter</li>
-                <li>Patch notes digest</li>
-                <li>Resurgence map updates</li>
-                <li>New weapon tier alerts</li>
-                <li>Community tips & tricks</li>
+                {copy.plans.freeItems.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <Link href="/subscribe" className="pt-wt-plan-btn">Subscribe free</Link>
+              <Link href={href('/subscribe')} className="pt-wt-plan-btn">{copy.plans.subscribe}</Link>
             </div>
 
             <div className="pt-wt-plan pt-wt-plan--featured">
-              <span className="pt-wt-plan-badge">Priority</span>
-              <span className="pt-wt-plan-tier">Tier 01 — Pro</span>
-              <div className="pt-wt-plan-price">50 €<span> / month</span></div>
-              <p className="pt-wt-plan-desc">Get every Pro Tool before the rest of the lobby. Early access, full intelligence.</p>
+              <span className="pt-wt-plan-badge">{copy.plans.priority}</span>
+              <span className="pt-wt-plan-tier">{copy.plans.proTier}</span>
+              <div className="pt-wt-plan-price">50 EUR<span>{copy.plans.month}</span></div>
+              <p className="pt-wt-plan-desc">{copy.plans.proDesc}</p>
               <ul className="pt-wt-plan-list">
-                <li>Everything in Free</li>
-                <li>All 6 Pro Tools — early access</li>
-                <li>Free preview before buying</li>
-                <li>New tools before public release</li>
-                <li>Meta trend analysis</li>
-                <li>Priority spawn & rotation guides</li>
-                <li>Exclusive loadout breakdowns</li>
-                <li>Direct feedback channel</li>
+                {copy.plans.proItems.map((item) => <li key={item}>{item}</li>)}
               </ul>
-              <Link href="/pro-access" className="pt-wt-plan-btn pt-wt-plan-btn--pro">Get Pro access</Link>
+              <Link href={href('/pro-access')} className="pt-wt-plan-btn pt-wt-plan-btn--pro">{copy.plans.getPro}</Link>
             </div>
 
             <div className="pt-wt-plan">
-              <span className="pt-wt-plan-tier">Tier 02 — Modular</span>
+              <span className="pt-wt-plan-tier">{copy.plans.modularTier}</span>
               <div className="pt-wt-plan-price">
-                From <span className="pt-wt-plan-price-accent">9 €</span>
-                <span> / tool</span>
+                {copy.from} <span className="pt-wt-plan-price-accent">9 EUR</span>
+                <span>{copy.plans.tool}</span>
               </div>
-              <p className="pt-wt-plan-desc">Pick only the tools you need. Pay once, access forever.</p>
+              <p className="pt-wt-plan-desc">{copy.plans.modularDesc}</p>
               <ul className="pt-wt-plan-list">
-                <li>Aim Tools</li>
-                <li>Next Meta</li>
-                <li>Pro Movement</li>
-                <li>How To Be A Pro</li>
-                <li>Pro Spawn</li>
-                <li>Pro Opti</li>
+                {localizedSections.map((section) => <li key={section.id}>{section.label}</li>)}
               </ul>
-              <Link href="/tools-individual" className="pt-wt-plan-btn">Browse tools</Link>
+              <Link href={href('/tools-individual')} className="pt-wt-plan-btn">{copy.plans.browse}</Link>
             </div>
           </div>
         </section>

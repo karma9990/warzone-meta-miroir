@@ -106,7 +106,7 @@ export function getOAuthBase(provider: OAuthProvider) {
     authorizeUrl: `${base}/authorize`,
     tokenUrl: `${base}/token`,
     userInfoUrl: `${base}/userinfo`,
-    scope: process.env.BATTLE_NET_SCOPES || '',
+    scope: process.env.BATTLE_NET_SCOPES || 'openid',
   };
 }
 
@@ -137,7 +137,7 @@ export function getSiteOrigin(req: NextRequest) {
 }
 
 export function getRedirectUri(req: NextRequest, provider: OAuthProvider) {
-  return `${req.nextUrl.origin}/api/oauth/${provider}/callback`;
+  return `${getSiteOrigin(req)}/api/oauth/${provider}/callback`;
 }
 
 export async function createUserSessionToken(user: UserSession) {
@@ -151,40 +151,37 @@ export async function createUserSessionToken(user: UserSession) {
 }
 
 export async function getUserSession(): Promise<UserSession | null> {
-  const supabaseUser = await getSupabaseUserSession();
-  if (supabaseUser) return supabaseUser;
-
   const cookieStore = await cookies();
   const token = cookieStore.get(USER_SESSION_COOKIE)?.value;
-  if (!token) return null;
-
-  try {
-    const { payload } = await jwtVerify(token, SECRET, {
-      algorithms: ['HS256'],
-      issuer: 'wzpro-meta',
-      audience: 'wzpro-meta-user',
-    });
-    if (
-      payload.tokenUse !== USER_TOKEN_USE ||
-      typeof payload.sub !== 'string' ||
-      typeof payload.provider !== 'string' ||
-      !isSessionProvider(payload.provider) ||
-      typeof payload.name !== 'string'
-    ) {
-      return null;
+  if (token) {
+    try {
+      const { payload } = await jwtVerify(token, SECRET, {
+        algorithms: ['HS256'],
+        issuer: 'wzpro-meta',
+        audience: 'wzpro-meta-user',
+      });
+      if (
+        payload.tokenUse === USER_TOKEN_USE &&
+        typeof payload.sub === 'string' &&
+        typeof payload.provider === 'string' &&
+        isSessionProvider(payload.provider) &&
+        typeof payload.name === 'string'
+      ) {
+        return {
+          sub: payload.sub,
+          provider: payload.provider,
+          name: payload.name,
+          email: typeof payload.email === 'string' ? payload.email : undefined,
+          picture: typeof payload.picture === 'string' ? payload.picture : undefined,
+          battletag: typeof payload.battletag === 'string' ? payload.battletag : undefined,
+        };
+      }
+    } catch (error) {
+      console.warn('User session verification failed, falling back to Supabase session:', error);
     }
-
-    return {
-      sub: payload.sub,
-      provider: payload.provider,
-      name: payload.name,
-      email: typeof payload.email === 'string' ? payload.email : undefined,
-      picture: typeof payload.picture === 'string' ? payload.picture : undefined,
-      battletag: typeof payload.battletag === 'string' ? payload.battletag : undefined,
-    };
-  } catch {
-    return null;
   }
+
+  return getSupabaseUserSession();
 }
 
 export async function setUserSessionCookie(res: NextResponse, user: UserSession) {

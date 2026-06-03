@@ -1,10 +1,11 @@
 import { jwtVerify, type JWTPayload } from 'jose';
 import { cookies } from 'next/headers';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import LocalizedLink from '@/components/LocalizedLink';
 import ProtectedWatermark from '@/components/ProtectedWatermark';
 import { ADMIN_PREVIEW_COOKIE, isAuthenticated } from '@/lib/auth';
 import { consumeClaimToken, grantEntitlement, hasToolAccess } from '@/lib/entitlementStore';
+import { getNextMetaConfig } from '@/lib/nextMetaConfig';
 import { getJwtSecret } from '@/lib/security';
 import { isProToolId } from '@/lib/toolAccess';
 import { getUserSession, type UserSession } from '@/lib/userAuth';
@@ -13,6 +14,7 @@ import SensitivityConverter from '@/components/SensitivityConverter';
 import RecoilVisualizer from '@/components/RecoilVisualizer';
 import FovOptimizer from '@/components/FovOptimizer';
 import MetaDashboard from '@/components/MetaDashboard';
+import NextMetaPredictor from '@/components/NextMetaPredictor';
 import RotationTool from '@/components/RotationTool';
 import SlideCancelTrainer from '@/components/SlideCancelTrainer';
 import PeekAngleVisualizer from '@/components/PeekAngleVisualizer';
@@ -155,6 +157,7 @@ function ToolVideoBlock({ video }: { video: ToolVideo }) {
         allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
         referrerPolicy="strict-origin-when-cross-origin"
+        sandbox="allow-scripts allow-presentation"
         style={{ width: '100%', aspectRatio: '16 / 9', border: '1px solid rgba(0,0,0,0.16)', background: '#10100e', display: 'block' }}
       />
     </div>
@@ -411,7 +414,6 @@ const TOOL_CONTENT: Record<string, ToolData> = {
       {
         title: 'Spawn strategy — how to drop correctly',
         body: 'The drop is the most important decision of a resurgence game. Every fight you have in the first 60 seconds is a direct consequence of where you landed, how fast you got there, and whether you had a plan before you jumped. Most average players pick a POI because they recognise the name — pros pick a POI because of what it controls, what it gives them, and what it costs them if the zone does not cooperate.\n\nThe first rule is to decide before the plane takes off. Look at the flight path, identify the two or three POIs you can reach without a full glide, and commit to one before you exit. Hesitation mid-air means you land late, which means every enemy at your POI is already looted and positioned by the time your feet touch the ground. Arriving a second late at a contested drop is worse than choosing a quieter POI entirely.\n\nThe second rule is to match your drop to your squad\'s playstyle. An aggressive squad should drop hot — contested POIs like Prison, Headquarters, or Mansion — because early fights build momentum, burn respawns from the enemy, and give you kills before the squad count drops. A methodical squad should drop quiet — Dock, Stronghold, Riverboat, Lumbermill — loot fast, kit up completely, and rotate into mid-game at full strength. Dropping hot with a passive squad or quiet with an aggressive squad creates friction that costs you games.\n\nThe third rule is to always know your rotation before you are forced to make it. The moment you land, look at the zone and identify your next position. You should never be surprised by the circle — the plan for where you move next should already exist in your head. Players who rotate reactively under zone pressure make bad decisions. Players who rotated proactively 20 seconds earlier own the position, hold the angle, and wait.\n\nFinally: never land in water, never vault into an unchecked room on drop, and never split the squad across two POIs unless both players are experienced enough to hold alone. The drop is not a random event — it is the opening move of a game of chess. Make it deliberately.',
-        image: '/assets/tools/pro-spawn/spawn-strategy.jpg',
         pros: ['Deciding before the plane sets removes hesitation and guarantees a clean landing', 'Matching drop style to squad playstyle eliminates early friction', 'Knowing your rotation before the zone moves keeps you ahead of every reactive player'],
         cons: ['Hot drops reward aggression but punish mechanical weakness — pick based on your actual level, not your ideal level', 'Quiet drops require discipline to rotate early — teams that loot too long get caught by the zone or by rotators', 'Splitting the squad on drop is almost always wrong — the 1v2 disadvantage is rarely worth the loot gain'],
       },
@@ -488,73 +490,61 @@ const TOOL_CONTENT: Record<string, ToolData> = {
         title: 'Read this before optimising anything',
         category: 'DISCLAIMER',
         body: 'Before applying any optimisation — from this guide or anywhere else — there are things you need to understand about how this space works and what the realistic limits of software tweaks actually are.\n\nMost third-party optimisation content is recycled. The majority of YouTube videos, "Ultimate FPS Boost" guides, and paid optimisation scripts pull from the same pool of registry edits, service disables, and power plan tweaks that have been circulating since Windows 7. They are repackaged under a new label, presented as exclusive discoveries, and sold or promoted for views. The underlying changes are real and often legitimately useful — but they are not proprietary. Everything in this guide is derived from publicly documented Windows behaviour, official GPU driver documentation, and community-verified testing. There is no secret.\n\nSome optimisations disable Windows services that your system depends on for everyday use. Disabling SysMain, Windows Search, or Connected User Experiences can measurably reduce background CPU load during gaming — but those same services power the Microsoft Store, Windows Update, certain app installations, and background sync features. If you use your gaming PC for work, creative software, or Microsoft 365, apply these changes selectively and know how to re-enable them. A dedicated gaming build and a daily driver machine have different needs. Do not blindly run a debloating script without reading what it removes.\n\nOptimisations deliver diminishing returns as hardware improves. On a low-end or mid-range PC — a system struggling to maintain 60fps with a 1060 or RX 580 — software optimisation can produce gains of 15–30% by freeing CPU and RAM that the game desperately needed. On a high-end build already delivering 180fps+ with an RTX 4080 and a fast CPU, the same tweaks might produce 5–10fps of additional headroom and tighter frame time consistency. The optimisation is not less real — the hardware ceiling is simply higher. For a powerful machine, optimisation serves to maintain peak performance over time, prevent degradation from background bloat, and reduce variance. It does not replace hardware.\n\nThe bottleneck problem is why the "just buy the latest GPU" approach fails. A bottleneck occurs when one component in your system cannot supply data fast enough to keep another component fully utilised. The most common scenario: a CPU that cannot generate game frames quickly enough to keep the GPU busy. The GPU renders nothing while it waits for the CPU to finish processing game logic, AI, physics, and draw calls. You can install an RTX 5090 in a system with an i5-8400 and still run at 90fps because the CPU is the limiting factor, not the GPU. The GPU will show 40–50% utilisation in task manager while running a game — that is the tell. A balanced build means the CPU and GPU finish their respective workloads at roughly the same time. Matching component tiers matters more than maximising any single part.\n\nRAM speed and capacity are more impactful than most players realise. Games increasingly rely on fast memory access for asset streaming, physics calculations, and AI processing. Running 16GB at 2400MHz versus 32GB at 3600MHz can produce a 10–20% fps difference on CPU-limited systems — not because the GPU got faster, but because the CPU can feed it data more quickly. If your RAM is running below its rated speed (check in HWiNFO64 under the memory tab), enabling XMP/EXPO in BIOS is one of the single highest-return changes you can make at zero cost.\n\nThermal performance is the silent fps killer. A CPU or GPU that hits its thermal limit throttles its clock speed automatically to prevent damage. A system running at 95°C on the CPU during a Warzone session is not running at its rated speed — it is running at whatever speed keeps the temperature from climbing further. Cleaning dust from heatsinks, replacing dried thermal paste (every 2–3 years on a CPU, every 3–4 years on a GPU), and improving case airflow can recover 10–20% of clock speed on a thermally throttled system. If your fps was higher six months ago and you have changed nothing else, temperature is almost always the reason.',
-        image: '/assets/tools/pro-opti/disclaimer.jpg',
       },
       {
         title: 'Frame rate priority',
         category: 'GRAPHICS',
         body: 'Frame rate is the single most impactful graphics setting in Warzone — more than resolution, texture quality, or shadow detail. A stable 60fps on console or 144fps+ on PC does two things simultaneously: it makes your game look smoother, and it makes your inputs register more frequently per second. At 60fps, a new frame renders every 16.6ms. At 144fps, every 6.9ms. That gap directly affects how quickly your aim corrections appear on screen and how responsive your shots feel. The key word is stable. An average of 144fps that dips to 80fps during fights is worse than a locked 120fps with no variance. Unstable frame rate creates inconsistent input timing, which is exactly the kind of invisible variable that causes you to lose fights you should win. On PC: cap your frame rate at a value your system can sustain without dropping — not the maximum your GPU can push in an empty field. On console: enable Performance Mode in the console system settings, not just in the game. Some console games apply the setting only in-app; enabling it system-wide ensures the console prioritises frame rate across every menu and loading screen too.',
-        image: '/assets/tools/pro-opti/framerate.jpg',
       },
       {
         title: 'In-game graphics settings',
         category: 'GRAPHICS',
         body: 'The goal of in-game graphics settings is not to make the game look good — it is to remove everything that reduces your ability to see and react. Start by disabling three settings that exist purely for cinematic effect and actively hurt competitive play: Film Grain adds visual noise that masks enemy silhouettes at distance; Motion Blur smears the image during movement, making it harder to track targets; Depth of Field blurs everything outside your aim point, reducing peripheral threat detection. All three are off in every professional player\'s setup without exception. Next, set Texture Resolution to the maximum your VRAM allows — low textures make enemies harder to distinguish from background surfaces. Set Shader Quality to Low or Medium; high shader quality costs significant GPU performance with no gameplay upside. Shadow quality can be dropped to Low — shadows rarely help you spot enemies and the GPU cost is high. For the environment detail settings (foliage, particle quality, level of detail), keep them at Medium: too low and distant enemies disappear into terrain; too high and frame rate drops. The most overlooked setting is Render Resolution. On console, this is often set below 100% by default in Quality Mode — switch to Performance Mode and confirm Render Resolution is at 100%. A blurry image at high frame rate is better than a sharp image at low frame rate, but a sharp image at high frame rate is the target.',
-        image: '/assets/tools/pro-opti/graphics.jpg',
       },
       {
         title: 'Windows optimisation',
         category: 'WINDOWS',
         body: 'Windows runs dozens of background processes that compete with Warzone for CPU and RAM resources. Eliminating the unnecessary ones is one of the highest-impact free optimisations available on PC. Start with Power Plan: go to Control Panel → Power Options and set it to High Performance or Ultimate Performance (the latter is hidden by default — enable it via PowerShell with the command: powercmd /setactive e9a42b02-d5df-448d-aa00-03f14749eb61). This prevents Windows from throttling CPU clock speed to save energy, which directly reduces frame time spikes. Disable Xbox Game Bar (Settings → Gaming → Xbox Game Bar → Off) and Hardware-Accelerated GPU Scheduling if your GPU is below an RTX 3000 series — on older cards it introduces latency instead of reducing it; on RTX 3000 and newer, enable it. Turn off mouse acceleration system-wide: Settings → Bluetooth & Devices → Mouse → Additional Mouse Settings → Pointer Options → uncheck "Enhance pointer precision". This setting is on by default and silently destroys aim consistency by varying the relationship between hand movement and cursor movement. Before each session, close background applications manually: Discord can stay open but disable hardware acceleration in Discord settings (Settings → Appearance → Hardware Acceleration → Off). Browsers, streaming software, and update services should be closed entirely.',
-        image: '/assets/tools/pro-opti/windows.jpg',
       },
       {
         title: 'Windows settings to disable',
         category: 'WINDOWS',
         body: 'Beyond the basics, Windows has dozens of hidden services and visual features that consume CPU cycles and memory with zero gaming benefit. Work through this checklist once and your system will run measurably lighter. In Settings → System → Display, disable Hardware-accelerated GPU scheduling if on a pre-RTX 3000 GPU, and set Windows HD Color to Off — it adds processing overhead. In Settings → Privacy & Security, disable every toggle under Diagnostics & Feedback, Activity History, and App Diagnostics — these background telemetry services constantly write to disk during your session. In Services (run services.msc), disable: SysMain (formerly Superfetch — it pre-loads apps into RAM and competes directly with your game), Windows Search (constantly indexes your drive mid-session), Connected User Experiences and Telemetry (sends usage data to Microsoft), Print Spooler (unless you actively print), and Fax. In Task Scheduler, disable the following tasks: Microsoft → Windows → Application Experience → ProgramDataUpdater, Microsoft → Windows → Customer Experience Improvement Program → all tasks, and Microsoft → Windows → Defragment → ScheduledDefrag (defrag should never run during a gaming session — schedule it manually at week end). Finally, in the NVIDIA Control Panel (if applicable): set Power Management Mode to Prefer Maximum Performance, disable Vertical Sync globally, set Texture Filtering Quality to High Performance, and turn off Ambient Occlusion and Anisotropic Filtering at the global level — let the game control these instead.',
-        image: '/assets/tools/pro-opti/windows-disable.jpg',
       },
       {
         title: 'Performance-focused operating systems',
         category: 'OS',
         body: 'Standard Windows 11 ships with telemetry services, bloatware, and background processes that no competitive gamer needs. Several modified operating system builds strip all of that out and rebuild Windows from the ground up around performance. Atlas OS is the most widely used among competitive players — it is a debloated Windows 10 build that removes over 60 background services, disables all telemetry, and applies a curated set of registry tweaks automatically. The result is a measurably lower CPU and RAM baseline at idle, which translates directly to more consistent frame times during play. Reef OS and ReviOS follow a similar philosophy and are compatible with Windows 11 if you prefer the newer base. The trade-off with any debloated build is that some Windows Update and security features are disabled by default — these systems are designed for dedicated gaming machines that are not used for banking or sensitive data. For Linux, Nobara OS (built on Fedora) is the best available option for gaming. It ships with gaming-specific kernel patches, pre-configured Proton/Wine compatibility layers, and out-of-the-box support for the hardware drivers most gaming builds need. Warzone runs via Proton on Nobara with competitive performance that matches Windows in most configurations. The caveat: kernel-level anti-cheat (Easy Anti-Cheat and BattlEye) has limited Linux support depending on the game version — verify current compatibility before committing to a full OS switch.',
-        image: '/assets/tools/pro-opti/os.jpg',
       },
       {
         title: 'Overclocking CPU & GPU',
         category: 'OVERCLOCKING',
         body: 'Overclocking pushes your hardware beyond its factory-rated clock speed to extract additional performance — at the cost of higher heat, higher power consumption, and reduced hardware longevity if done incorrectly. Done correctly, it is one of the few ways to meaningfully increase performance without spending money on new hardware. For CPU overclocking: use Intel XMP or AMD EXPO first. These are official memory profiles that push your RAM to its rated speed — most systems ship with RAM running below its rated frequency by default. Enable XMP/EXPO in BIOS under the memory settings tab. This alone can improve frame times by 5–15% depending on your CPU and game. Beyond XMP, manual CPU overclocking is done through the BIOS by raising the core multiplier incrementally (1 step at a time), running a stress test (Prime95 or Cinebench R23), and monitoring temperatures with HWiNFO64. Stay below 90°C under full load. For GPU overclocking: MSI Afterburner is the universal tool. Start by raising the Power Limit to maximum (+20–25%), then incrementally raise the Core Clock offset by +50MHz, run a benchmark (Unigine Superposition or Furmark), and check for artifacts or crashes. A stable +100–150MHz core clock is realistic on most modern GPUs. Memory overclocking on GPUs often has a larger impact on gaming performance than core clock — raise the Memory Clock offset by +200MHz, test, then push further in 100MHz increments until instability appears, then back off by 50MHz. Never overclock without monitoring temperatures. A GPU thermal throttling under load produces identical frame time variance to a system that is simply not overclocked — the performance gain disappears and instability increases.',
-        image: '/assets/tools/pro-opti/overclocking.jpg',
       },
       {
         title: 'Monitor setup',
         category: 'DISPLAY',
         body: 'Your monitor is the last step between the game and your eyes, and its settings matter more than most players realise. The first priority is refresh rate: confirm your monitor is actually running at its advertised maximum. Go to Windows Display Settings → Advanced Display → Refresh Rate and verify it matches your monitor spec. Many monitors default to 60Hz even when capable of 144Hz or 240Hz — this is the most common and most costly oversight in PC setup. Enable hardware sync correctly: G-Sync on NVIDIA or FreeSync on AMD, and cap your in-game frame rate at 3fps below your monitor\'s refresh rate — this eliminates tearing while keeping input latency minimal. For response time, set it to the fastest mode your monitor offers (often labelled Fast, Faster, or Extreme). Some monitors introduce overshoot artifacts at the fastest setting — test by looking at fine text during movement; if you see colour fringing, drop one level. Calibrate brightness so that dark corners in-game are readable without blowing out bright outdoor areas. Most monitors ship with brightness set too high — reduce it to the point where you can see into shadows without squinting at sunlit areas. Finally, in Windows Display Settings → Change Resolution, confirm Output Color Format is RGB and Output Dynamic Range is Full — many monitors default to Limited range, which crushes blacks and reduces contrast information available to your eyes.',
-        image: '/assets/tools/pro-opti/monitor.jpg',
       },
       {
         title: 'NVIDIA Control Panel',
         category: 'NVIDIA',
         body: 'The NVIDIA Control Panel exposes settings that directly affect colour clarity, input latency, and frame consistency — none of which are accessible from within Warzone itself. Open it by right-clicking the desktop or searching from the Start menu.\n\nDisplay → Adjust Desktop Color Settings: Set Digital Vibrance to 70–80%. The default 50% produces a washed-out image; raising it makes enemy outlines and operator skins more distinct against terrain backgrounds. Do not exceed 85% — at extreme values textures become unnaturally saturated, reducing rather than improving target identification. Set Brightness to 51–52%, Contrast to 52–55%, and Gamma to 1.10–1.15. These values lift the shadow range — dark interiors and covered positions become readable without overexposing lit areas.\n\nDisplay → Change Resolution: Set Output Color Format to RGB and Output Dynamic Range to Full. Many monitors default to YCbCr422 and Limited range — this crushes blacks and reduces the full contrast bandwidth your panel is capable of rendering.\n\nManage 3D Settings → Global Settings: Low Latency Mode → Ultra. This reduces the pre-rendered frame queue from the default 3 frames to 1, directly cutting input latency. The trade-off is a minor average fps reduction — always worth it for competitive play. Shader Cache Size → Unlimited (eliminates mid-session compilation stutters). Texture Filtering Quality → High Performance. Vertical Sync → Off globally — let the in-game frame cap control timing instead. Power Management Mode → Prefer Maximum Performance (prevents GPU clock from dropping during menu screens or calm moments in-game, keeping frame times consistent throughout the session).',
-        image: '/assets/tools/pro-opti/nvidia.jpg',
       },
       {
         title: 'AMD Radeon Software',
         category: 'AMD',
         body: 'AMD Radeon Software (Adrenalin) contains the equivalent competitive optimisation settings for AMD GPU users. Open it from the system tray icon or by right-clicking the desktop.\n\nDisplay → Color: Set Saturation (equivalent to NVIDIA\'s Digital Vibrance) to 130–140 on the AMD scale (default is 100). This increases colour separation between enemy operators and background terrain without creating unnatural oversaturation. Set Contrast to 102–105% and Brightness to 101–102%. Hue should remain at 0 — shifting it introduces colour casts that distort the image and hurt rather than help clarity.\n\nDisplay → Custom Resolution: Confirm your monitor is running at its native resolution and maximum refresh rate. AMD does not always apply the correct refresh rate automatically after driver updates — verify it here after every major driver install.\n\nGraphics → Advanced: Enable Radeon Anti-Lag. This is AMD\'s equivalent to NVIDIA\'s Low Latency Mode Ultra — it reduces the CPU-to-GPU command queue and directly lowers input lag. Enable it globally or per-game. Radeon Boost (which dynamically reduces resolution during fast movement to maintain frame rate) should be disabled for Warzone — it introduces resolution inconsistency that makes target tracking harder at the moments it matters most. Set Texture Filtering Quality to Performance. Disable Morphological Anti-Aliasing globally — let the game engine handle AA. Surface Format Optimisation → Off (can cause visual artefacts in some scenes). Under Radeon Chill, confirm it is disabled — Chill caps frame rate dynamically based on mouse movement, which is the opposite of what competitive play requires.',
-        image: '/assets/tools/pro-opti/amd.jpg',
       },
       {
         title: 'Audio setup',
         category: 'AUDIO',
         body: 'Audio is the most underrated performance advantage in Warzone, and it is the one most players configure incorrectly by default. The in-game audio mix setting is the single most impactful change you can make: set it to Boost High. This mode amplifies the high-frequency range of the audio spectrum, which is where footstep sounds, reloading clicks, and equipment sounds live. The default Balanced mix compresses this range to make explosions and gunshots feel more cinematic — it actively makes footsteps quieter. Boost High inverts this priority. The second critical setting is spatial audio. On PC, enable Windows Sonic for Headphones or Dolby Atmos (system-wide in Windows Sound settings). On console, enable 3D audio in the system settings, not the game settings — the system-level toggle applies spatial processing at a lower level and is more accurate. Use stereo headphones, not surround sound headsets. Surround sound headsets use multiple small drivers that create a muddy, inaccurate stereo image — a high-quality stereo pair with spatial audio software processing produces a more precise and directionally accurate soundstage. Volume balance: master volume between 70–80%, effects volume at 100%, music and dialogue at 20% or off entirely. You should hear every footstep before you see the player. If you do not, your audio setup is the problem.',
-        image: '/assets/tools/pro-opti/audio.jpg',
       },
       {
         title: 'Advanced audio optimisation',
         category: 'AUDIO',
         body: 'For advanced audio, think in tiers instead of copying one magic preset. Tier 1 is a clean stereo base: no virtual 7.1 headset mode, no heavy bass boost, no music, and effects volume high enough to read footsteps without hurting your ears. Tier 2 is EQ work: reduce muddy low frequencies that mask movement, keep mids readable for reloads and plating, and lift the presence range carefully so footsteps separate from gunfire. Tier 3 is the ArtIsWar-style approach: a proper DAC/interface when possible, Equalizer APO or SteelSeries Sonar, light compression, and narrow EQ cuts that stop explosions and streaks from covering enemy movement. The goal is not louder audio. The goal is separation. If gunfire is painful, if your own footsteps are louder than enemy information, or if long sessions fatigue your ears, the tune is too aggressive. IEMs can be very strong here because good wired IEMs isolate room noise and make small directional details easier to track than many bulky gaming headsets.',
-        image: '/assets/tools/pro-opti/audio.jpg',
         video: {
           title: 'Triivio sound optimization',
           url: 'https://www.youtube.com/embed/Yhl-dK75f8s',
@@ -565,19 +555,16 @@ const TOOL_CONTENT: Record<string, ToolData> = {
         title: 'Network stability',
         category: 'NETWORK',
         body: 'Network performance in Warzone is governed by two separate metrics that most players conflate: ping and packet loss. Ping is the round-trip time between your machine and the game server — lower is better, but anything below 60ms is functionally competitive. Packet loss is the percentage of data packets that fail to arrive — even 1–2% packet loss creates rubber-banding, delayed hit registration, and desync that no amount of skill can overcome. A wired ethernet connection solves both simultaneously. On Wi-Fi, signal interference, distance from the router, and other devices sharing the channel all introduce packet loss. An ethernet cable eliminates every one of those variables at once. If running ethernet is not possible, use a Wi-Fi 6 router and place it in the same room — Wi-Fi 6 has significantly lower latency and better congestion handling than previous standards. In the game\'s network settings, enable On-Demand Texture Streaming only if your internet connection is fast and stable (100Mbps+); on slower connections it causes mid-game stutters as textures load. Set your preferred server region manually — automatic selection sometimes connects you to a geographically suboptimal server. Choose the region closest to you and confirm the ping reading in the server browser. Finally, QoS (Quality of Service) on your router can prioritise gaming traffic over other household devices — if your router supports it, enable it and assign highest priority to your gaming device.\n\nNetwork optimization software belongs in the same category: it can improve routing, but it cannot fix bad Wi-Fi, an overloaded router, or a poor local line. Tools such as ExitLag, NoPing, WTFast/GPN, GearUP Booster, and Cloudflare WARP work by sending game traffic through an alternate route instead of the default path chosen by your ISP. This can help when your ISP takes a bad route to the Warzone server, causing high jitter, unstable ping, or packet loss. It can also make things worse if the default route is already clean. Treat these tools like a diagnostic layer: test one at a time, compare ping, jitter, packet loss, and hit registration across the same server region, then keep it only if the numbers and in-game feel improve consistently.',
-        image: '/assets/tools/pro-opti/network.jpg',
       },
       {
         title: 'Controller & peripheral settings',
         category: 'INPUT',
         body: 'The Tactical button layout is non-negotiable for competitive controller play. It remaps crouch/slide to the right thumbstick click, freeing your right thumb to remain on the aim stick at all times — including while sliding, crouching behind cover, or performing a slide cancel. The default layout forces you to remove your thumb from aim to crouch, which introduces a brief window where you cannot aim. Every pro controller player uses Tactical or a custom layout that achieves the same result. On PC, rebind crouch to a side mouse button or a keyboard key reachable without moving your hand from WASD. For controller players on PC specifically, use a wired connection between your controller and PC — Bluetooth introduces 10–30ms of additional input latency that a wire eliminates entirely. For mouse players, set your polling rate to 1000Hz or higher (most modern gaming mice support this in their driver software). A higher polling rate means the PC reads your mouse position more frequently per second, producing smoother and more responsive cursor movement. Finally, keep your peripherals clean. Sticky keys, dust under a mouse sensor, and dirty controller joysticks all introduce subtle input inconsistencies that are invisible until you fix them and notice the difference.',
-        image: '/assets/tools/pro-opti/controller.jpg',
       },
       {
         title: 'Storage & load times',
         category: 'SYSTEM',
         body: 'Warzone installed on an SSD versus an HDD is not a minor quality-of-life difference — it is a competitive timing advantage. Players on SSDs load into the game and into matches measurably faster than those on hard drives, which means more time in the pre-game lobby to check callouts, plan the drop, and review the map. On a hard drive, Warzone frequently stalls during asset streaming mid-match — textures loading in after you land, objects appearing several seconds after you see the environment. This creates brief windows where enemies are fully rendered on your screen but you see a grey placeholder model or nothing at all. An SSD eliminates this entirely. If a full SSD upgrade is not immediately possible, at minimum move Warzone to your fastest available drive. NVMe SSDs (M.2 slot) outperform SATA SSDs for large sequential reads — relevant for a game the size of Warzone. On console, the internal SSD in PS5 and Xbox Series X is already fast enough; ensure the game is not installed on an older external USB hard drive if you are using one for storage expansion. External SSDs connected via USB 3.1 Gen 2 or USB-C are acceptable; USB 2.0 external drives are slower than the internal SSD and should not be used for active game installs.',
-        image: '/assets/tools/pro-opti/storage.jpg',
       },
     ],
   },
@@ -677,14 +664,16 @@ export default async function ToolPage({
     return <InvalidPage message="Sign in with an account that owns this Pro tool." />;
   }
 
+  const nextMetaConfig = toolId === 'next-meta' ? await getNextMetaConfig() : null;
+
   return (
     <>
       <ProtectedWatermark user={watermarkUser} toolId={toolId} />
       <main style={{ maxWidth: '780px', margin: '0 auto', padding: '5rem 2rem 6rem' }}>
         <div style={{ marginBottom: '2.5rem' }}>
-          <Link href="/pro-tools" style={{ fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.18em', opacity: 0.45, textDecoration: 'none', color: 'inherit' }}>
+          <LocalizedLink href="/pro-tools" style={{ fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.18em', opacity: 0.45, textDecoration: 'none', color: 'inherit' }}>
             ← BACK TO TOOLS
-          </Link>
+          </LocalizedLink>
         </div>
 
         {claimed === '1' && (
@@ -723,10 +712,11 @@ export default async function ToolPage({
         {toolId === 'how-to-be-a-pro' && <DeathAnalyzer />}
         {toolId === 'how-to-be-a-pro' && <CalloutGenerator />}
         {toolId === 'aim-tools' && <GunfightSimulator />}
+        {toolId === 'next-meta' && nextMetaConfig && <NextMetaPredictor config={nextMetaConfig} />}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
           {tool.content.map((item, i) => (
-            <div key={i} id={item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')} style={{ borderTop: '1px solid rgba(0,0,0,0.12)', paddingTop: '2rem' }}>
+            <div key={item.title} id={item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')} style={{ borderTop: '1px solid rgba(0,0,0,0.12)', paddingTop: '2rem' }}>
               <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.35 }}>
                   {String(i + 1).padStart(2, '0')}
@@ -824,9 +814,9 @@ export default async function ToolPage({
 
         <div style={{ marginTop: '4rem', padding: '1.25rem 1.5rem', border: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
           <p style={{ fontFamily: 'monospace', fontSize: '0.72rem', opacity: 0.55, margin: 0 }}>Want all 6 tools?</p>
-          <Link href="/pro-access" style={{ fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.1em', color: 'blue', textDecoration: 'none' }}>
+          <LocalizedLink href="/pro-access" style={{ fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.1em', color: 'blue', textDecoration: 'none' }}>
             Upgrade to Pro — 50 € / month →
-          </Link>
+          </LocalizedLink>
         </div>
       </main>
     </>
@@ -851,16 +841,16 @@ function InvalidPage({ message }: { message: string }) {
           </article>
         ))}
       </div>
-      <Link href="/tools-individual" style={{ display: 'inline-block', marginTop: '2rem', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.12em', color: 'blue', textDecoration: 'none' }}>
+      <LocalizedLink href="/tools-individual" style={{ display: 'inline-block', marginTop: '2rem', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.12em', color: 'blue', textDecoration: 'none' }}>
         ← Back to tools
-      </Link>
+      </LocalizedLink>
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-        <Link href="/sign-in" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '42px', padding: '0 1rem', background: 'blue', color: 'white', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.12em', textDecoration: 'none' }}>
+        <LocalizedLink href="/sign-in" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '42px', padding: '0 1rem', background: 'blue', color: 'white', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.12em', textDecoration: 'none' }}>
           SIGN IN
-        </Link>
-        <Link href="/pro-access" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '42px', padding: '0 1rem', border: '1px solid rgba(0,0,0,0.18)', color: 'blue', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.12em', textDecoration: 'none' }}>
+        </LocalizedLink>
+        <LocalizedLink href="/pro-access" style={{ display: 'inline-flex', alignItems: 'center', minHeight: '42px', padding: '0 1rem', border: '1px solid rgba(0,0,0,0.18)', color: 'blue', fontFamily: 'monospace', fontSize: '0.7rem', letterSpacing: '0.12em', textDecoration: 'none' }}>
           GET PRO
-        </Link>
+        </LocalizedLink>
       </div>
     </main>
   );

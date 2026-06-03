@@ -34,8 +34,8 @@ function FOVPreview({ fov, label }: { fov: number; label: string }) {
   const cy = svgH / 2 + 10;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-      <svg width={svgW} height={svgH} style={{ background: 'rgba(0,0,0,0.88)', border: '1px solid rgba(255,255,255,0.06)', display: 'block' }}>
+    <div className="flex flex-col items-center gap-2">
+      <svg width={svgW} height={svgH} className="block" style={{ background: 'rgba(0,0,0,0.88)', border: '1px solid rgba(255,255,255,0.06)' }}>
         {(() => {
           const halfAngle = (fov / 2) * (Math.PI / 180);
           const depth = svgH * 0.9;
@@ -47,28 +47,17 @@ function FOVPreview({ fov, label }: { fov: number; label: string }) {
             </>
           );
         })()}
-        <rect
-          x={cx - targetW / 2}
-          y={cy - targetH / 2}
-          width={targetW}
-          height={targetH}
-          fill="rgba(255,80,80,0.18)"
-          stroke="rgba(255,80,80,0.6)"
-          strokeWidth={1}
+        <rect x={cx - targetW / 2} y={cy - targetH / 2} width={targetW} height={targetH}
+          fill="rgba(255,80,80,0.18)" stroke="rgba(255,80,80,0.6)" strokeWidth={1}
         />
-        <circle
-          cx={cx}
-          cy={cy - targetH / 2 - (targetW * 0.45)}
-          r={targetW * 0.45}
-          fill="rgba(255,80,80,0.18)"
-          stroke="rgba(255,80,80,0.6)"
-          strokeWidth={1}
+        <circle cx={cx} cy={cy - targetH / 2 - (targetW * 0.45)} r={targetW * 0.45}
+          fill="rgba(255,80,80,0.18)" stroke="rgba(255,80,80,0.6)" strokeWidth={1}
         />
         <line x1={cx - 6} y1={cy - targetH / 2 - (targetW * 0.45)} x2={cx + 6} y2={cy - targetH / 2 - (targetW * 0.45)} stroke="rgba(255,255,255,0.5)" strokeWidth={1} />
         <line x1={cx} y1={cy - targetH / 2 - (targetW * 0.45) - 6} x2={cx} y2={cy - targetH / 2 - (targetW * 0.45) + 6} stroke="rgba(255,255,255,0.5)" strokeWidth={1} />
         <text x={svgW / 2} y={svgH - 6} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={8} fontFamily="monospace">{fov} FOV</text>
       </svg>
-      <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.15em', opacity: 0.4 }}>{label}</span>
+      <span className="font-mono text-xs tracking-normal opacity-40">{label}</span>
     </div>
   );
 }
@@ -84,92 +73,93 @@ export default function FovOptimizer() {
   const sensPct = sensAdj !== null ? Math.abs(Math.round((sensAdj - 1) * 100)) : 0;
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.15)', background: 'rgba(0,0,0,0.02)', marginBottom: '3rem' }}>
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4 }}>EXCLUSIVE TOOL</span>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '0.95rem', letterSpacing: '0.1em', margin: '0.25rem 0 0' }}>FOV OPTIMIZER</h2>
+    <div className="border border-black/15 bg-black/2 mb-12">
+      <div className="px-6 py-4 border-b border-black/10">
+        <span className="font-mono text-xs tracking-normal opacity-40">EXCLUSIVE TOOL</span>
+        <h2 className="font-mono text-sm tracking-normal mt-1">FOV OPTIMIZER</h2>
       </div>
 
-      <div style={{ padding: '1.5rem' }}>
-        <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.4rem' }}>CURRENT FOV</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-          <input
-            type="range" min={FOV_MIN} max={FOV_MAX} step={1} value={fov}
+      <div className="p-6">
+        <p className="font-mono text-xs tracking-normal opacity-35 mb-1.5">CURRENT FOV</p>
+        <div className="flex items-center gap-4 mb-6">
+          <input aria-label="Input" type="range" min={FOV_MIN} max={FOV_MAX} step={1} value={fov}
             onChange={(e) => setFov(Number(e.target.value))}
-            style={{ flex: 1, accentColor: 'blue' }}
+            className="flex-1" style={{ accentColor: 'blue' }}
           />
-          <span style={{ fontFamily: 'monospace', fontSize: '1.4rem', fontWeight: 700, color: 'blue', minWidth: '3rem', textAlign: 'right' }}>{fov}</span>
+          <span className="font-mono text-2xl font-bold min-w-[3rem] text-right" style={{ color: 'blue' }}>{fov}</span>
         </div>
 
-        <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.5rem' }}>PLATFORM</p>
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <p className="font-mono text-xs tracking-normal opacity-35 mb-2">PLATFORM</p>
+        <div className="flex gap-1 flex-wrap mb-5">
           {[
             { id: 'pc', label: 'PC' },
             { id: 'console', label: 'Next-gen console' },
             { id: 'console-old', label: 'Old-gen console' },
           ].map((p) => (
-            <button key={p.id} onClick={() => setPlatform(p.id)} style={{
-              fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.06em',
-              padding: '0.55rem 1rem',
-              border: `1px solid ${platform === p.id ? 'blue' : 'rgba(0,0,0,0.12)'}`,
-              background: platform === p.id ? 'rgba(0,0,255,0.06)' : 'rgba(255,255,255,0.5)',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}>{p.label}</button>
+            <button type="button" key={p.id} onClick={() => setPlatform(p.id)}
+              className="font-mono text-xs tracking-normal cursor-pointer transition-all duration-150"
+              style={{
+                padding: '0.55rem 1rem',
+                border: `1px solid ${platform === p.id ? 'blue' : 'rgba(0,0,0,0.12)'}`,
+                background: platform === p.id ? 'rgba(0,0,255,0.06)' : 'rgba(255,255,255,0.5)',
+              }}
+            >{p.label}</button>
           ))}
         </div>
 
-        <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.5rem' }}>PLAYSTYLE</p>
-        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.75rem' }}>
+        <p className="font-mono text-xs tracking-normal opacity-35 mb-2">PLAYSTYLE</p>
+        <div className="flex gap-1 flex-wrap mb-7">
           {[
             { id: 'aggressive', label: 'Aggressive' },
             { id: 'balanced', label: 'Balanced' },
             { id: 'sniper', label: 'Sniper / Long range' },
           ].map((p) => (
-            <button key={p.id} onClick={() => setPlaystyle(p.id)} style={{
-              fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.06em',
-              padding: '0.55rem 1rem',
-              border: `1px solid ${playstyle === p.id ? 'blue' : 'rgba(0,0,0,0.12)'}`,
-              background: playstyle === p.id ? 'rgba(0,0,255,0.06)' : 'rgba(255,255,255,0.5)',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}>{p.label}</button>
+            <button type="button" key={p.id} onClick={() => setPlaystyle(p.id)}
+              className="font-mono text-xs tracking-normal cursor-pointer transition-all duration-150"
+              style={{
+                padding: '0.55rem 1rem',
+                border: `1px solid ${playstyle === p.id ? 'blue' : 'rgba(0,0,0,0.12)'}`,
+                background: playstyle === p.id ? 'rgba(0,0,255,0.06)' : 'rgba(255,255,255,0.5)',
+              }}
+            >{p.label}</button>
           ))}
         </div>
 
         {rec && (
           <>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 1rem' }}>COMPARISON - APPARENT TARGET SIZE</p>
-            <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginBottom: '1.5rem', alignItems: 'flex-start' }}>
+            <p className="font-mono text-xs tracking-normal opacity-35 mb-4">COMPARISON - APPARENT TARGET SIZE</p>
+            <div className="flex gap-8 flex-wrap mb-6 items-start">
               <FOVPreview fov={fov} label="CURRENT" />
-              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignSelf: 'center', paddingBottom: '1.5rem' }}>
-                <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', opacity: 0.2 }}>{'->'}</span>
+              <div className="flex flex-col justify-center self-center pb-6">
+                <span className="font-mono text-lg opacity-20">{'->'}</span>
               </div>
               <FOVPreview fov={rec.fov} label="RECOMMENDED" />
 
-              <div style={{ flex: 1, minWidth: '160px' }}>
-                <div style={{ border: '1px solid rgba(0,0,255,0.2)', background: 'rgba(0,0,255,0.03)', padding: '1.1rem 1.25rem', marginBottom: '0.75rem' }}>
-                  <p style={{ fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.4rem' }}>RECOMMENDED FOV</p>
-                  <p style={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, color: 'blue', margin: '0 0 0.5rem', letterSpacing: '0.05em' }}>{rec.fov}</p>
-                  <p style={{ fontFamily: 'monospace', fontSize: '0.65rem', opacity: 0.5, margin: 0, lineHeight: 1.7 }}>{rec.reason}</p>
+              <div className="flex-1 min-w-[160px]">
+                <div className="mb-3 px-5 py-[1.1rem]" style={{ border: '1px solid rgba(0,0,255,0.2)', background: 'rgba(0,0,255,0.03)' }}>
+                  <p className="font-mono text-xs tracking-normal opacity-35 mb-1.5">RECOMMENDED FOV</p>
+                  <p className="font-mono text-3xl font-bold tracking-normal mb-2" style={{ color: 'blue' }}>{rec.fov}</p>
+                  <p className="font-mono text-xs opacity-50 leading-relaxed">{rec.reason}</p>
                 </div>
                 {sensDir && (
-                  <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', lineHeight: 1.8, opacity: 0.42, margin: 0 }}>
+                  <p className="font-mono text-xs leading-relaxed opacity-[0.42]">
                     Sensitivity note: expect to {sensDir} your aim sensitivity by roughly {sensPct}% after changing FOV.
                   </p>
                 )}
               </div>
             </div>
 
-            <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', lineHeight: 1.8, opacity: 0.38, margin: '0 0 0.6rem' }}>
+            <p className="font-mono text-xs leading-relaxed opacity-[0.38] mb-2">
               Higher FOV reduces apparent target size but increases peripheral awareness. There is no universal value - every FOV change requires 5 to 10 sessions of aim recalibration.
             </p>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', lineHeight: 1.8, opacity: 0.38, margin: 0 }}>
+            <p className="font-mono text-xs leading-relaxed opacity-[0.38]">
               On controller, FOV can subtly affect aim-assist feel because target scale and tracking speed change together. Treat the recommendation as a starting point, not a rule.
             </p>
           </>
         )}
 
         {!rec && (
-          <p style={{ fontFamily: 'monospace', fontSize: '0.68rem', opacity: 0.35, margin: 0 }}>
+          <p className="font-mono text-xs opacity-35">
             Select your platform and playstyle to get a recommendation.
           </p>
         )}

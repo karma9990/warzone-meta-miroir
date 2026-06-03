@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 type MapId = 'rebirth' | 'haven';
@@ -106,38 +107,43 @@ export default function HighGroundAtlas() {
   const spot = activeSpot ? map.spots.find((s) => s.id === activeSpot) ?? null : null;
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '2rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>INTERACTIVE ATLAS</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>HIGH GROUND ATLAS</div>
+    <div className="border border-black/12 rounded mb-8 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/[0.02]">
+        <div className="text-xs tracking-normal opacity-40 mb-[0.3rem]">INTERACTIVE ATLAS</div>
+        <div className="text-base font-bold tracking-normal">HIGH GROUND ATLAS</div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+      <div className="flex items-center border-b border-black/10">
         {(['rebirth', 'haven'] as MapId[]).map((id) => (
-          <button key={id} onClick={() => { setActiveMap(id); setActiveSpot(null); }} style={{ padding: '0.75rem 1.5rem', border: 'none', borderBottom: activeMap === id ? '2px solid currentColor' : '2px solid transparent', background: 'transparent', color: activeMap === id ? 'inherit' : 'rgba(0,0,0,0.35)', fontSize: '0.6rem', letterSpacing: '0.15em', cursor: 'pointer', fontFamily: 'monospace', fontWeight: activeMap === id ? 700 : 400 }}>
+          <button type="button" key={id} onClick={() => { setActiveMap(id); setActiveSpot(null); }}
+            className="px-6 py-3 border-none bg-transparent text-xs tracking-normal cursor-pointer font-mono"
+            style={{
+              borderBottom: activeMap === id ? '2px solid currentColor' : '2px solid transparent',
+              color: activeMap === id ? 'inherit' : 'rgba(0,0,0,0.35)',
+              fontWeight: activeMap === id ? 700 : 400,
+            }}>
             {ATLAS[id].label.toUpperCase()}
           </button>
         ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', paddingRight: '1.5rem' }}>
+        <div className="ml-auto flex gap-4 pr-6">
           {(Object.entries(TIER_COLOR) as [Tier, string][]).map(([tier, color]) => (
-            <div key={tier} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.48rem', letterSpacing: '0.1em', opacity: 0.55 }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+            <div key={tier} className="flex items-center gap-1 text-xs tracking-normal opacity-55">
+              <div className="size-2 rounded-full" style={{ background: color }} />
               TIER {tier}
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', alignItems: 'start' }}>
-        <div style={{ position: 'relative', borderRight: '1px solid rgba(0,0,0,0.08)', background: '#111', overflow: 'hidden' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={map.image} alt={map.label} style={{ width: '100%', height: 'auto', display: 'block', opacity: 0.75 }} />
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+      <div className="grid grid-cols-[1fr_280px] items-start">
+        <div className="relative border-r border-black/8 bg-[#111] overflow-hidden">
+          <Image src={map.image} alt={map.label} width={1000} height={700} className="w-full h-auto block opacity-75" />
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
             {map.spots.map((s) => {
               const isActive = s.id === activeSpot;
               const color = TIER_COLOR[s.tier];
               return (
-                <g key={s.id} style={{ cursor: 'pointer' }} onClick={() => setActiveSpot(isActive ? null : s.id)}>
+                <g key={s.id} className="cursor-pointer" onClick={() => setActiveSpot(isActive ? null : s.id)}>
                   <circle cx={s.x} cy={s.y} r="5" fill="transparent" />
                   {isActive && <circle cx={s.x} cy={s.y} r="5.5" fill="none" stroke={color} strokeWidth="0.6" opacity="0.55" />}
                   <circle cx={s.x} cy={s.y} r={isActive ? 3 : 2.3} fill={isActive ? color : `${color}35`} stroke={color} strokeWidth="0.6" />
@@ -147,25 +153,27 @@ export default function HighGroundAtlas() {
             })}
           </svg>
           {!activeSpot && (
-            <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', fontSize: '0.5rem', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.5)', background: 'rgba(0,0,0,0.55)', padding: '4px 10px', borderRadius: '2px', whiteSpace: 'nowrap' }}>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs tracking-normal text-white/50 bg-black/55 px-2.5 py-1 rounded whitespace-nowrap">
               SELECT A POSITION
             </div>
           )}
         </div>
 
-        <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', minHeight: '300px' }}>
+        <div className="p-5 flex flex-col gap-3 min-h-[300px]">
           {!spot ? (
             <div>
-              <div style={{ fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.75rem' }}>HIGH GROUND POSITIONS</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <div className="text-xs tracking-normal opacity-40 mb-3">HIGH GROUND POSITIONS</div>
+              <div className="flex flex-col gap-[0.4rem]">
                 {map.spots.map((s) => {
                   const color = TIER_COLOR[s.tier];
                   return (
-                    <button key={s.id} onClick={() => setActiveSpot(s.id)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: 'transparent', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '0.62rem', textAlign: 'left', width: '100%', transition: 'border-color 0.1s' }}
+                    <button type="button" key={s.id} onClick={() => setActiveSpot(s.id)}
+                      className="flex items-center gap-2 px-[10px] py-2 bg-transparent border border-black/10 rounded cursor-pointer font-mono text-xs text-left w-full"
                       onMouseEnter={(e) => (e.currentTarget.style.borderColor = color)}
                       onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)')}>
-                      <span style={{ width: '17px', height: '17px', borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.45rem', color: '#000', fontWeight: 700, flexShrink: 0 }}>{s.tier}</span>
+                      <span className="size-[17px] rounded-full flex items-center justify-center text-xs text-black font-bold shrink-0" style={{ background: color }}>
+                        {s.tier}
+                      </span>
                       {s.label}
                     </button>
                   );
@@ -175,12 +183,15 @@ export default function HighGroundAtlas() {
           ) : (
             <>
               <div>
-                <button onClick={() => setActiveSpot(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, padding: 0, marginBottom: '0.75rem' }}>
+                <button type="button" onClick={() => setActiveSpot(null)}
+                  className="bg-transparent border-none cursor-pointer font-mono text-xs tracking-normal opacity-40 p-0 mb-3">
                   BACK TO ALL POSITIONS
                 </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: TIER_COLOR[spot.tier], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.5rem', color: '#000', fontWeight: 700, flexShrink: 0 }}>{spot.tier}</span>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.05em' }}>{spot.label}</span>
+                <div className="flex items-center gap-2">
+                  <span className="size-[18px] rounded-full flex items-center justify-center text-xs text-black font-bold shrink-0" style={{ background: TIER_COLOR[spot.tier] }}>
+                    {spot.tier}
+                  </span>
+                  <span className="text-[0.78rem] font-bold tracking-normal">{spot.label}</span>
                 </div>
               </div>
               {([
@@ -188,9 +199,11 @@ export default function HighGroundAtlas() {
                 { key: 'HOW TO REACH IT', content: spot.approach, color: '#ffcc00' },
                 { key: 'WEAKNESS', content: spot.weakness, color: '#ff5555' },
               ] as { key: string; content: string; color: string }[]).map((section) => (
-                <div key={section.key} style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '0.7rem' }}>
-                  <div style={{ fontSize: '0.45rem', letterSpacing: '0.12em', color: section.color, marginBottom: '0.35rem', opacity: 0.85 }}>{section.key}</div>
-                  <div style={{ fontSize: '0.55rem', lineHeight: 1.65, opacity: 0.62 }}>{section.content}</div>
+                <div key={section.key} className="border-t border-black/8 pt-[0.7rem]">
+                  <div className="text-xs tracking-normal mb-1 opacity-85" style={{ color: section.color }}>
+                    {section.key}
+                  </div>
+                  <div className="text-xs leading-[1.65] opacity-60">{section.content}</div>
                 </div>
               ))}
             </>
@@ -198,7 +211,7 @@ export default function HighGroundAtlas() {
         </div>
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.48rem', letterSpacing: '0.12em', opacity: 0.28, display: 'flex', justifyContent: 'space-between' }}>
+      <div className="px-6 py-[0.6rem] border-t border-black/8 text-xs tracking-normal opacity-25 flex justify-between">
         <span>S = DOMINANT - A = STRONG - B = SITUATIONAL</span>
         <span>WZPRO META</span>
       </div>

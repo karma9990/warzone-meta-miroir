@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { glassVertexShader, glassFragmentShader } from '@/lib/liquidGlassShader';
 import { getPanels, subscribe } from '@/lib/glassStore';
 
@@ -93,7 +93,7 @@ export default function GlassScene({ backgroundSrc }: Props) {
     normalMap.repeat.set(1, 1);
     let envTexture: THREE.Texture = neutralEnv;
 
-    new RGBELoader().load('/assets/liquid/photo_studio_broadway_hall_4k.hdr', (texture) => {
+    new HDRLoader().load('/assets/liquid/photo_studio_broadway_hall_4k.hdr', (texture) => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       envTexture = texture;
       glassMeshMap.forEach(mesh => {
@@ -160,7 +160,7 @@ export default function GlassScene({ backgroundSrc }: Props) {
 
     // ── Animation loop ────────────────────────────────────────────────────
     let raf: number;
-    const clock = new THREE.Clock();
+    const startTime = performance.now();
     let needsSync = true;
     let lastFrame = 0;
     const TARGET_FPS = 30;
@@ -171,7 +171,7 @@ export default function GlassScene({ backgroundSrc }: Props) {
       if (now - lastFrame < FRAME_MS) return;
       lastFrame = now;
 
-      const elapsed = clock.getElapsedTime();
+      const elapsed = (now - startTime) / 1000;
 
       if (needsSync) {
         syncPanels();
@@ -250,7 +250,7 @@ export default function GlassScene({ backgroundSrc }: Props) {
     <div
       ref={mountRef}
       aria-hidden="true"
-      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}
+      className="fixed inset-0 z-0 pointer-events-none"
     />
   );
 }

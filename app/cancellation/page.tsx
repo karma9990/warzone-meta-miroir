@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Cancellation Policy | WZPRO Meta',
+  description: 'Read the WZPRO Meta subscription cancellation policy and support contact details.',
+};
 import LegalPage from '@/components/LegalPage';
 import { SUPPORT_EMAIL } from '@/lib/siteConfig';
 
@@ -21,7 +27,7 @@ export default function CancellationPage() {
         },
         {
           title: '3. How to Request Cancellation',
-          body: <p>Use the cancellation link provided by Paddle when available, or contact {supportEmail} with the email used for purchase.</p>,
+          body: <p>Use the cancellation link provided by Polar when available, or contact {supportEmail} with the email used for purchase.</p>,
         },
         {
           title: '4. Refunds',

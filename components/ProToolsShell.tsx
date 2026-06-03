@@ -13,11 +13,29 @@ export type ProToolsNavItem = {
 type ProToolsShellProps = {
   sections: ProToolsNavItem[];
   children: ReactNode;
+  copy?: {
+    ariaJump: string;
+    ariaToc: string;
+    index: string;
+    access: string;
+    plans: string;
+    catalog: string;
+  };
+  toolsHref?: string;
 };
 
 const ACCESS_ID = 'access';
 
-export default function ProToolsShell({ sections, children }: ProToolsShellProps) {
+const DEFAULT_COPY = {
+  ariaJump: 'Jump to module',
+  ariaToc: 'Table of contents',
+  index: 'Fld index',
+  access: 'ACCESS',
+  plans: 'PLANS',
+  catalog: 'Open tool catalog',
+};
+
+export default function ProToolsShell({ sections, children, copy = DEFAULT_COPY, toolsHref = '/tools-individual' }: ProToolsShellProps) {
   const [activeId, setActiveId] = useState(sections[0]?.id ?? '');
 
   useEffect(() => {
@@ -46,21 +64,21 @@ export default function ProToolsShell({ sections, children }: ProToolsShellProps
 
   return (
     <>
-      <nav className="ptv2-jump" aria-label="Jump to module">
+      <nav className="ptv2-jump" aria-label={copy.ariaJump}>
         {sections.map((s) => (
           <a key={s.id} href={`#${s.id}`} className={activeId === s.id ? 'is-active' : ''}>
             {s.num} {s.tag}
           </a>
         ))}
         <a href={`#${ACCESS_ID}`} className={activeId === ACCESS_ID ? 'is-active' : ''}>
-          ACCESS
+          {copy.access}
         </a>
       </nav>
 
       <div className="ptv2-shell">
-        <aside className="ptv2-rail" aria-label="Table of contents">
+        <aside className="ptv2-rail" aria-label={copy.ariaToc}>
           <div className="ptv2-rail-panel">
-            <p className="ptv2-rail-kicker">Fld index</p>
+            <p className="ptv2-rail-kicker">{copy.index}</p>
             <ul className="ptv2-rail-list">
               {sections.map((s) => (
                 <li key={s.id}>
@@ -85,14 +103,14 @@ export default function ProToolsShell({ sections, children }: ProToolsShellProps
                 >
                   <span className="ptv2-rail-num">+</span>
                   <span>
-                    <span className="ptv2-rail-label">ACCESS</span>
-                    <span className="ptv2-rail-tag">PLANS</span>
+                    <span className="ptv2-rail-label">{copy.access}</span>
+                    <span className="ptv2-rail-tag">{copy.plans}</span>
                   </span>
                 </a>
               </li>
             </ul>
-            <Link href="/tools-individual" className="ptv2-rail-cta">
-              Open tool catalog
+            <Link href={toolsHref} className="ptv2-rail-cta">
+              {copy.catalog}
             </Link>
           </div>
         </aside>

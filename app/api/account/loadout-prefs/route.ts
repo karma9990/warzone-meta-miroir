@@ -14,6 +14,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const parsed = await readJsonBody<{
+    featuredLoadoutId?: unknown;
     favoriteLoadouts?: unknown;
     loadoutNotes?: unknown;
   }>(request, 24_576);
@@ -21,6 +22,7 @@ export async function PUT(request: NextRequest) {
 
   const payload = parsed.data;
   const input = typeof payload === 'object' && payload ? payload as {
+    featuredLoadoutId?: unknown;
     favoriteLoadouts?: unknown;
     loadoutNotes?: unknown;
   } : {};
@@ -33,12 +35,14 @@ export async function PUT(request: NextRequest) {
 
   const profile = sanitizeProfile({
     ...current,
+    featuredLoadoutId: (input.featuredLoadoutId ?? current.featuredLoadoutId) as string,
     favoriteLoadouts: (input.favoriteLoadouts ?? current.favoriteLoadouts) as string[],
     loadoutNotes: (input.loadoutNotes ?? current.loadoutNotes) as Record<string, string>,
   });
 
   const saved = await saveProfile({ userId: user.sub, email: user.email, profile });
   return NextResponse.json({
+    featuredLoadoutId: saved.featuredLoadoutId,
     favoriteLoadouts: saved.favoriteLoadouts,
     loadoutNotes: saved.loadoutNotes,
   });

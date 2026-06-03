@@ -73,42 +73,49 @@ export default function EconomyCalculator() {
   const totalCost = recs.filter((r) => r.canAfford).reduce((s, r) => s + r.item.cost, 0);
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>GAME STRATEGY</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>ECONOMY CALCULATOR</div>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">GAME STRATEGY</div>
+        <div className="text-base font-bold tracking-normal">ECONOMY CALCULATOR</div>
       </div>
 
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.08)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem' }}>
+      <div className="px-6 py-4 border-b border-black/8 grid grid-cols-3 gap-5">
         <div>
-          <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.5rem' }}>SQUAD CASH ($)</div>
-          <input
-            type="number" min={0} max={50000} step={500} value={cash}
+          <div className="text-xs tracking-normal opacity-40 mb-2">SQUAD CASH ($)</div>
+          <input aria-label="Input" type="number" min={0} max={50000} step={500} value={cash}
             onChange={(e) => setCash(Number(e.target.value))}
-            style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 700, padding: '6px 8px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', boxSizing: 'border-box' }}
+            className="w-full font-mono text-sm font-bold px-2 py-1.5 border border-black/15 rounded-sm bg-transparent box-border"
           />
         </div>
         <div>
-          <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.5rem' }}>SQUAD SIZE</div>
-          <div style={{ display: 'flex', gap: '0.35rem' }}>
+          <div className="text-xs tracking-normal opacity-40 mb-2">SQUAD SIZE</div>
+          <div className="flex gap-1">
             {SQUAD_SIZES.map((s) => (
-              <button key={s} onClick={() => setSquad(s)} style={{
-                flex: 1, padding: '5px 0', border: `1px solid ${squad === s ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
-                borderRadius: '2px', background: 'transparent', fontSize: '0.6rem', fontWeight: squad === s ? 700 : 400,
-                cursor: 'pointer', fontFamily: 'monospace', opacity: squad === s ? 1 : 0.4,
-              }}>{s}v</button>
+              <button type="button" key={s} onClick={() => setSquad(s)}
+                className="font-mono text-xs cursor-pointer rounded-sm bg-transparent"
+                style={{
+                  flex: 1, padding: '5px 0',
+                  border: `1px solid ${squad === s ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
+                  fontWeight: squad === s ? 700 : 400,
+                  opacity: squad === s ? 1 : 0.4,
+                }}
+              >{s}v</button>
             ))}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.5rem' }}>CIRCLE</div>
-          <div style={{ display: 'flex', gap: '0.35rem' }}>
+          <div className="text-xs tracking-normal opacity-40 mb-2">CIRCLE</div>
+          <div className="flex gap-1">
             {CIRCLES.map((c) => (
-              <button key={c} onClick={() => setCircle(c)} style={{
-                flex: 1, padding: '5px 0', border: `1px solid ${circle === c ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
-                borderRadius: '2px', background: 'transparent', fontSize: '0.6rem', fontWeight: circle === c ? 700 : 400,
-                cursor: 'pointer', fontFamily: 'monospace', opacity: circle === c ? 1 : 0.4,
-              }}>C{c}</button>
+              <button type="button" key={c} onClick={() => setCircle(c)}
+                className="font-mono text-xs cursor-pointer rounded-sm bg-transparent"
+                style={{
+                  flex: 1, padding: '5px 0',
+                  border: `1px solid ${circle === c ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
+                  fontWeight: circle === c ? 700 : 400,
+                  opacity: circle === c ? 1 : 0.4,
+                }}
+              >C{c}</button>
             ))}
           </div>
         </div>
@@ -116,30 +123,33 @@ export default function EconomyCalculator() {
 
       <div>
         {recs.map((rec, i) => (
-          <div key={rec.item.id} style={{
-            display: 'grid', gridTemplateColumns: '8rem 4rem 1fr', gap: '1rem', alignItems: 'center',
-            padding: '0.85rem 1.5rem', borderBottom: i < recs.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
-            background: rec.canAfford ? 'rgba(0,255,136,0.04)' : 'rgba(255,68,85,0.04)',
-            opacity: rec.canAfford ? 1 : 0.55,
-          }}>
+          <div key={rec.item.id}
+            className="grid grid-cols-[8rem_4rem_1fr] gap-4 items-center px-6"
+            style={{
+              paddingTop: '0.85rem', paddingBottom: '0.85rem',
+              borderBottom: i < recs.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
+              background: rec.canAfford ? 'rgba(0,255,136,0.04)' : 'rgba(255,68,85,0.04)',
+              opacity: rec.canAfford ? 1 : 0.55,
+            }}
+          >
             <div>
-              <div style={{ fontSize: '0.65rem', fontWeight: 700 }}>{rec.item.label}</div>
-              <div style={{ fontSize: '0.5rem', fontWeight: 700, color: rec.canAfford ? '#00aa60' : '#ff4455', marginTop: '1px' }}>
+              <div className="text-xs font-bold">{rec.item.label}</div>
+              <div className="text-xs font-bold mt-px" style={{ color: rec.canAfford ? '#00aa60' : '#ff4455' }}>
                 {rec.canAfford ? 'AFFORDABLE' : 'NEED MORE CASH'}
               </div>
             </div>
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, opacity: 0.7 }}>${rec.item.cost.toLocaleString()}</span>
-            <span style={{ fontSize: '0.57rem', opacity: 0.6, lineHeight: 1.55 }}>{rec.reason}</span>
+            <span className="text-xs font-bold opacity-70">${rec.item.cost.toLocaleString()}</span>
+            <span className="text-xs opacity-60 leading-relaxed">{rec.reason}</span>
           </div>
         ))}
       </div>
 
-      <div style={{ padding: '1rem 1.5rem', background: 'rgba(0,0,0,0.02)', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-        <span style={{ fontSize: '0.5rem', opacity: 0.4, letterSpacing: '0.1em' }}>TOTAL SPEND </span>
-        <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>${Math.min(totalCost, cash).toLocaleString()}</span>
+      <div className="px-6 py-4 bg-black/2 border-t border-black/8">
+        <span className="text-xs opacity-40 tracking-normal">TOTAL SPEND </span>
+        <span className="text-sm font-bold">${Math.min(totalCost, cash).toLocaleString()}</span>
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         PRIORITY ORDER ADAPTS TO CIRCLE PHASE, SQUAD SIZE, AND AVAILABLE CASH
       </div>
     </div>

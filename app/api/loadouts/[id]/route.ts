@@ -7,15 +7,15 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await isAuthenticated())) {
+  const [authenticated, { id }] = await Promise.all([isAuthenticated(), params]);
+  if (!authenticated) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { id } = await params;
   const parsed = await readJsonBody(req);
   if ('error' in parsed) return parsed.error;
   const body = parsed.data;
-  const loadouts = getLoadouts();
+  const loadouts = await getLoadouts();
   const index = loadouts.findIndex(l => l.id === id);
 
   if (index === -1) {
@@ -34,7 +34,7 @@ export async function PUT(
   };
 
   loadouts[index] = updated;
-  saveLoadouts(loadouts);
+  await saveLoadouts(loadouts);
 
   return NextResponse.json(updated);
 }
@@ -43,18 +43,18 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await isAuthenticated())) {
+  const [authenticated, { id }] = await Promise.all([isAuthenticated(), params]);
+  if (!authenticated) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { id } = await params;
-  const loadouts = getLoadouts();
+  const loadouts = await getLoadouts();
   const filtered = loadouts.filter(l => l.id !== id);
 
   if (filtered.length === loadouts.length) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  saveLoadouts(filtered);
+  await saveLoadouts(filtered);
   return NextResponse.json({ ok: true });
 }

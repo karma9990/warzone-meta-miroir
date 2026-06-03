@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import LocalizedLink from '@/components/LocalizedLink';
 import { useEffect, useState, type FormEvent } from 'react';
 
 type SubmitState = 'idle' | 'sending' | 'success' | 'error';
@@ -13,6 +13,12 @@ function formatCountdown(totalSeconds: number) {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
+function getInitialCooldownLeft() {
+  if (typeof window === 'undefined') return 0;
+  const nextSendAt = Number(window.localStorage.getItem(COOLDOWN_STORAGE_KEY) || '0');
+  return Math.max(0, Math.ceil((nextSendAt - Date.now()) / 1000));
+}
+
 export default function ContactForm({
   user,
 }: {
@@ -20,7 +26,7 @@ export default function ContactForm({
 }) {
   const [status, setStatus] = useState<SubmitState>('idle');
   const [message, setMessage] = useState('');
-  const [cooldownLeft, setCooldownLeft] = useState(0);
+  const [cooldownLeft, setCooldownLeft] = useState(getInitialCooldownLeft);
 
   useEffect(() => {
     function syncCooldown() {
@@ -28,7 +34,6 @@ export default function ContactForm({
       setCooldownLeft(Math.max(0, Math.ceil((nextSendAt - Date.now()) / 1000)));
     }
 
-    syncCooldown();
     const timer = window.setInterval(syncCooldown, 1000);
     return () => window.clearInterval(timer);
   }, []);
@@ -43,7 +48,7 @@ export default function ContactForm({
 
     if (cooldownLeft > 0) {
       setStatus('error');
-      setMessage(`Attendez ${formatCountdown(cooldownLeft)} avant de renvoyer un message.`);
+      setMessage(`Wait ${formatCountdown(cooldownLeft)} before sending another message.`);
       return;
     }
 
@@ -74,25 +79,25 @@ export default function ContactForm({
           startCooldown(data.retryAfter);
         }
         setStatus('error');
-        setMessage(typeof data.error === 'string' ? data.error : "Impossible d'envoyer le message.");
+        setMessage(typeof data.error === 'string' ? data.error : 'Unable to send the message.');
         return;
       }
 
       form.reset();
       startCooldown(typeof data.cooldownSeconds === 'number' ? data.cooldownSeconds : 10 * 60);
       setStatus('success');
-      setMessage('Message envoye. Vous pourrez renvoyer un message dans 10 minutes.');
+      setMessage('Message sent. You can send another message in 10 minutes.');
     } catch {
       setStatus('error');
-      setMessage('Erreur reseau. Reessayez dans quelques instants.');
+      setMessage('Network error. Try again in a few moments.');
     }
   }
 
   if (!user) {
     return (
       <div className="contact-auth-required">
-        <p>Connectez-vous a votre compte pour envoyer un message au support.</p>
-        <Link href="/sign-in">SE CONNECTER</Link>
+        <p>Sign in to your account to send a support message.</p>
+        <LocalizedLink href="/sign-in">SIGN IN</LocalizedLink>
       </div>
     );
   }
@@ -101,7 +106,7 @@ export default function ContactForm({
     <form className="contact-form" onSubmit={submitContactForm}>
       <div className="contact-form-grid">
         <label>
-          Nom
+          Name
           <input name="name" type="text" autoComplete="name" maxLength={80} defaultValue={user.name} required />
         </label>
         <label>
@@ -120,19 +125,19 @@ export default function ContactForm({
       </div>
 
       <label>
-        Type de demande
+        Request type
         <select name="requestType" defaultValue="support" required>
           <option value="support">Support</option>
-          <option value="billing">Paiement / abonnement</option>
-          <option value="refund">Remboursement</option>
-          <option value="access">Probleme d&apos;acces</option>
+          <option value="billing">Billing / subscription</option>
+          <option value="refund">Refund</option>
+          <option value="access">Access issue</option>
           <option value="legal">Legal</option>
-          <option value="other">Autre</option>
+          <option value="other">Other</option>
         </select>
       </label>
 
       <label>
-        Sujet
+        Subject
         <input name="subject" type="text" maxLength={120} required />
       </label>
 
@@ -147,12 +152,12 @@ export default function ContactForm({
       </label>
 
       <button type="submit" disabled={status === 'sending' || cooldownLeft > 0}>
-        {status === 'sending' ? 'ENVOI...' : cooldownLeft > 0 ? formatCountdown(cooldownLeft) : 'ENVOYER'}
+        {status === 'sending' ? 'SENDING...' : cooldownLeft > 0 ? formatCountdown(cooldownLeft) : 'SEND'}
       </button>
 
       {cooldownLeft > 0 && (
         <p className="contact-form-cooldown" aria-live="polite">
-          Prochain envoi possible dans {formatCountdown(cooldownLeft)}.
+          Next send available in {formatCountdown(cooldownLeft)}.
         </p>
       )}
 

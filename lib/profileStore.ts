@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { hasUpstash, upstashCommand } from './upstash';
 import { isAllowedProfileImage } from '@/lib/profileValidation';
 
 const PROFILES_FILE = path.join(process.cwd(), 'data', 'profiles.json');
@@ -32,6 +33,7 @@ export type UserProfile = {
   userId: string;
   email?: string;
   profilePicture: string;
+  profileBanner: string;
   publicName: string;
   pseudo: string;
   mobileHudCode: string;
@@ -51,6 +53,10 @@ export type UserProfile = {
   avatarPositionX: number;
   avatarPositionY: number;
   privacy: ProfilePrivacy;
+  featuredLoadoutId: string;
+  siteLanguage: string;
+  siteTheme: string;
+  loadoutDisplayMode: string;
   favoriteLoadouts: string[];
   loadoutNotes: Record<string, string>;
   statsEntries: ProfileStatsEntry[];
@@ -61,6 +67,7 @@ export type EditableUserProfile = Omit<UserProfile, 'userId' | 'email' | 'update
 
 const TEXT_LIMITS: Record<keyof EditableUserProfile, number> = {
   profilePicture: 700_000,
+  profileBanner: 700_000,
   publicName: 48,
   pseudo: 48,
   mobileHudCode: 64,
@@ -80,6 +87,10 @@ const TEXT_LIMITS: Record<keyof EditableUserProfile, number> = {
   avatarPositionX: 8,
   avatarPositionY: 8,
   privacy: 1,
+  featuredLoadoutId: 120,
+  siteLanguage: 16,
+  siteTheme: 16,
+  loadoutDisplayMode: 16,
   favoriteLoadouts: 4000,
   loadoutNotes: 20_000,
   statsEntries: 80_000,
@@ -87,6 +98,7 @@ const TEXT_LIMITS: Record<keyof EditableUserProfile, number> = {
 
 const URL_FIELDS = new Set<keyof EditableUserProfile>([
   'profilePicture',
+  'profileBanner',
   'youtube',
   'twitch',
   'kick',
@@ -106,28 +118,6 @@ export const DEFAULT_PROFILE_PRIVACY: ProfilePrivacy = {
   stats: true,
 };
 
-function hasUpstash() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-}
-
-async function upstash(command: unknown[]) {
-  const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify([command]),
-  });
-
-  if (!res.ok) {
-    throw new Error('Profile storage request failed.');
-  }
-
-  const data = await res.json() as Array<{ result: unknown }>;
-  return data[0]?.result;
-}
-
 function readLocalProfiles(): UserProfile[] {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Local profile storage is disabled in production. Configure Upstash Redis.');
@@ -135,7 +125,8 @@ function readLocalProfiles(): UserProfile[] {
 
   try {
     return JSON.parse(fs.readFileSync(PROFILES_FILE, 'utf-8')) as UserProfile[];
-  } catch {
+  } catch (error) {
+    console.error('Failed to read profiles file:', error);
     return [];
   }
 }
@@ -240,6 +231,7 @@ export function emptyProfile(input: { userId: string; email?: string; name?: str
     userId: input.userId,
     email: input.email,
     profilePicture: input.picture || '',
+    profileBanner: '',
     publicName: input.name || '',
     pseudo: '',
     mobileHudCode: '',
@@ -259,6 +251,10 @@ export function emptyProfile(input: { userId: string; email?: string; name?: str
     avatarPositionX: 50,
     avatarPositionY: 50,
     privacy: DEFAULT_PROFILE_PRIVACY,
+    featuredLoadoutId: '',
+    siteLanguage: 'fr',
+    siteTheme: 'system',
+    loadoutDisplayMode: 'compact',
     favoriteLoadouts: [],
     loadoutNotes: {},
     statsEntries: [],
@@ -284,7 +280,7 @@ export function sanitizeProfile(input: Partial<EditableUserProfile>): EditableUs
       cleaned[key] = cleanLoadoutNotes(input[key]);
     } else if (key === 'statsEntries') {
       cleaned[key] = cleanStatsEntries(input[key]);
-    } else if (key === 'profilePicture') {
+    } else if (key === 'profilePicture' || key === 'profileBanner') {
       cleaned[key] = cleanProfilePicture(input[key]);
     } else if (URL_FIELDS.has(key)) {
       cleaned[key] = cleanUrl(input[key], TEXT_LIMITS[key]);
@@ -298,7 +294,7 @@ export function sanitizeProfile(input: Partial<EditableUserProfile>): EditableUs
 
 export async function getProfile(userId: string): Promise<UserProfile | null> {
   if (hasUpstash()) {
-    const value = await upstash(['GET', `${PROFILE_KEY_PREFIX}${userId}`]);
+    const value = await upstashCommand(['GET', `${PROFILE_KEY_PREFIX}${userId}`]);
     return typeof value === 'string' ? normalizeStoredProfile(JSON.parse(value) as UserProfile) : null;
   }
 
@@ -311,7 +307,7 @@ export async function getProfileByPseudo(pseudo: string): Promise<UserProfile | 
   if (!cleanPseudo) return null;
 
   if (hasUpstash()) {
-    const userId = await upstash(['GET', `${PROFILE_KEY_PREFIX}pseudo:${cleanPseudo}`]);
+    const userId = await upstashCommand(['GET', `${PROFILE_KEY_PREFIX}pseudo:${cleanPseudo}`]);
     return typeof userId === 'string' ? getProfile(userId) : null;
   }
 
@@ -320,7 +316,7 @@ export async function getProfileByPseudo(pseudo: string): Promise<UserProfile | 
 
 export async function getPublicProfiles(): Promise<UserProfile[]> {
   if (hasUpstash()) {
-    const userIds = await upstash(['SMEMBERS', PROFILE_INDEX_KEY]);
+    const userIds = await upstashCommand(['SMEMBERS', PROFILE_INDEX_KEY]);
     if (!Array.isArray(userIds)) return [];
 
     const profiles = await Promise.all(
@@ -366,15 +362,15 @@ export async function saveProfile(input: {
   };
 
   if (hasUpstash()) {
-    await upstash(['SET', `${PROFILE_KEY_PREFIX}${record.userId}`, JSON.stringify(record)]);
+    await upstashCommand(['SET', `${PROFILE_KEY_PREFIX}${record.userId}`, JSON.stringify(record)]);
     if (record.pseudo) {
-      await upstash(['SET', `${PROFILE_KEY_PREFIX}pseudo:${record.pseudo.toLowerCase()}`, record.userId]);
+      await upstashCommand(['SET', `${PROFILE_KEY_PREFIX}pseudo:${record.pseudo.toLowerCase()}`, record.userId]);
     }
 
     if (record.pseudo && record.privacy.publicProfile) {
-      await upstash(['SADD', PROFILE_INDEX_KEY, record.userId]);
+      await upstashCommand(['SADD', PROFILE_INDEX_KEY, record.userId]);
     } else {
-      await upstash(['SREM', PROFILE_INDEX_KEY, record.userId]);
+      await upstashCommand(['SREM', PROFILE_INDEX_KEY, record.userId]);
     }
     return record;
   }

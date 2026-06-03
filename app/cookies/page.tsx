@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Cookie Policy | WZPRO Meta',
+  description: 'Learn how WZPRO Meta uses cookies, local storage and similar browser technologies.',
+};
 import LegalPage from '@/components/LegalPage';
 import { SUPPORT_EMAIL } from '@/lib/siteConfig';
 
@@ -17,7 +23,7 @@ export default function CookiesPage() {
         },
         {
           title: '2. Payment Cookies',
-          body: <p>Paddle checkout may use cookies or similar technologies for payment processing, fraud prevention, tax calculation and checkout operation.</p>,
+          body: <p>Polar checkout may use cookies or similar technologies for payment processing, fraud prevention, tax calculation and checkout operation.</p>,
         },
         {
           title: '3. Analytics',

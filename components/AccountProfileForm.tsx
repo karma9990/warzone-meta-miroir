@@ -21,6 +21,22 @@ const platformOptions = [
   ['steam', 'Steam'],
 ] as const;
 
+const languageOptions = [
+  ['fr', 'Francais'],
+  ['en', 'English'],
+] as const;
+
+const themeOptions = [
+  ['system', 'System'],
+  ['light', 'Light'],
+  ['dark', 'Dark'],
+] as const;
+
+const loadoutDisplayOptions = [
+  ['compact', 'Compact'],
+  ['detailed', 'Detailed'],
+] as const;
+
 function initials(value: string) {
   return value
     .split(/\s+/)
@@ -33,6 +49,7 @@ function initials(value: string) {
 export default function AccountProfileForm({ profile }: { profile: UserProfile }) {
   const [form, setForm] = useState<ProfileForm>({
     profilePicture: profile.profilePicture,
+    profileBanner: profile.profileBanner,
     publicName: profile.publicName,
     pseudo: profile.pseudo,
     mobileHudCode: profile.mobileHudCode,
@@ -52,6 +69,10 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
     avatarPositionX: profile.avatarPositionX,
     avatarPositionY: profile.avatarPositionY,
     privacy: profile.privacy,
+    featuredLoadoutId: profile.featuredLoadoutId,
+    siteLanguage: profile.siteLanguage,
+    siteTheme: profile.siteTheme,
+    loadoutDisplayMode: profile.loadoutDisplayMode,
     favoriteLoadouts: profile.favoriteLoadouts,
     loadoutNotes: profile.loadoutNotes,
     statsEntries: profile.statsEntries,
@@ -65,7 +86,7 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function selectProfilePicture(file: File | null) {
+  function selectProfileImage(file: File | null, field: 'profilePicture' | 'profileBanner') {
     if (!file) return;
 
     if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
@@ -76,16 +97,16 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
     if (file.size > 500_000) {
       setStatus('error');
-      setMessage('Profile picture must be under 500 KB.');
+      setMessage('Image must be under 500 KB.');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
       const result = typeof reader.result === 'string' ? reader.result : '';
-      updateField('profilePicture', result);
+      updateField(field, result);
       setStatus('idle');
-      setMessage('Profile picture ready. Save to keep it.');
+      setMessage('Image ready. Save to keep it.');
     };
     reader.onerror = () => {
       setStatus('error');
@@ -125,6 +146,7 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
     setForm({
       profilePicture: data.profile.profilePicture,
+      profileBanner: data.profile.profileBanner,
       publicName: data.profile.publicName,
       pseudo: data.profile.pseudo,
       mobileHudCode: data.profile.mobileHudCode,
@@ -144,6 +166,10 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
       avatarPositionX: data.profile.avatarPositionX,
       avatarPositionY: data.profile.avatarPositionY,
       privacy: data.profile.privacy,
+      featuredLoadoutId: data.profile.featuredLoadoutId,
+      siteLanguage: data.profile.siteLanguage,
+      siteTheme: data.profile.siteTheme,
+      loadoutDisplayMode: data.profile.loadoutDisplayMode,
       favoriteLoadouts: data.profile.favoriteLoadouts,
       loadoutNotes: data.profile.loadoutNotes,
       statsEntries: data.profile.statsEntries,
@@ -177,7 +203,7 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
             Profile picture
             <input
               accept="image/png,image/jpeg,image/webp,image/gif"
-              onChange={(event) => selectProfilePicture(event.target.files?.[0] || null)}
+              onChange={(event) => selectProfileImage(event.target.files?.[0] || null, 'profilePicture')}
               type="file"
             />
           </label>
@@ -195,34 +221,42 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
             <input maxLength={48} value={form.pseudo} onChange={(event) => updateField('pseudo', event.target.value)} />
           </label>
         </div>
-        {form.profilePicture && (
-          <div className="account-avatar-crop">
-            <label>
-              Avatar horizontal crop
-              <input
-                max="100"
-                min="0"
-                onChange={(event) => updateField('avatarPositionX', Number(event.target.value))}
-                type="range"
-                value={form.avatarPositionX}
-              />
-            </label>
-            <label>
-              Avatar vertical crop
-              <input
-                max="100"
-                min="0"
-                onChange={(event) => updateField('avatarPositionY', Number(event.target.value))}
-                type="range"
-                value={form.avatarPositionY}
-              />
-            </label>
-          </div>
-        )}
         <label>
           Description
           <textarea value={form.description} onChange={(event) => updateField('description', event.target.value)} />
         </label>
+      </section>
+
+      <section className="account-edit-block">
+        <div className="account-edit-head">
+          <h2>Profile banner</h2>
+          <p>Displayed at the top of your public profile.</p>
+        </div>
+        <div
+          className="account-banner-preview"
+          style={form.profileBanner ? { backgroundImage: `url(${form.profileBanner})` } : undefined}
+        >
+          <span>{previewName}</span>
+        </div>
+        <div className="account-two-col">
+          <label>
+            Banner image
+            <input
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(event) => selectProfileImage(event.target.files?.[0] || null, 'profileBanner')}
+              type="file"
+            />
+          </label>
+          <label>
+            Banner image URL
+            <input
+              value={form.profileBanner.startsWith('data:image/') ? '' : form.profileBanner}
+              onChange={(event) => updateField('profileBanner', event.target.value)}
+              placeholder={form.profileBanner.startsWith('data:image/') ? 'Local image selected' : 'https://...'}
+              type="url"
+            />
+          </label>
+        </div>
       </section>
 
       <section className="account-edit-block">
@@ -298,6 +332,41 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
               value={form.platformId}
               onChange={(event) => updateField('platformId', event.target.value)}
               placeholder="ID du compte de ta plateforme"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section className="account-edit-block">
+        <div className="account-edit-head">
+          <h2>Site preferences</h2>
+          <p>Default account display settings.</p>
+        </div>
+        <div className="account-two-col">
+          <label>
+            Language
+            <select value={form.siteLanguage} onChange={(event) => updateField('siteLanguage', event.target.value)}>
+              {languageOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
+          <label>
+            Theme
+            <select value={form.siteTheme} onChange={(event) => updateField('siteTheme', event.target.value)}>
+              {themeOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
+          <label>
+            Loadout display
+            <select value={form.loadoutDisplayMode} onChange={(event) => updateField('loadoutDisplayMode', event.target.value)}>
+              {loadoutDisplayOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
+          <label>
+            Main public loadout ID
+            <input
+              value={form.featuredLoadoutId}
+              onChange={(event) => updateField('featuredLoadoutId', event.target.value)}
+              placeholder="Selected from loadouts section"
             />
           </label>
         </div>

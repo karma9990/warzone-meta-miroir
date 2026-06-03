@@ -7,10 +7,10 @@ type MapId = 'rebirth' | 'haven';
 interface CirclePhase {
   circle: number;
   label: string;
-  duration: number; // seconds
-  waitTime: number; // seconds before zone moves
-  damage: number;   // per second
-  rotateAlert: number; // seconds before end to alert
+  duration: number;
+  waitTime: number;
+  damage: number;
+  rotateAlert: number;
 }
 
 const PHASES: CirclePhase[] = [
@@ -47,11 +47,11 @@ function fmt(s: number) {
 export default function RingTimer() {
   const [map, setMap] = useState<MapId>('rebirth');
   const [phaseIdx, setPhaseIdx] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
-  const [running, setRunning] = useState(false);
+  const [timer, setTimer] = useState({ elapsed: 0, running: false });
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const phase = PHASES[phaseIdx];
+  const { elapsed, running } = timer;
   const remaining = Math.max(0, phase.duration - elapsed);
   const waitRemaining = Math.max(0, phase.waitTime - elapsed);
   const isMoving = elapsed >= phase.waitTime;
@@ -61,12 +61,12 @@ export default function RingTimer() {
   useEffect(() => {
     if (running) {
       intervalRef.current = setInterval(() => {
-        setElapsed(e => {
-          if (e + 1 >= phase.duration) {
-            setRunning(false);
-            return phase.duration;
-          }
-          return e + 1;
+        setTimer((current) => {
+          const elapsedNext = Math.min(current.elapsed + 1, phase.duration);
+          return {
+            elapsed: elapsedNext,
+            running: elapsedNext < phase.duration,
+          };
         });
       }, 1000);
     } else {
@@ -75,26 +75,30 @@ export default function RingTimer() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [running, phase.duration]);
 
-  const reset = () => { setElapsed(0); setRunning(false); };
+  const reset = () => { setTimer({ elapsed: 0, running: false }); };
   const nextPhase = () => { setPhaseIdx(i => Math.min(i + 1, PHASES.length - 1)); reset(); };
   const prevPhase = () => { setPhaseIdx(i => Math.max(i - 1, 0)); reset(); };
 
   const ringColor = alerting ? '#ff4455' : isMoving ? '#ffcc00' : '#00ff88';
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2 flex justify-between items-center">
         <div>
-          <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>MAP INTELLIGENCE</div>
-          <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>RING TIMER</div>
+          <div className="text-xs tracking-normal opacity-40 mb-1">MAP INTELLIGENCE</div>
+          <div className="text-base font-bold tracking-normal">RING TIMER</div>
         </div>
-        <div style={{ display: 'flex', gap: '0.4rem' }}>
+        <div className="flex gap-1">
           {(['rebirth', 'haven'] as MapId[]).map(m => (
-            <button key={m} onClick={() => setMap(m)} style={{
-              padding: '4px 12px', border: `1px solid ${map === m ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
-              borderRadius: '2px', background: 'transparent', fontSize: '0.55rem', letterSpacing: '0.08em',
-              cursor: 'pointer', fontFamily: 'monospace', fontWeight: map === m ? 700 : 400, opacity: map === m ? 1 : 0.45,
-            }}>
+            <button type="button" key={m} onClick={() => setMap(m)}
+              className="font-mono text-xs tracking-normal cursor-pointer rounded-sm bg-transparent"
+              style={{
+                padding: '4px 12px',
+                border: `1px solid ${map === m ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
+                fontWeight: map === m ? 700 : 400,
+                opacity: map === m ? 1 : 0.45,
+              }}
+            >
               {m === 'rebirth' ? 'REBIRTH' : 'HAVEN'}
             </button>
           ))}
@@ -102,58 +106,101 @@ export default function RingTimer() {
       </div>
 
       {/* Phase selector */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+      <div className="flex border-b border-black/8">
         {PHASES.map((p, i) => (
-          <button key={i} onClick={() => { setPhaseIdx(i); reset(); }} style={{
-            flex: 1, padding: '0.6rem 0', border: 'none',
-            borderBottom: phaseIdx === i ? `2px solid ${ringColor}` : '2px solid transparent',
-            background: 'transparent', fontSize: '0.55rem', letterSpacing: '0.1em',
-            color: phaseIdx === i ? 'inherit' : 'rgba(0,0,0,0.35)',
-            cursor: 'pointer', fontFamily: 'monospace', fontWeight: phaseIdx === i ? 700 : 400,
-          }}>C{p.circle}</button>
+          <button type="button" key={`circle-${p.circle}`} onClick={() => { setPhaseIdx(i); reset(); }}
+            className="font-mono text-xs tracking-normal cursor-pointer bg-transparent"
+            style={{
+              flex: 1, padding: '0.6rem 0', border: 'none',
+              borderBottom: phaseIdx === i ? `2px solid ${ringColor}` : '2px solid transparent',
+              color: phaseIdx === i ? 'inherit' : 'rgba(0,0,0,0.35)',
+              fontWeight: phaseIdx === i ? 700 : 400,
+            }}
+          >
+            C{p.circle}
+          </button>
         ))}
       </div>
 
       {/* Timer display */}
-      <div style={{ padding: '2rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '0.5rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.5rem' }}>
+      <div className="p-6 text-center">
+        <div className="text-xs tracking-normal opacity-40 mb-2">
           {isMoving ? 'ZONE CLOSING' : `ZONE MOVES IN ${fmt(waitRemaining)}`}
         </div>
-        <div style={{ fontSize: '4rem', fontWeight: 700, letterSpacing: '0.05em', color: ringColor, transition: 'color 0.3s', lineHeight: 1 }}>
+        <div className="text-5xl font-bold tracking-normal leading-none"
+          style={{ color: ringColor, transition: 'color 0.3s' }}
+        >
           {fmt(remaining)}
         </div>
-        <div style={{ fontSize: '0.5rem', opacity: 0.4, marginTop: '0.5rem' }}>{phase.damage} DMG/SEC IN GAS</div>
+        <div className="text-xs opacity-40 mt-2">{phase.damage} DMG/SEC IN GAS</div>
 
         {/* Progress bar */}
-        <div style={{ margin: '1.5rem 0', height: '4px', background: 'rgba(0,0,0,0.08)', borderRadius: '2px' }}>
-          <div style={{ height: '100%', width: `${pct}%`, background: ringColor, borderRadius: '2px', transition: 'width 0.9s linear, background 0.3s' }} />
+        <div className="my-6 h-1 bg-black/8 rounded-sm">
+          <div className="h-full rounded-sm"
+            style={{ width: `${pct}%`, background: ringColor, transition: 'width 0.9s linear, background 0.3s' }}
+          />
         </div>
 
         {/* Alert */}
         {alerting && (
-          <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,68,85,0.08)', border: '1px solid rgba(255,68,85,0.3)', borderRadius: '3px', marginBottom: '1rem', fontSize: '0.6rem', color: '#ff4455', letterSpacing: '0.1em', fontWeight: 700 }}>
+          <div className="mb-4 text-xs tracking-normal font-bold rounded-sm"
+            style={{
+              padding: '0.75rem 1rem',
+              background: 'rgba(255,68,85,0.08)',
+              border: '1px solid rgba(255,68,85,0.3)',
+              color: '#ff4455',
+            }}
+          >
             ⚠ ROTATE NOW
           </div>
         )}
 
         {/* Spawn tip */}
-        <div style={{ padding: '0.75rem 1rem', background: 'rgba(0,0,0,0.03)', borderRadius: '3px', marginBottom: '1.5rem', fontSize: '0.58rem', opacity: 0.65, lineHeight: 1.6, textAlign: 'left' }}>
-          <span style={{ opacity: 0.4, fontSize: '0.45rem', letterSpacing: '0.12em', display: 'block', marginBottom: '0.3rem' }}>ROTATION CALL</span>
+        <div className="mb-6 text-xs opacity-65 leading-relaxed text-left rounded-sm px-4 py-3 bg-black/3"
+        >
+          <span className="opacity-40 text-xs tracking-normal block mb-1">ROTATION CALL</span>
           {SPAWN_ALERTS[map][phase.circle]}
         </div>
 
         {/* Controls */}
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-          <button onClick={prevPhase} disabled={phaseIdx === 0} style={{ padding: '6px 14px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', fontSize: '0.55rem', letterSpacing: '0.1em', cursor: phaseIdx === 0 ? 'not-allowed' : 'pointer', fontFamily: 'monospace', opacity: phaseIdx === 0 ? 0.3 : 0.7 }}>← PREV</button>
-          <button onClick={() => setRunning(r => !r)} style={{ padding: '6px 24px', border: `1px solid ${ringColor}`, borderRadius: '2px', background: `${ringColor}18`, fontSize: '0.65rem', letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'monospace', color: ringColor, fontWeight: 700 }}>
+        <div className="flex gap-3 justify-center">
+          <button type="button" onClick={prevPhase} disabled={phaseIdx === 0}
+            className="font-mono text-xs tracking-normal rounded-sm bg-transparent"
+            style={{
+              padding: '6px 14px',
+              border: '1px solid rgba(0,0,0,0.15)',
+              cursor: phaseIdx === 0 ? 'not-allowed' : 'pointer',
+              opacity: phaseIdx === 0 ? 0.3 : 0.7,
+            }}
+          >← PREV</button>
+          <button type="button" onClick={() => setTimer((current) => ({ ...current, running: !current.running }))}
+            className="font-mono text-xs tracking-normal cursor-pointer font-bold"
+            style={{
+              padding: '6px 24px',
+              border: `1px solid ${ringColor}`,
+              borderRadius: '2px',
+              background: `${ringColor}18`,
+              color: ringColor,
+            }}
+          >
             {running ? 'PAUSE' : 'START'}
           </button>
-          <button onClick={reset} style={{ padding: '6px 14px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', fontSize: '0.55rem', letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'monospace', opacity: 0.7 }}>RESET</button>
-          <button onClick={nextPhase} disabled={phaseIdx === PHASES.length - 1} style={{ padding: '6px 14px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', fontSize: '0.55rem', letterSpacing: '0.1em', cursor: phaseIdx === PHASES.length - 1 ? 'not-allowed' : 'pointer', fontFamily: 'monospace', opacity: phaseIdx === PHASES.length - 1 ? 0.3 : 0.7 }}>NEXT →</button>
+          <button type="button" onClick={reset}
+            className="font-mono text-xs tracking-normal cursor-pointer rounded-sm bg-transparent opacity-70 px-3.5 py-1.5 border border-black/15"
+          >RESET</button>
+          <button type="button" onClick={nextPhase} disabled={phaseIdx === PHASES.length - 1}
+            className="font-mono text-xs tracking-normal rounded-sm bg-transparent"
+            style={{
+              padding: '6px 14px',
+              border: '1px solid rgba(0,0,0,0.15)',
+              cursor: phaseIdx === PHASES.length - 1 ? 'not-allowed' : 'pointer',
+              opacity: phaseIdx === PHASES.length - 1 ? 0.3 : 0.7,
+            }}
+          >NEXT →</button>
         </div>
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         TIMINGS BASED ON RESURGENCE COMPETITIVE LOBBIES — S03 2026
       </div>
     </div>

@@ -1,43 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WZPRO Meta
 
-## Getting Started
+Next.js 16 app for Warzone loadouts, pro tools, community features, player profiles and Polar-powered paid access.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 app router
+- React 19
+- TypeScript
+- Tailwind CSS 4 via PostCSS
+- Supabase auth support
+- Polar checkout and webhooks
+- Resend email delivery
+- Upstash REST storage when configured, local JSON fallback in development
+
+## Local Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm.cmd install
+npm.cmd run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+PowerShell may block `npm.ps1` on some Windows machines. Use `npm.cmd` for local commands.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Checks
 
-## Learn More
+```bash
+npm.cmd run lint
+npm.cmd test
+npm.cmd run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+`npm.cmd test` runs the Node test suite and the public asset reference audit.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Data Updates
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+For weapon data, use the scripts in `scripts/` instead of manually editing JSON:
 
-## Deploy on Vercel
+```bash
+node scripts/add-weapon.js "<json_object>"
+node scripts/update-weapon.js <id> "<json_object>"
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Payments
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-## 🛠️ Instructions pour l'Assistant (Claude Code)
+Polar product IDs and webhook secrets are configured through environment variables. Use:
 
-Pour toute modification des données d'armes (`data/*.json`), utilisez exclusivement les scripts fournis dans `/scripts`. 
+```bash
+npm.cmd run setup:polar
+```
 
-- **Pour ajouter une arme :** Utilisez `node scripts/add-weapon.js '<json_object>'`.
-- **Pour modifier une arme :** Utilisez `node scripts/update-weapon.js <id> '<json_object>'`.
-- **Règle stricte :** Ne modifiez jamais manuellement les fichiers JSON pour éviter les erreurs de structure et limiter la consommation de jetons.
+See `polar.env.example` for required variables.

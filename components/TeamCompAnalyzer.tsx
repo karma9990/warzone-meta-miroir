@@ -54,36 +54,30 @@ export default function TeamCompAnalyzer() {
   const analysis = analyzeComp(players);
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>SQUAD BUILDER</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>TEAM COMP ANALYZER</div>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">SQUAD BUILDER</div>
+        <div className="text-base font-bold tracking-normal">TEAM COMP ANALYZER</div>
       </div>
 
-      <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className="p-6 grid grid-cols-2 gap-6">
         {/* Player slots */}
         <div>
-          <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '1rem' }}>ASSIGN ROLES</div>
+          <div className="text-xs tracking-normal opacity-40 mb-4">ASSIGN ROLES</div>
           {players.map((role, i) => (
-            <div key={i} style={{ marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.5rem', opacity: 0.4, marginBottom: '0.4rem', letterSpacing: '0.1em' }}>PLAYER {i + 1}</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+            <div key={`player-${i + 1}-${role ?? 'empty'}`} className="mb-4">
+              <div className="text-xs opacity-40 mb-1.5 tracking-normal">PLAYER {i + 1}</div>
+              <div className="flex flex-wrap gap-1">
                 {ROLES.map(r => {
                   const isActive = role === r.key;
                   return (
-                    <button
-                      key={r.key}
-                      onClick={() => setRole(i, isActive ? null : r.key)}
+                    <button type="button" key={r.key} onClick={() => setRole(i, isActive ? null : r.key)}
+                      className="font-mono text-xs tracking-normal cursor-pointer rounded-sm"
                       style={{
                         padding: '3px 8px',
                         border: `1px solid ${isActive ? r.color : 'rgba(0,0,0,0.12)'}`,
-                        borderRadius: '2px',
                         background: isActive ? `${r.color}18` : 'transparent',
                         color: isActive ? r.color : 'inherit',
-                        fontSize: '0.5rem',
-                        letterSpacing: '0.08em',
-                        cursor: 'pointer',
-                        fontFamily: 'monospace',
                         fontWeight: isActive ? 700 : 400,
                       }}
                     >
@@ -97,44 +91,46 @@ export default function TeamCompAnalyzer() {
         </div>
 
         {/* Analysis */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px' }}>
-            <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.5rem' }}>COMP SCORE</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginBottom: '0.75rem' }}>
-              <span style={{ fontSize: '2rem', fontWeight: 700, color: STATUS_COLOR[analysis.status] }}>{analysis.score}</span>
-              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: STATUS_COLOR[analysis.status], letterSpacing: '0.1em' }}>{analysis.status}</span>
+        <div className="flex flex-col gap-4">
+          <div className="p-4 border border-black/10 rounded-sm">
+            <div className="text-xs tracking-normal opacity-40 mb-2">COMP SCORE</div>
+            <div className="flex items-baseline gap-3 mb-3">
+              <span className="text-3xl font-bold" style={{ color: STATUS_COLOR[analysis.status] }}>{analysis.score}</span>
+              <span className="text-xs font-bold tracking-normal" style={{ color: STATUS_COLOR[analysis.status] }}>{analysis.status}</span>
             </div>
-            <div style={{ height: '4px', background: 'rgba(0,0,0,0.08)', borderRadius: '2px' }}>
-              <div style={{ height: '100%', width: `${analysis.score}%`, background: STATUS_COLOR[analysis.status], transition: 'width 0.4s' }} />
+            <div className="h-1 bg-black/8 rounded-sm">
+              <div className="h-full rounded-sm transition-[width] duration-[400ms]"
+                style={{ width: `${analysis.score}%`, background: STATUS_COLOR[analysis.status] }}
+              />
             </div>
           </div>
 
-          <div style={{ padding: '1rem', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', flex: 1 }}>
-            <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.6rem' }}>ANALYSIS</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {analysis.notes.map((note, i) => (
-                <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                  <span style={{ color: STATUS_COLOR[analysis.status], fontSize: '0.55rem', flexShrink: 0, marginTop: '1px' }}>▸</span>
-                  <span style={{ fontSize: '0.57rem', opacity: 0.7, lineHeight: 1.55 }}>{note}</span>
+          <div className="p-4 border border-black/10 rounded-sm flex-1">
+            <div className="text-xs tracking-normal opacity-40 mb-2.5">ANALYSIS</div>
+            <div className="flex flex-col gap-2">
+              {analysis.notes.map((note) => (
+                <div key={note} className="flex gap-1.5 items-start">
+                  <span className="text-xs shrink-0 mt-px" style={{ color: STATUS_COLOR[analysis.status] }}>▸</span>
+                  <span className="text-xs opacity-70 leading-relaxed">{note}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ padding: '0.75rem', background: 'rgba(0,0,0,0.03)', borderRadius: '3px' }}>
-            <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.5rem' }}>ROLE LEGEND</div>
+          <div className="p-3 bg-black/3 rounded-sm">
+            <div className="text-xs tracking-normal opacity-40 mb-2">ROLE LEGEND</div>
             {ROLES.map(r => (
-              <div key={r.key} style={{ display: 'flex', gap: '6px', marginBottom: '0.25rem', alignItems: 'center' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: r.color, flexShrink: 0 }} />
-                <span style={{ fontSize: '0.5rem', fontWeight: 700, color: r.color, minWidth: '50px' }}>{r.label}</span>
-                <span style={{ fontSize: '0.5rem', opacity: 0.5 }}>{r.desc}</span>
+              <div key={r.key} className="flex gap-1.5 mb-1 items-center">
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: r.color }} />
+                <span className="text-xs font-bold min-w-[50px]" style={{ color: r.color }}>{r.label}</span>
+                <span className="text-xs opacity-50">{r.desc}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         COMP SCORE IS BASED ON ROLE BALANCE AND COMPETITIVE META SYNERGIES
       </div>
     </div>

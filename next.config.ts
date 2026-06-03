@@ -3,20 +3,25 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development";
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://cdn.paddle.com;
-  style-src 'self' 'unsafe-inline';
+  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""};
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' blob: data: https:;
-  font-src 'self' data:;
-  connect-src 'self' https://api.paddle.com https://sandbox-api.paddle.com https://*.paddle.com;
-  frame-src 'self' https://*.paddle.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://youtube-nocookie.com;
+  font-src 'self' data: https://fonts.gstatic.com;
+  connect-src 'self' https://api.polar.sh https://sandbox-api.polar.sh;
+  frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://youtube-nocookie.com;
   object-src 'none';
   base-uri 'self';
-  form-action 'self' https://*.paddle.com;
+  form-action 'self' https://*.polar.sh https://polar.sh;
   frame-ancestors 'none';
   upgrade-insecure-requests;
 `.replace(/\s{2,}/g, " ").trim();
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'img.wzstats.gg' },
+    ],
+  },
   async headers() {
     return [
       {

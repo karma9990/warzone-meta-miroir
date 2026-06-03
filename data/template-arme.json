@@ -1,7 +1,8 @@
 {
   "id": "lowercase-weapon-name",
   "name": "Nom de l'Arme",
-  "category": "Assault Rifle",
+  "category": "ASSAULT RIFLE",
+  "game": "bo7",
   "meta_score": 0,
   "attachments": {
     "muzzle": "nom-de-l-accessoire",

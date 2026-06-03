@@ -23,6 +23,14 @@
 # misc
 .DS_Store
 *.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+client_secret_*.json
+service-account*.json
+supabase-service-role*.json
 
 # debug
 npm-debug.log*
@@ -40,9 +48,16 @@ app.zip
 gemini-code-*
 uploads_files_*.glb
 uploads_files_*.obj
+*.exe
+*.winmd
+Olise*.jpg
 
 # env files (can opt-in for committing if needed)
 .env*
+*.env.local
+*.env.production
+*.env.preview
+vercel-env-*.txt
 
 # local account/session stores
 /data/users.json

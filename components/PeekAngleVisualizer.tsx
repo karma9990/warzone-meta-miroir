@@ -50,29 +50,45 @@ export default function PeekAngleVisualizer() {
   const enemyY = 80;
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '2rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>INTERACTIVE VISUALIZER</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>PEEK ANGLE VISUALIZER</div>
+    <div className="border border-black/12 rounded mb-8 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">INTERACTIVE VISUALIZER</div>
+        <div className="text-base font-bold tracking-normal">PEEK ANGLE VISUALIZER</div>
       </div>
 
-      <div style={{ padding: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '2rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+      <div className="p-6">
+        <div className="flex gap-8 mb-6 flex-wrap">
           <div>
-            <div style={{ fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.5rem' }}>PEEK TYPE</div>
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
+            <div className="text-xs tracking-normal opacity-40 mb-2">PEEK TYPE</div>
+            <div className="flex gap-1">
               {(['tight', 'wide'] as PeekType[]).map((type) => (
-                <button key={type} onClick={() => setPeekType(type)} style={{ padding: '5px 14px', border: `1px solid ${peekType === type ? PEEK[type].color : 'rgba(0,0,0,0.15)'}`, background: peekType === type ? `${PEEK[type].color}12` : 'transparent', color: peekType === type ? PEEK[type].color : 'rgba(0,0,0,0.45)', fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: '2px' }}>
+                <button type="button" key={type} onClick={() => setPeekType(type)}
+                  className="font-mono text-xs tracking-normal cursor-pointer rounded-sm"
+                  style={{
+                    padding: '5px 14px',
+                    border: `1px solid ${peekType === type ? PEEK[type].color : 'rgba(0,0,0,0.15)'}`,
+                    background: peekType === type ? `${PEEK[type].color}12` : 'transparent',
+                    color: peekType === type ? PEEK[type].color : 'rgba(0,0,0,0.45)',
+                  }}
+                >
                   {type.toUpperCase()}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.5rem' }}>ENEMY DISTANCE</div>
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
+            <div className="text-xs tracking-normal opacity-40 mb-2">ENEMY DISTANCE</div>
+            <div className="flex gap-1">
               {(['close', 'medium', 'far'] as EnemyDist[]).map((distance) => (
-                <button key={distance} onClick={() => setDist(distance)} style={{ padding: '5px 14px', border: `1px solid ${dist === distance ? '#00ff88' : 'rgba(0,0,0,0.15)'}`, background: dist === distance ? 'rgba(0,255,136,0.08)' : 'transparent', color: dist === distance ? '#00ff88' : 'rgba(0,0,0,0.45)', fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.1em', cursor: 'pointer', borderRadius: '2px' }}>
+                <button type="button" key={distance} onClick={() => setDist(distance)}
+                  className="font-mono text-xs tracking-normal cursor-pointer rounded-sm"
+                  style={{
+                    padding: '5px 14px',
+                    border: `1px solid ${dist === distance ? '#00ff88' : 'rgba(0,0,0,0.15)'}`,
+                    background: dist === distance ? 'rgba(0,255,136,0.08)' : 'transparent',
+                    color: dist === distance ? '#00ff88' : 'rgba(0,0,0,0.45)',
+                  }}
+                >
                   {distance.toUpperCase()}
                 </button>
               ))}
@@ -80,8 +96,8 @@ export default function PeekAngleVisualizer() {
           </div>
         </div>
 
-        <div style={{ background: '#0c0c0c', borderRadius: '3px', marginBottom: '1.5rem', overflow: 'hidden' }}>
-          <svg width="100%" viewBox="0 0 500 240" style={{ display: 'block' }}>
+        <div className="rounded-sm mb-6 overflow-hidden" style={{ background: '#0c0c0c' }}>
+          <svg width="100%" viewBox="0 0 500 240" className="block">
             {Array.from({ length: 26 }).map((_, i) => (
               <line key={`v${i}`} x1={i * 20} y1={0} x2={i * 20} y2={240} stroke="rgba(255,255,255,0.025)" strokeWidth="1" />
             ))}
@@ -92,12 +108,8 @@ export default function PeekAngleVisualizer() {
             <text x="260" y="20" fontSize="8" fill="rgba(255,80,80,0.4)" fontFamily="monospace" letterSpacing="2">DANGER ZONE</text>
             <rect x={197} y={10} width={6} height={130} fill="rgba(255,255,255,0.3)" />
             <text x={200} y={8} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.35)" fontFamily="monospace" letterSpacing="1">COVER</text>
-            <path
-              d={`M ${corner.x} ${corner.y} L ${ax1} ${ay1} A ${arcR} ${arcR} 0 0 1 ${ax2} ${ay2} Z`}
-              fill={`${peek.color}14`}
-              stroke={peek.color}
-              strokeWidth="0.8"
-              strokeDasharray="3 2"
+            <path d={`M ${corner.x} ${corner.y} L ${ax1} ${ay1} A ${arcR} ${arcR} 0 0 1 ${ax2} ${ay2} Z`}
+              fill={`${peek.color}14`} stroke={peek.color} strokeWidth="0.8" strokeDasharray="3 2"
             />
             <line x1={playerX} y1={playerY} x2={enemy.x} y2={enemyY} stroke={peek.color} strokeWidth="0.8" strokeDasharray="5 3" opacity="0.45" />
             <circle cx={playerX} cy={playerY} r="7" fill="rgba(0,255,136,0.15)" stroke="#00ff88" strokeWidth="1.5" />
@@ -110,23 +122,23 @@ export default function PeekAngleVisualizer() {
           </svg>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem', marginBottom: '1.25rem' }}>
+        <div className="grid grid-cols-4 gap-[0.6rem] mb-5">
           {[
             { label: 'EXPOSED ANGLE', value: `${peek.angle} deg` },
             { label: 'EXPOSURE TIME', value: peek.exposureTime },
             { label: 'SHOT WINDOW', value: peek.shotOpportunity },
             { label: 'IDEAL RANGE', value: peek.idealRange },
           ].map((stat) => (
-            <div key={stat.label} style={{ padding: '0.7rem', border: '1px solid rgba(0,0,0,0.08)', borderRadius: '3px', background: 'rgba(0,0,0,0.02)' }}>
-              <div style={{ fontSize: '0.44rem', letterSpacing: '0.1em', opacity: 0.35, marginBottom: '0.3rem' }}>{stat.label}</div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: peek.color }}>{stat.value}</div>
+            <div key={stat.label} className="p-[0.7rem] border border-black/8 rounded-sm bg-black/2">
+              <div className="text-xs tracking-normal opacity-35 mb-1">{stat.label}</div>
+              <div className="text-xs font-bold" style={{ color: peek.color }}>{stat.value}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ padding: '0.75rem 1rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '2px' }}>
-          <span style={{ fontSize: '0.5rem', opacity: 0.4, letterSpacing: '0.12em' }}>{peek.label} - </span>
-          <span style={{ fontSize: '0.57rem', opacity: 0.65, lineHeight: 1.7 }}>{peek.description}</span>
+        <div className="p-3 bg-black/3 border border-black/6 rounded-sm">
+          <span className="text-xs opacity-40 tracking-normal">{peek.label} - </span>
+          <span className="text-xs opacity-65 leading-relaxed">{peek.description}</span>
         </div>
       </div>
     </div>

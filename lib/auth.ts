@@ -27,7 +27,8 @@ export async function verifyToken(token: string): Promise<boolean> {
       audience: 'wzpro-meta-admin',
     });
     return payload.role === 'admin' && payload.tokenUse === ADMIN_TOKEN_USE;
-  } catch {
+  } catch (error) {
+    console.error('JWT verification failed:', error);
     return false;
   }
 }

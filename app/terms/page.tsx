@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | WZPRO Meta',
+  description: 'Review the terms that apply to WZPRO Meta accounts, purchases and site usage.',
+};
 import LegalPage from '@/components/LegalPage';
 import { LEGAL, SUPPORT_EMAIL } from '@/lib/siteConfig';
 
@@ -17,7 +23,7 @@ export default function TermsPage() {
         },
         {
           title: '2. Service Description',
-          body: <p>WZPRO Meta provides Warzone loadout information, tactical guides, interactive tools, and PC optimization resources. The service is informational and educational. It is not affiliated with Activision, Call of Duty, Warzone, Microsoft, Paddle or any hardware manufacturer.</p>,
+          body: <p>WZPRO Meta provides Warzone loadout information, tactical guides, interactive tools, and PC optimization resources. The service is informational and educational. It is not affiliated with Activision, Call of Duty, Warzone, Microsoft, Polar or any hardware manufacturer.</p>,
         },
         {
           title: '3. Accounts and Access',
@@ -25,7 +31,7 @@ export default function TermsPage() {
         },
         {
           title: '4. Prices, Taxes and Checkout',
-          body: <p>Prices are displayed before checkout. Taxes may be calculated at checkout based on the customer&apos;s country or region. Payments are processed by Paddle, acting as Merchant of Record where applicable. Paddle may handle invoices, receipts, payment methods, tax collection, fraud checks and payment support.</p>,
+          body: <p>Prices are displayed before checkout. Taxes may be calculated at checkout based on the customer&apos;s country or region. Payments are processed by Polar, acting as Merchant of Record where applicable. Polar may handle invoices, receipts, payment methods, tax collection, fraud checks and payment support.</p>,
         },
         {
           title: '5. Digital Delivery',

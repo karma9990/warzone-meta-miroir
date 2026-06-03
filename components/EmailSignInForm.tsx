@@ -1,16 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import LocalizedLink from '@/components/LocalizedLink';
 
 type Mode = 'signup' | 'signin';
 
 export default function EmailSignInForm({
   initialMode = 'signup',
   allowSwitch = true,
+  redirectTo = '/',
 }: {
   initialMode?: Mode;
   allowSwitch?: boolean;
+  redirectTo?: string;
 }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState('');
@@ -27,7 +29,6 @@ export default function EmailSignInForm({
     setMessage('');
 
     try {
-      const supabase = createSupabaseBrowserClient();
       const cleanEmail = email.trim().toLowerCase();
       const cleanDisplayName = displayName.trim();
 
@@ -38,31 +39,41 @@ export default function EmailSignInForm({
           return;
         }
 
-        const { error } = await supabase.auth.signUp({
-          email: cleanEmail,
-          password,
-          options: {
-            data: {
-              username: username.trim().toLowerCase(),
-              display_name: cleanDisplayName || username.trim(),
-            },
-          },
+        const res = await fetch('/api/email-auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: cleanEmail,
+            username,
+            displayName: cleanDisplayName,
+            password,
+            confirmPassword,
+          }),
         });
+        const data = await res.json().catch(() => ({}));
 
-        if (error) throw error;
+        if (!res.ok) {
+          throw new Error(typeof data.error === 'string' ? data.error : 'Account creation failed.');
+        }
 
         setStatus('sent');
         setMessage('Account created. Check your inbox to verify your email.');
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
+      const res = await fetch('/api/email-auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
+      const data = await res.json().catch(() => ({}));
 
-      if (error) throw error;
-      window.location.href = '/?signed_in=1';
+      if (!res.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'Authentication failed.');
+      }
+
+      const separator = redirectTo.includes('?') ? '&' : '?';
+      window.location.href = `${redirectTo}${separator}signed_in=1`;
     } catch (error) {
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Authentication failed.');
@@ -141,6 +152,12 @@ export default function EmailSignInForm({
       <button type="submit" disabled={status === 'sending'}>
         {status === 'sending' ? 'Sending...' : mode === 'signup' ? 'Sign up with email' : 'Sign in with email'}
       </button>
+
+      {mode === 'signin' && (
+        <LocalizedLink className="email-auth-forgot" href="/forgot-password">
+          Forgot password?
+        </LocalizedLink>
+      )}
 
       {allowSwitch && (
         <p className="email-auth-switch">

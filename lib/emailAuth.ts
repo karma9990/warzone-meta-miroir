@@ -29,10 +29,12 @@ const DISPOSABLE_DOMAINS = new Set([
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+export type EmailAuthPurpose = 'magic' | 'verify-account' | 'password-reset';
+
 export type EmailAuthPayload = {
   email: string;
   jti: string;
-  purpose?: 'magic' | 'verify-account';
+  purpose?: EmailAuthPurpose;
 };
 
 export function normalizeEmail(value: unknown) {
@@ -74,7 +76,7 @@ export async function validateEmailDomain(email: string) {
   return null;
 }
 
-export async function createEmailAuthToken(email: string, purpose: EmailAuthPayload['purpose'] = 'magic') {
+export async function createEmailAuthToken(email: string, purpose: EmailAuthPurpose = 'magic') {
   return new SignJWT({ email, jti: randomUUID(), purpose, tokenUse: EMAIL_AUTH_TOKEN_USE })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuer('wzpro-meta')
@@ -95,7 +97,7 @@ export async function verifyEmailAuthToken(token: string): Promise<EmailAuthPayl
       payload.tokenUse !== EMAIL_AUTH_TOKEN_USE ||
       typeof payload.email !== 'string' ||
       typeof payload.jti !== 'string' ||
-      (payload.purpose !== 'magic' && payload.purpose !== 'verify-account')
+      (payload.purpose !== 'magic' && payload.purpose !== 'verify-account' && payload.purpose !== 'password-reset')
     ) {
       return null;
     }
@@ -118,7 +120,7 @@ export async function verifyEmailAuthToken(token: string): Promise<EmailAuthPayl
 export async function sendEmailAuthLink(
   req: NextRequest,
   email: string,
-  purpose: EmailAuthPayload['purpose'] = 'magic'
+  purpose: EmailAuthPurpose = 'magic'
 ) {
   if (!process.env.RESEND_API_KEY) {
     return { error: new Error('Email service is not configured.') };
@@ -129,7 +131,7 @@ export async function sendEmailAuthLink(
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   return resend.emails.send({
-    from: process.env.AUTH_EMAIL_FROM || 'WZ Meta <onboarding@resend.dev>',
+    from: process.env.AUTH_EMAIL_FROM || 'WZPRO Meta <noreply@wzprometa.com>',
     to: process.env.RESEND_TO_OVERRIDE ?? email,
     subject: purpose === 'verify-account' ? 'Verify your WZPRO Meta email' : 'Your WZPRO Meta sign-in link',
     html: `
@@ -141,6 +143,37 @@ export async function sendEmailAuthLink(
         </p>
         <a href="${verifyUrl}" style="display:inline-block;background:#163cff;color:#fff;padding:14px 24px;font-family:monospace;font-size:12px;font-weight:700;text-decoration:none;text-transform:uppercase">
           Sign in to WZPRO Meta
+        </a>
+        <p style="font-size:11px;opacity:0.38;margin:30px 0 0;line-height:1.6">
+          If you did not request this, ignore this email.
+        </p>
+      </div>
+    `,
+  });
+}
+
+export async function sendPasswordResetEmail(req: NextRequest, email: string) {
+  if (!process.env.RESEND_API_KEY) {
+    return { error: new Error('Email service is not configured.') };
+  }
+
+  const token = await createEmailAuthToken(email, 'password-reset');
+  const resetUrl = `${getSiteOrigin(req)}/reset-password?token=${encodeURIComponent(token)}`;
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  return resend.emails.send({
+    from: process.env.AUTH_EMAIL_FROM || 'WZPRO Meta <noreply@wzprometa.com>',
+    to: process.env.RESEND_TO_OVERRIDE ?? email,
+    subject: 'Reset your WZPRO Meta password',
+    html: `
+      <div style="font-family:monospace;max-width:520px;margin:0 auto;padding:40px 24px;background:#faf7ef;color:#10100e">
+        <p style="font-size:11px;letter-spacing:0.2em;opacity:0.45;margin:0 0 32px">WZPRO META / PASSWORD RECOVERY</p>
+        <h1 style="font-size:28px;letter-spacing:0.04em;margin:0 0 16px;text-transform:uppercase">Reset your password</h1>
+        <p style="font-size:13px;line-height:1.7;opacity:0.68;margin:0 0 28px">
+          Click this secure link to choose a new password for your WZPRO Meta account. The link expires in 15 minutes.
+        </p>
+        <a href="${resetUrl}" style="display:inline-block;background:#163cff;color:#fff;padding:14px 24px;font-family:monospace;font-size:12px;font-weight:700;text-decoration:none;text-transform:uppercase">
+          Reset password
         </a>
         <p style="font-size:11px;opacity:0.38;margin:30px 0 0;line-height:1.6">
           If you did not request this, ignore this email.
@@ -169,7 +202,7 @@ export async function sendOAuthWelcomeEmail(req: NextRequest, user: UserSession)
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   return resend.emails.send({
-    from: process.env.AUTH_EMAIL_FROM || 'WZ Meta <onboarding@resend.dev>',
+    from: process.env.AUTH_EMAIL_FROM || 'WZPRO Meta <noreply@wzprometa.com>',
     to: process.env.RESEND_TO_OVERRIDE ?? user.email,
     subject: 'Your WZPRO Meta sign-up is confirmed',
     html: `

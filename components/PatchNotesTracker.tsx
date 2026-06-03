@@ -66,21 +66,24 @@ export default function PatchNotesTracker() {
   })).filter(p => p.changes.length > 0);
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2 flex justify-between items-center flex-wrap gap-4">
         <div>
-          <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>META INTELLIGENCE</div>
-          <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>PATCH NOTES TRACKER</div>
+          <div className="text-xs tracking-normal opacity-40 mb-1">META INTELLIGENCE</div>
+          <div className="text-base font-bold tracking-normal">PATCH NOTES TRACKER</div>
         </div>
-        <div style={{ display: 'flex', gap: '0.4rem' }}>
+        <div className="flex gap-1">
           {(['all', 'buff', 'nerf', 'neutral'] as const).map(f => (
-            <button key={f} onClick={() => setFilter(f)} style={{
-              padding: '3px 10px', border: `1px solid ${filter === f ? (f === 'all' ? 'currentColor' : IMPACT_CONFIG[f as Impact].color) : 'rgba(0,0,0,0.12)'}`,
-              borderRadius: '2px', background: filter === f && f !== 'all' ? IMPACT_CONFIG[f as Impact].bg : 'transparent',
-              color: filter === f && f !== 'all' ? IMPACT_CONFIG[f as Impact].color : 'inherit',
-              fontSize: '0.5rem', letterSpacing: '0.12em', cursor: 'pointer', fontFamily: 'monospace',
-              opacity: filter === f ? 1 : 0.5,
-            }}>
+            <button type="button" key={f} onClick={() => setFilter(f)}
+              className="font-mono text-xs tracking-normal cursor-pointer rounded-sm"
+              style={{
+                padding: '3px 10px',
+                border: `1px solid ${filter === f ? (f === 'all' ? 'currentColor' : IMPACT_CONFIG[f as Impact].color) : 'rgba(0,0,0,0.12)'}`,
+                background: filter === f && f !== 'all' ? IMPACT_CONFIG[f as Impact].bg : 'transparent',
+                color: filter === f && f !== 'all' ? IMPACT_CONFIG[f as Impact].color : 'inherit',
+                opacity: filter === f ? 1 : 0.5,
+              }}
+            >
               {f === 'all' ? 'ALL' : `${IMPACT_CONFIG[f as Impact].symbol} ${IMPACT_CONFIG[f as Impact].label}`}
             </button>
           ))}
@@ -88,44 +91,46 @@ export default function PatchNotesTracker() {
       </div>
 
       {filteredPatches.map(patch => (
-        <div key={patch.version} style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-          <button
+        <div key={patch.version} className="border-b border-black/8">
+          <button type="button"
             onClick={() => setExpanded(expanded === patch.version ? '' : patch.version)}
-            style={{
-              width: '100%', padding: '0.9rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: 'monospace', textAlign: 'left',
-            }}
+            className="w-full font-mono text-left cursor-pointer bg-transparent border-none"
+            style={{ padding: '0.9rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
           >
             <div>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em' }}>{patch.version}</span>
-              <span style={{ fontSize: '0.5rem', opacity: 0.4, letterSpacing: '0.1em', marginLeft: '1rem' }}>{patch.date}</span>
+              <span className="text-xs font-bold tracking-normal">{patch.version}</span>
+              <span className="text-xs opacity-40 tracking-normal ml-4">{patch.date}</span>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <div className="flex gap-2 items-center">
               {(['buff', 'nerf', 'neutral'] as Impact[]).map(imp => {
                 const cnt = patch.changes.filter(c => c.impact === imp).length;
                 if (!cnt) return null;
-                return <span key={imp} style={{ fontSize: '0.5rem', color: IMPACT_CONFIG[imp].color, fontWeight: 700 }}>{IMPACT_CONFIG[imp].symbol}{cnt}</span>;
+                return <span key={imp} className="text-xs font-bold" style={{ color: IMPACT_CONFIG[imp].color }}>{IMPACT_CONFIG[imp].symbol}{cnt}</span>;
               })}
-              <span style={{ fontSize: '0.5rem', opacity: 0.4, marginLeft: '0.25rem' }}>{expanded === patch.version ? '▲' : '▼'}</span>
+              <span className="text-xs opacity-40 ml-1">{expanded === patch.version ? '▲' : '▼'}</span>
             </div>
           </button>
 
           {expanded === patch.version && (
             <div>
-              {patch.changes.map((change, i) => {
+              {patch.changes.map((change) => {
                 const cfg = IMPACT_CONFIG[change.impact];
                 return (
-                  <div key={i} style={{
-                    padding: '0.9rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.05)',
-                    background: cfg.bg, display: 'grid', gridTemplateColumns: '5rem 5rem 1fr 1fr', gap: '1rem', alignItems: 'start',
-                  }}>
+                  <div key={`${patch.version}-${change.weapon}-${change.category}-${change.impact}`}
+                    className="grid grid-cols-[5rem_5rem_1fr_1fr] gap-4 items-start border-t border-black/5"
+                    style={{ padding: '0.9rem 1.5rem', background: cfg.bg }}
+                  >
                     <div>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 700 }}>{change.weapon}</div>
-                      <div style={{ fontSize: '0.45rem', color: CAT_COLORS[change.category] ?? '#888', letterSpacing: '0.08em', marginTop: '2px' }}>{change.category}</div>
+                      <div className="text-xs font-bold">{change.weapon}</div>
+                      <div className="text-xs tracking-normal mt-0.5"
+                        style={{ color: CAT_COLORS[change.category] ?? '#888' }}
+                      >{change.category}</div>
                     </div>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: cfg.color }}>{cfg.symbol} {cfg.label}</span>
-                    <span style={{ fontSize: '0.57rem', opacity: 0.65, lineHeight: 1.55 }}>{change.detail}</span>
-                    <div style={{ fontSize: '0.55rem', opacity: 0.55, lineHeight: 1.55, borderLeft: `2px solid ${cfg.color}`, paddingLeft: '0.6rem' }}>{change.metaShift}</div>
+                    <span className="text-xs font-bold" style={{ color: cfg.color }}>{cfg.symbol} {cfg.label}</span>
+                    <span className="text-xs opacity-65 leading-relaxed">{change.detail}</span>
+                    <div className="text-xs opacity-55 leading-relaxed pl-2.5"
+                      style={{ borderLeft: `2px solid ${cfg.color}` }}
+                    >{change.metaShift}</div>
                   </div>
                 );
               })}
@@ -134,7 +139,7 @@ export default function PatchNotesTracker() {
         </div>
       ))}
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         DATA BASED ON OFFICIAL PATCH NOTES AND COMMUNITY DATAMINING — S03 2026
       </div>
     </div>

@@ -44,20 +44,23 @@ export default function SessionTracker() {
   };
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2 flex justify-between items-center">
         <div>
-          <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>PROGRESSION</div>
-          <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>SESSION TRACKER</div>
+          <div className="text-xs tracking-normal opacity-40 mb-1">PROGRESSION</div>
+          <div className="text-base font-bold tracking-normal">SESSION TRACKER</div>
         </div>
-        <button onClick={() => setAdding(a => !a)} style={{ padding: '6px 14px', border: '1px solid rgba(0,0,0,0.2)', borderRadius: '2px', background: 'transparent', fontSize: '0.55rem', letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'monospace' }}>
+        <button type="button" onClick={() => setAdding(a => !a)}
+          className="font-mono text-xs tracking-normal cursor-pointer rounded-sm bg-transparent border border-black/20"
+          style={{ padding: '6px 14px' }}
+        >
           {adding ? 'CANCEL' : '+ ADD SESSION'}
         </button>
       </div>
 
       {adding && (
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.08)', background: 'rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="px-6 py-5 border-b border-black/8 bg-black/2">
+          <div className="grid grid-cols-5 gap-4 mb-4">
             {([
               { key: 'kills', label: 'KILLS', min: 0, max: 50 },
               { key: 'deaths', label: 'DEATHS', min: 0, max: 20 },
@@ -66,16 +69,18 @@ export default function SessionTracker() {
               { key: 'duration', label: 'MIN PLAYED', min: 30, max: 360 },
             ] as { key: keyof typeof form; label: string; min: number; max: number }[]).map(({ key, label, min, max }) => (
               <div key={key}>
-                <div style={{ fontSize: '0.45rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.35rem' }}>{label}</div>
-                <input
-                  type="number" min={min} max={max} value={form[key]}
+                <div className="text-xs tracking-normal opacity-40 mb-1.5">{label}</div>
+                <input aria-label="Input" type="number" min={min} max={max} value={form[key]}
                   onChange={e => setForm(f => ({ ...f, [key]: Number(e.target.value) }))}
-                  style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.75rem', padding: '5px 8px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', textAlign: 'center', boxSizing: 'border-box' }}
+                  className="w-full font-mono text-xs px-2 py-1 border border-black/15 rounded-sm bg-transparent text-center box-border"
                 />
               </div>
             ))}
           </div>
-          <button onClick={add} style={{ padding: '7px 20px', border: '1px solid #00ff88', borderRadius: '2px', background: 'rgba(0,255,136,0.08)', fontSize: '0.6rem', letterSpacing: '0.1em', cursor: 'pointer', fontFamily: 'monospace', color: '#00ff88', fontWeight: 700 }}>
+          <button type="button" onClick={add}
+            className="font-mono text-xs tracking-normal font-bold cursor-pointer rounded-sm"
+            style={{ padding: '7px 20px', border: '1px solid #00ff88', background: 'rgba(0,255,136,0.08)', color: '#00ff88' }}
+          >
             SAVE SESSION
           </button>
         </div>
@@ -84,18 +89,18 @@ export default function SessionTracker() {
       {sessions.length > 0 && (
         <>
           {/* Stats summary */}
-          <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.08)', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+          <div className="px-6 py-4 border-b border-black/8 grid grid-cols-4 gap-4">
             {[
               { label: 'AVG KILLS', value: avg('kills'), t: trend('kills'), good: true },
               { label: 'K/D', value: kd, t: trend('kills'), good: true },
               { label: 'AVG PLACE', value: avg('placement'), t: trend('placement'), good: false },
               { label: 'WIN RATE', value: `${winRate}%`, t: null, good: true },
             ].map(({ label, value, t, good }) => (
-              <div key={label} style={{ textAlign: 'center', padding: '0.75rem', background: 'rgba(0,0,0,0.03)', borderRadius: '3px' }}>
-                <div style={{ fontSize: '0.45rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.35rem' }}>{label}</div>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: '4px' }}>
-                  <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>{value}</span>
-                  {t && <span style={{ fontSize: '0.7rem', color: (t === '↑') === good ? '#00ff88' : t === '→' ? '#8899aa' : '#ff4455' }}>{t}</span>}
+              <div key={label} className="text-center p-3 bg-black/3 rounded-sm">
+                <div className="text-xs tracking-normal opacity-40 mb-1.5">{label}</div>
+                <div className="flex justify-center items-baseline gap-1">
+                  <span className="text-lg font-bold">{value}</span>
+                  {t && <span className="text-xs" style={{ color: (t === '↑') === good ? '#00ff88' : t === '→' ? '#8899aa' : '#ff4455' }}>{t}</span>}
                 </div>
               </div>
             ))}
@@ -103,18 +108,24 @@ export default function SessionTracker() {
 
           {/* Session list */}
           <div>
-            <div style={{ padding: '0.6rem 1.5rem', display: 'grid', gridTemplateColumns: '5rem 1fr 1fr 1fr 1fr 1fr 2rem', gap: '0.75rem', fontSize: '0.45rem', letterSpacing: '0.1em', opacity: 0.35, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+            <div className="px-6 py-2.5 grid gap-3 text-xs tracking-normal opacity-35 border-b border-black/6"
+              style={{ gridTemplateColumns: '5rem 1fr 1fr 1fr 1fr 1fr 2rem' }}
+            >
               <span>DATE</span><span>KILLS</span><span>DEATHS</span><span>PLACE</span><span>WINS</span><span>MIN</span><span />
             </div>
             {[...sessions].reverse().map((s, i) => (
-              <div key={s.id} style={{ padding: '0.7rem 1.5rem', display: 'grid', gridTemplateColumns: '5rem 1fr 1fr 1fr 1fr 1fr 2rem', gap: '0.75rem', alignItems: 'center', borderBottom: i < sessions.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none' }}>
-                <span style={{ fontSize: '0.52rem', opacity: 0.45 }}>{s.date}</span>
-                <span style={{ fontSize: '0.65rem', fontWeight: 600 }}>{s.kills}</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{s.deaths}</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{s.placement}</span>
-                <span style={{ fontSize: '0.65rem', color: s.wins > 0 ? '#00ff88' : 'inherit', fontWeight: s.wins > 0 ? 700 : 400 }}>{s.wins}</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>{s.duration}</span>
-                <button onClick={() => remove(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.3, fontSize: '0.6rem', padding: 0 }}>×</button>
+              <div key={s.id} className="px-6 grid gap-3 items-center border-b border-black/5"
+                style={{ paddingTop: '0.7rem', paddingBottom: '0.7rem', gridTemplateColumns: '5rem 1fr 1fr 1fr 1fr 1fr 2rem' }}
+              >
+                <span className="text-xs opacity-45">{s.date}</span>
+                <span className="text-xs font-semibold">{s.kills}</span>
+                <span className="text-xs opacity-60">{s.deaths}</span>
+                <span className="text-xs opacity-60">{s.placement}</span>
+                <span className="text-xs" style={{ color: s.wins > 0 ? '#00ff88' : 'inherit', fontWeight: s.wins > 0 ? 700 : 400 }}>{s.wins}</span>
+                <span className="text-xs opacity-60">{s.duration}</span>
+                <button type="button" onClick={() => remove(s.id)}
+                  className="font-mono text-xs cursor-pointer bg-transparent border-none p-0 opacity-30"
+                >×</button>
               </div>
             ))}
           </div>
@@ -122,12 +133,12 @@ export default function SessionTracker() {
       )}
 
       {sessions.length === 0 && !adding && (
-        <div style={{ padding: '3rem 1.5rem', textAlign: 'center', opacity: 0.35, fontSize: '0.6rem', letterSpacing: '0.1em' }}>
+        <div className="p-12 text-center opacity-35 text-xs tracking-normal">
           NO SESSIONS YET — ADD YOUR FIRST SESSION TO START TRACKING
         </div>
       )}
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         SESSION DATA IS LOCAL — NOT PERSISTED BETWEEN PAGE RELOADS
       </div>
     </div>

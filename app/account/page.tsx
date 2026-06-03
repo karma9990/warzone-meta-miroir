@@ -9,6 +9,8 @@ import { getEntitlements, type EntitlementRecord } from '@/lib/entitlementStore'
 import { emptyProfile, getProfile } from '@/lib/profileStore';
 import { PRO_TOOL_IDS, type ProToolId } from '@/lib/toolAccess';
 import { getUserSession } from '@/lib/userAuth';
+import { withLocalePath } from '@/lib/i18n';
+import { getRequestLocale } from '@/lib/requestLocale';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,8 +76,10 @@ function formatDate(value: string) {
 }
 
 export default async function AccountPage() {
+  const locale = await getRequestLocale();
+  const href = (path: string) => withLocalePath(path, locale);
   const user = await getUserSession();
-  if (!user) redirect('/sign-in');
+  if (!user) redirect(href('/sign-in?next=/account'));
 
   const userEntitlements = await getEntitlements(user.sub);
   const emailEntitlements = user.email ? await getEntitlements(user.email.toLowerCase()) : null;
@@ -86,15 +90,27 @@ export default async function AccountPage() {
     picture: user.picture,
   });
   const entitlements = mergeEntitlements([userEntitlements, emailEntitlements]);
-  const loadouts = getLoadouts();
+  const loadouts = await getLoadouts();
   const unlockedTools = entitlements.pro ? [...PRO_TOOL_IDS] : entitlements.tools;
   const unlockedCount = unlockedTools.length;
+  const profileSteps = [
+    Boolean(profile.pseudo),
+    Boolean(profile.profilePicture),
+    Boolean(profile.profileBanner),
+    Boolean(profile.description),
+    Boolean(profile.favoriteLoadouts.length || profile.featuredLoadoutId),
+    Boolean(profile.statsEntries.length),
+    Boolean(profile.privacy.publicProfile),
+  ];
+  const profileCompletion = Math.round((profileSteps.filter(Boolean).length / profileSteps.length) * 100);
+  const mainLoadout = loadouts.find((loadout) => loadout.id === profile.featuredLoadoutId)
+    || loadouts.find((loadout) => profile.favoriteLoadouts.includes(loadout.id));
 
   return (
     <>
       <main className="account-main">
         <div className="account-back">
-          <Link href="/">WZPRO Meta</Link>
+          <Link href={href('/')}>WZPRO Meta</Link>
         </div>
 
         <header className="account-header">
@@ -142,8 +158,51 @@ export default async function AccountPage() {
                   ? 'Your purchased monthly tools are available from this account.'
                   : 'No paid Pro tool is linked to this account yet.'}
             </p>
-            <Link href="/tools-individual">Browse tools</Link>
+            <Link href={href('/tools-individual')}>Browse tools</Link>
           </article>
+        </section>
+
+        <section className="account-dashboard">
+          <article>
+            <span>Profile strength</span>
+            <strong>{profileCompletion}%</strong>
+            <p>{profile.privacy.publicProfile ? 'Public profile active' : 'Public profile private'}</p>
+            <i style={{ ['--account-progress' as string]: `${profileCompletion}%` }} />
+          </article>
+          <article>
+            <span>Main loadout</span>
+            <strong>{mainLoadout?.weapon || 'Not selected'}</strong>
+            <p>{mainLoadout ? `${mainLoadout.category} / Tier ${mainLoadout.tier}` : 'Choose one from the loadout section.'}</p>
+          </article>
+          <article>
+            <span>Public card</span>
+            <strong>{profile.pseudo || 'No pseudo'}</strong>
+            {profile.pseudo && profile.privacy.publicProfile ? (
+              <Link href={href(`/profile/${profile.pseudo}`)}>View public profile</Link>
+            ) : (
+              <Link href="#public-profile-settings">Set up profile</Link>
+            )}
+          </article>
+        </section>
+
+        <section className="account-section">
+          <div className="account-section-head">
+            <span>SECURITY</span>
+            <h2>Account security</h2>
+            <p>Keep sign-in and password recovery simple from one place.</p>
+          </div>
+          <div className="account-security-grid">
+            <article>
+              <span>Login email</span>
+              <strong>{user.email || 'No email attached'}</strong>
+              <small>{user.provider === 'email' ? 'Email password login' : `${user.provider} OAuth login`}</small>
+            </article>
+            <article>
+              <span>Password</span>
+              <strong>Reset by email</strong>
+              <Link href={href('/forgot-password')}>Change password</Link>
+            </article>
+          </div>
         </section>
 
         <section className="account-section">
@@ -178,6 +237,7 @@ export default async function AccountPage() {
           </div>
           <AccountLoadoutPrefs
             loadouts={loadouts}
+            initialFeaturedLoadoutId={profile.featuredLoadoutId}
             initialFavorites={profile.favoriteLoadouts}
             initialNotes={profile.loadoutNotes}
           />
@@ -198,11 +258,12 @@ export default async function AccountPage() {
                     <span>{tool.tag}</span>
                     <h3>{tool.name}</h3>
                     <p>{tool.desc}</p>
+                    <small>{unlocked ? 'Active on this account' : 'Locked'}</small>
                   </div>
                   {unlocked ? (
-                    <Link href={`/tools/${toolId}`}>Open tool</Link>
+                    <Link href={href(`/tools/${toolId}`)}>Open tool</Link>
                   ) : (
-                    <Link href="/tools-individual">Unlock</Link>
+                    <Link href={href('/tools-individual')}>Unlock</Link>
                   )}
                 </article>
               );
@@ -216,7 +277,7 @@ export default async function AccountPage() {
             <h2>Performance Log</h2>
             <p>Saved to your account, with a local browser copy as fallback.</p>
             {profile.pseudo && profile.privacy.publicProfile && profile.privacy.stats ? (
-              <Link className="account-share-stats" href={`/profile/${profile.pseudo}/stats`}>
+              <Link className="account-share-stats" href={href(`/profile/${profile.pseudo}/stats`)}>
                 Open share card
               </Link>
             ) : (
@@ -392,7 +453,9 @@ export default async function AccountPage() {
         }
 
         .account-summary a,
-        .account-tool a {
+        .account-tool a,
+        .account-dashboard a,
+        .account-security-grid a {
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -406,6 +469,72 @@ export default async function AccountPage() {
           letter-spacing: 0.12em;
           text-decoration: none;
           text-transform: uppercase;
+        }
+
+        .account-dashboard {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 1px;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(0,0,0,0.12);
+          margin-bottom: 3rem;
+          font-family: var(--font-mono, monospace);
+        }
+
+        .account-dashboard article {
+          display: grid;
+          gap: 0.65rem;
+          align-content: start;
+          min-height: 150px;
+          background: rgba(240,240,235,0.74);
+          padding: 1rem;
+        }
+
+        .account-dashboard span,
+        .account-security-grid span {
+          color: blue;
+          font-size: 0.62rem;
+          font-weight: 950;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+
+        .account-dashboard strong,
+        .account-security-grid strong {
+          overflow-wrap: anywhere;
+          font-size: 1.25rem;
+          text-transform: uppercase;
+        }
+
+        .account-dashboard p,
+        .account-security-grid small,
+        .account-tool small {
+          margin: 0;
+          color: rgba(16,16,14,0.5);
+          font-size: 0.68rem;
+          line-height: 1.5;
+        }
+
+        .account-dashboard i {
+          display: block;
+          height: 6px;
+          background: linear-gradient(90deg, blue var(--account-progress), rgba(16,16,14,0.12) var(--account-progress));
+        }
+
+        .account-security-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1px;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(0,0,0,0.12);
+          font-family: var(--font-mono, monospace);
+        }
+
+        .account-security-grid article {
+          display: grid;
+          gap: 0.55rem;
+          background: rgba(240,240,235,0.74);
+          padding: 1rem;
         }
 
         .account-section {
@@ -494,13 +623,32 @@ export default async function AccountPage() {
           overflow-wrap: anywhere;
         }
 
+        .account-banner-preview {
+          display: grid;
+          min-height: 170px;
+          align-content: end;
+          border: 1px solid rgba(0,0,0,0.12);
+          background:
+            linear-gradient(135deg, rgba(22,60,255,0.94), rgba(16,16,14,0.88));
+          background-position: center;
+          background-size: cover;
+          color: #fff;
+          padding: 1rem;
+        }
+
+        .account-banner-preview span {
+          font-size: clamp(1.8rem, 5vw, 3.4rem);
+          font-weight: 950;
+          line-height: 0.95;
+          text-transform: uppercase;
+        }
+
         .account-two-col {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 0.75rem;
         }
 
-        .account-avatar-crop,
         .account-privacy-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -705,28 +853,36 @@ export default async function AccountPage() {
           font-size: 0.72rem;
         }
 
-        .account-loadout-pref-list {
-          display: grid;
-          gap: 1px;
-          border: 1px solid rgba(0,0,0,0.12);
-          background: rgba(0,0,0,0.12);
-        }
-
-        .account-loadout-pref-list article {
+        .account-loadout-featured {
           display: grid;
           grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
           gap: 1rem;
+          border: 1px solid rgba(0,0,0,0.12);
           background: rgba(240,240,235,0.74);
           padding: 1rem;
         }
 
-        .account-loadout-pref-list article > div {
+        .account-loadout-featured-head {
           display: grid;
-          gap: 0.35rem;
-          align-content: start;
+          gap: 0.8rem;
+          align-content: space-between;
         }
 
-        .account-loadout-pref-list button {
+        .account-loadout-featured-head div {
+          display: grid;
+          gap: 0.35rem;
+        }
+
+        .account-loadout-featured-head span {
+          color: blue;
+          font-size: 0.62rem;
+          font-weight: 950;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+
+        .account-loadout-featured button,
+        .account-loadout-picker button {
           width: fit-content;
           border: 1px solid blue;
           background: transparent;
@@ -739,20 +895,21 @@ export default async function AccountPage() {
           text-transform: uppercase;
         }
 
-        .account-loadout-pref-list a {
+        .account-loadout-featured a {
           color: inherit;
-          font-size: 0.86rem;
+          font-size: 1.05rem;
           font-weight: 950;
           text-decoration: none;
           text-transform: uppercase;
         }
 
-        .account-loadout-pref-list small {
+        .account-loadout-featured small,
+        .account-loadout-picker small {
           color: rgba(16,16,14,0.48);
           font-size: 0.66rem;
         }
 
-        .account-loadout-pref-list textarea {
+        .account-loadout-featured textarea {
           min-height: 86px;
           border: 1px solid rgba(0,0,0,0.12);
           background: rgba(16,16,14,0.045);
@@ -761,6 +918,47 @@ export default async function AccountPage() {
           font-size: 0.72rem;
           padding: 0.75rem;
           resize: vertical;
+        }
+
+        .account-loadout-picker {
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(240,240,235,0.54);
+        }
+
+        .account-loadout-picker summary {
+          cursor: pointer;
+          color: blue;
+          font-size: 0.68rem;
+          font-weight: 950;
+          letter-spacing: 0.14em;
+          list-style-position: inside;
+          padding: 0.85rem 1rem;
+          text-transform: uppercase;
+        }
+
+        .account-loadout-picker div {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 1px;
+          border-top: 1px solid rgba(0,0,0,0.12);
+          background: rgba(0,0,0,0.12);
+        }
+
+        .account-loadout-picker button {
+          width: 100%;
+          display: grid;
+          gap: 0.25rem;
+          justify-items: start;
+          border: 0;
+          background: rgba(240,240,235,0.78);
+          color: inherit;
+          padding: 0.85rem;
+          text-align: left;
+        }
+
+        .account-loadout-picker button strong {
+          color: var(--tm-ink, #10100e);
+          font-size: 0.76rem;
         }
 
         .account-profile-form input[type="file"] {
@@ -822,6 +1020,12 @@ export default async function AccountPage() {
           text-transform: uppercase;
         }
 
+        .account-tool small {
+          display: inline-flex;
+          margin-top: 0.7rem;
+          text-transform: uppercase;
+        }
+
         .account-tool.is-locked a {
           background: rgba(0,0,0,0.1);
           color: inherit;
@@ -835,13 +1039,14 @@ export default async function AccountPage() {
           }
 
           .account-grid,
+          .account-dashboard,
           .account-tools,
           .account-history,
+          .account-security-grid,
           .account-profile dl,
           .account-general-grid,
           .account-two-col,
-          .account-avatar-crop,
-          .account-loadout-pref-list article {
+          .account-loadout-featured {
             grid-template-columns: 1fr;
           }
 

@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Acceptable Use Policy | WZPRO Meta',
+  description: 'Review the rules for using WZPRO Meta tools, accounts and community features.',
+};
 import LegalPage from '@/components/LegalPage';
 import { SUPPORT_EMAIL } from '@/lib/siteConfig';
 

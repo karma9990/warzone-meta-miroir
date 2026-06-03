@@ -10,6 +10,14 @@ import {
 import { rateLimit } from '@/lib/rateLimit';
 import { secureCookieOptions } from '@/lib/security';
 
+function safeNextPath(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+    return '/';
+  }
+
+  return value;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ provider: string }> }
@@ -30,7 +38,9 @@ export async function GET(
 
   const oauth = getOAuthBase(provider);
   const intent = req.nextUrl.searchParams.get('intent') === 'signup' ? 'signup' : 'signin';
-  const state = `${provider}.${intent}.${randomBytes(24).toString('hex')}`;
+  const nextPath = safeNextPath(req.nextUrl.searchParams.get('next'));
+  const encodedNext = Buffer.from(nextPath).toString('base64url');
+  const state = `${provider}.${intent}.${encodedNext}.${randomBytes(24).toString('hex')}`;
   const authorizeUrl = new URL(oauth.authorizeUrl);
   authorizeUrl.searchParams.set('client_id', credentials.clientId);
   authorizeUrl.searchParams.set('redirect_uri', getRedirectUri(req, provider));

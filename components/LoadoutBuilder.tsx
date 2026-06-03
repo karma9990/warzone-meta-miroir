@@ -114,13 +114,13 @@ const ROLES: { key: Role; label: string; desc: string }[] = [
 function StatBar({ label, value }: { label: string; value: number }) {
   const color = value >= 80 ? '#00ff88' : value >= 60 ? '#ffcc00' : '#ff4455';
   return (
-    <div style={{ marginBottom: '0.6rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-        <span style={{ fontSize: '0.5rem', letterSpacing: '0.1em', opacity: 0.5 }}>{label}</span>
-        <span style={{ fontSize: '0.5rem', fontWeight: 700, color }}>{value}</span>
+    <div className="mb-[0.6rem]">
+      <div className="flex justify-between mb-[0.2rem]">
+        <span className="text-xs tracking-normal opacity-50">{label}</span>
+        <span className="text-xs font-bold" style={{ color }}>{value}</span>
       </div>
-      <div style={{ height: '3px', background: 'rgba(0,0,0,0.08)', borderRadius: '1px' }}>
-        <div style={{ height: '100%', width: `${value}%`, background: color, transition: 'width 0.3s' }} />
+      <div className="h-[3px] bg-black/8 rounded-xs">
+        <div className="h-full rounded-xs transition-[width] duration-300" style={{ width: `${value}%`, background: color }} />
       </div>
     </div>
   );
@@ -135,23 +135,20 @@ export default function LoadoutBuilder() {
   const secW = WEAPONS.find(w => w.name === secondary)!;
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>WEAPON ANALYSIS</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>LOADOUT BUILDER</div>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">WEAPON ANALYSIS</div>
+        <div className="text-base font-bold tracking-normal">LOADOUT BUILDER</div>
       </div>
 
       {/* Role selector */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+      <div className="flex border-b border-black/10">
         {ROLES.map(r => (
-          <button
-            key={r.key}
-            onClick={() => setRole(r.key)}
+          <button type="button" key={r.key} onClick={() => setRole(r.key)}
+            className="font-mono text-xs tracking-normal cursor-pointer bg-transparent border-none"
             style={{
               flex: 1, padding: '0.75rem 0.5rem',
-              border: 'none', borderBottom: role === r.key ? '2px solid currentColor' : '2px solid transparent',
-              background: 'transparent', cursor: 'pointer', fontFamily: 'monospace',
-              fontSize: '0.55rem', letterSpacing: '0.1em',
+              borderBottom: role === r.key ? '2px solid currentColor' : '2px solid transparent',
               color: role === r.key ? 'inherit' : 'rgba(0,0,0,0.35)',
               fontWeight: role === r.key ? 700 : 400,
             }}
@@ -161,22 +158,20 @@ export default function LoadoutBuilder() {
         ))}
       </div>
 
-      <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.08)', fontSize: '0.58rem', opacity: 0.5 }}>
+      <div className="px-6 py-3 border-b border-black/8 text-xs opacity-50">
         {ROLES.find(r => r.key === role)?.desc}
       </div>
 
       {/* Weapon pickers */}
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.08)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+      <div className="px-6 py-4 border-b border-black/8 grid grid-cols-2 gap-4">
         {[
           { label: 'PRIMARY', value: primary, set: setPrimary },
           { label: 'SECONDARY', value: secondary, set: setSecondary },
         ].map(({ label, value, set }) => (
           <div key={label}>
-            <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.35rem' }}>{label}</div>
-            <select
-              value={value}
-              onChange={e => set(e.target.value)}
-              style={{ fontFamily: 'monospace', fontSize: '0.6rem', padding: '4px 6px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', width: '100%', cursor: 'pointer' }}
+            <div className="text-xs tracking-normal opacity-40 mb-1.5">{label}</div>
+            <select value={value} onChange={e => set(e.target.value)}
+              className="font-mono text-xs px-1.5 py-1 border border-black/15 rounded-sm bg-transparent w-full cursor-pointer"
             >
               {WEAPONS.map(w => <option key={w.name} value={w.name}>{w.name} ({w.category})</option>)}
             </select>
@@ -185,24 +180,24 @@ export default function LoadoutBuilder() {
       </div>
 
       {/* Loadout cards */}
-      <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className="p-6 grid grid-cols-2 gap-6">
         {[{ w: primW, slot: 'PRIMARY' }, { w: secW, slot: 'SECONDARY' }].map(({ w, slot }) => (
-          <div key={slot} style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: '3px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.25rem' }}>{slot} — {w.category}</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>{w.name}</div>
+          <div key={slot} className="border border-black/10 rounded-sm p-5">
+            <div className="text-xs tracking-normal opacity-40 mb-1">{slot} — {w.category}</div>
+            <div className="text-sm font-bold mb-4">{w.name}</div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.5rem' }}>ATTACHMENTS</div>
-              {w.attachments[role].map((a, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                  <span style={{ fontSize: '0.52rem', opacity: 0.45 }}>{a.slot}</span>
-                  <span style={{ fontSize: '0.55rem', fontWeight: 600 }}>{a.item}</span>
+            <div className="mb-4">
+              <div className="text-xs tracking-normal opacity-40 mb-2">ATTACHMENTS</div>
+              {w.attachments[role].map((a) => (
+                <div key={`${w.name}-${role}-${a.slot}-${a.item}`} className="flex justify-between py-[3px] border-b border-black/5">
+                  <span className="text-xs opacity-45">{a.slot}</span>
+                  <span className="text-xs font-semibold">{a.item}</span>
                 </div>
               ))}
             </div>
 
             <div>
-              <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.5rem' }}>STATS</div>
+              <div className="text-xs tracking-normal opacity-40 mb-2">STATS</div>
               <StatBar label="ADS SPEED" value={w.stats.ads} />
               <StatBar label="RECOIL CTRL" value={w.stats.recoil} />
               <StatBar label="TTK SCORE" value={w.stats.ttk} />
@@ -212,7 +207,7 @@ export default function LoadoutBuilder() {
         ))}
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         ATTACHMENTS ARE ROLE-OPTIMIZED RECOMMENDATIONS — ADAPT TO YOUR PLAYSTYLE
       </div>
     </div>

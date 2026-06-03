@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCommunityPost, getCommunityPosts } from '@/lib/communityStore';
+import { getProfile } from '@/lib/profileStore';
 import { readJsonBody } from '@/lib/security';
 import { getUserSession } from '@/lib/userAuth';
 import { rateLimit } from '@/lib/rateLimit';
@@ -23,7 +24,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Sign in required.' }, { status: 401 });
   }
 
-  const result = await createCommunityPost(parsed.data, user?.name ?? 'Operator');
+  const profile = await getProfile(user.sub);
+  const result = await createCommunityPost({
+    ...(typeof parsed.data === 'object' && parsed.data ? parsed.data : {}),
+    authorId: user.sub,
+    authorPseudo: profile?.pseudo || '',
+    authorPlatform: profile?.mainPlatform || '',
+    authorInput: profile?.inputDevice || '',
+    authorRole: profile?.favoriteLoadouts?.length ? 'Meta player' : '',
+  }, profile?.pseudo || user.name || 'Operator');
 
   if ('error' in result) {
     return NextResponse.json({ error: result.error }, { status: 400 });

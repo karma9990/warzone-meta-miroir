@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { hasUpstash, upstashCommand } from './upstash';
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'loadouts.json');
+const LOADOUTS_KEY = 'wz:loadouts';
 
 export interface Attachment {
   slot: string;
@@ -503,20 +505,70 @@ export function buildLoadoutFromInput(
   };
 }
 
-export function getLoadouts(): Loadout[] {
+function loadoutIdentity(loadout: Loadout) {
+  return (loadout.weaponId || loadout.weapon).trim().toLowerCase();
+}
+
+function mergeLoadouts(saved: Loadout[]) {
+  const merged: Loadout[] = [];
+  const seenIds = new Set<string>();
+  const seenWeapons = new Set<string>();
+
+  for (const loadout of saved.map(enrichLoadout)) {
+    const identity = loadoutIdentity(loadout);
+    if (seenIds.has(loadout.id) || seenWeapons.has(identity)) continue;
+    seenIds.add(loadout.id);
+    seenWeapons.add(identity);
+    merged.push(loadout);
+  }
+
+  for (const loadout of CURATED_BACKFILL) {
+    const identity = loadoutIdentity(loadout);
+    if (seenIds.has(loadout.id) || seenWeapons.has(identity)) continue;
+    seenIds.add(loadout.id);
+    seenWeapons.add(identity);
+    merged.push(loadout);
+  }
+
+  return merged;
+}
+
+function readLocalLoadouts(): Loadout[] {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8');
     const saved = JSON.parse(raw) as Loadout[];
-    const savedIds = new Set(saved.map((loadout) => loadout.id));
-    return [
-      ...saved.map(enrichLoadout),
-      ...CURATED_BACKFILL.filter((loadout) => !savedIds.has(loadout.id)),
-    ];
-  } catch {
+    return mergeLoadouts(saved);
+  } catch (error) {
+    console.error('Failed to read local loadouts, using backfill:', error);
     return CURATED_BACKFILL;
   }
 }
 
-export function saveLoadouts(loadouts: Loadout[]): void {
+function writeLocalLoadouts(loadouts: Loadout[]): void {
+  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
   fs.writeFileSync(DATA_FILE, JSON.stringify(loadouts, null, 2));
+}
+
+export async function getLoadouts(): Promise<Loadout[]> {
+  if (hasUpstash()) {
+    const result = await upstashCommand(['GET', LOADOUTS_KEY]);
+    if (typeof result === 'string') {
+      try {
+        return mergeLoadouts(JSON.parse(result) as Loadout[]);
+      } catch {
+        return readLocalLoadouts();
+      }
+    }
+  }
+
+  return readLocalLoadouts();
+}
+
+export async function saveLoadouts(loadouts: Loadout[]): Promise<void> {
+  if (hasUpstash()) {
+    await upstashCommand(['SET', LOADOUTS_KEY, JSON.stringify(loadouts)]);
+    return;
+  }
+
+  writeLocalLoadouts(loadouts);
 }

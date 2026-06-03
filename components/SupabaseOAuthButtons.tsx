@@ -2,53 +2,84 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 type AuthIntent = 'signin' | 'signup';
+type ProviderStatus = {
+  google: boolean;
+  battlenet: boolean;
+  apple: boolean;
+};
 
-export default function SupabaseOAuthButtons({ intent }: { intent: AuthIntent }) {
-  const [error, setError] = useState('');
-  const [loadingProvider, setLoadingProvider] = useState<'google' | 'apple' | null>(null);
+export default function SupabaseOAuthButtons({
+  intent,
+  nextPath = '/',
+  initialProviders = { google: true, battlenet: false, apple: false },
+}: {
+  intent: AuthIntent;
+  nextPath?: string;
+  initialProviders?: ProviderStatus;
+}) {
+  const [providers] = useState<ProviderStatus>(initialProviders);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [message, setMessage] = useState('');
 
-  async function signInWithProvider(provider: 'google' | 'apple') {
-    setError('');
-    setLoadingProvider(provider);
+  async function signInWithGoogle() {
+    setStatus('loading');
+    setMessage('');
 
     try {
-      const supabase = createSupabaseBrowserClient();
-      const redirectTo = `${window.location.origin}/auth/callback?next=/`;
-      const { error: authError } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo,
-          queryParams: provider === 'google' ? { prompt: 'select_account' } : undefined,
-        },
-      });
-
-      if (authError) throw authError;
-    } catch (authError) {
-      setError(authError instanceof Error ? authError.message : 'OAuth sign-in failed.');
-      setLoadingProvider(null);
+      const params = new URLSearchParams();
+      if (intent === 'signup') params.set('intent', 'signup');
+      if (nextPath !== '/') params.set('next', nextPath);
+      window.location.href = `/api/oauth/google${params.size ? `?${params.toString()}` : ''}`;
+    } catch (error) {
+      setStatus('error');
+      setMessage(error instanceof Error ? error.message : 'Google sign-in failed.');
     }
   }
 
   const copy = intent === 'signup' ? 'Sign up' : 'Sign in';
+  const battleNetParams = new URLSearchParams();
+  if (intent === 'signup') battleNetParams.set('intent', 'signup');
+  if (nextPath !== '/') battleNetParams.set('next', nextPath);
+  const battleNetHref = `/api/oauth/battlenet${battleNetParams.size ? `?${battleNetParams.toString()}` : ''}`;
 
   return (
     <>
-      <button type="button" onClick={() => signInWithProvider('google')} disabled={Boolean(loadingProvider)}>
-        <b>G</b>
-        <span>{loadingProvider === 'google' ? 'Opening Google...' : `${copy} with Google`}</span>
-      </button>
-      <button type="button" onClick={() => signInWithProvider('apple')} disabled={Boolean(loadingProvider)}>
-        <b>A</b>
-        <span>{loadingProvider === 'apple' ? 'Opening Apple...' : `${copy} with Apple`}</span>
-      </button>
-      <Link href={`/api/oauth/battlenet${intent === 'signup' ? '?intent=signup' : ''}`}>
-        <b>BN</b>
-        <span>{copy} with Battle.net</span>
-      </Link>
-      {error && <p className="email-auth-error">{error}</p>}
+      {providers.google && (
+        <button type="button" onClick={signInWithGoogle} disabled={status === 'loading'}>
+          <b>G</b>
+          <span>{status === 'loading' ? 'Opening Google...' : `${copy} with Google`}</span>
+        </button>
+      )}
+      {providers.battlenet ? (
+        <Link href={battleNetHref}>
+          <b>BN</b>
+          <span>{copy} with Battle.net</span>
+        </Link>
+      ) : (
+        <button className="auth-provider-muted" type="button" disabled aria-disabled="true">
+          <b>BN</b>
+          <span>Battle.net coming soon</span>
+        </button>
+      )}
+      {!providers.google && (
+        <button className="auth-provider-muted" type="button" disabled aria-disabled="true">
+          <b>G</b>
+          <span>Google coming soon</span>
+        </button>
+      )}
+      {message && <p className={status === 'error' ? 'email-auth-error' : 'email-auth-success'}>{message}</p>}
+      {/*
+        Apple OAuth is intentionally hidden until the app has a working Apple Services ID,
+        private key and verified callback URL.
+      */}
+      {false && (
+        <button type="button" disabled>
+          <b>A</b>
+          <span>{copy} with Apple</span>
+        </button>
+      )}
     </>
   );
 }

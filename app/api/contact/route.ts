@@ -22,11 +22,11 @@ type ContactPayload = {
 
 const REQUEST_LABELS: Record<string, string> = {
   support: 'Support',
-  billing: 'Paiement / abonnement',
-  refund: 'Remboursement',
-  access: "Probleme d'acces",
+  billing: 'Billing / subscription',
+  refund: 'Refund',
+  access: 'Access issue',
   legal: 'Legal',
-  other: 'Autre',
+  other: 'Other',
 };
 
 function cleanText(value: unknown, maxLength: number) {
@@ -45,11 +45,11 @@ function escapeHtml(value: string) {
 export async function POST(req: NextRequest) {
   const user = await getUserSession();
   if (!user) {
-    return NextResponse.json({ error: 'Connectez-vous pour envoyer un message au support.' }, { status: 401 });
+    return NextResponse.json({ error: 'Sign in to send a support message.' }, { status: 401 });
   }
 
   if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json({ error: "Le service email n'est pas configure." }, { status: 503 });
+    return NextResponse.json({ error: 'Email support is not configured yet.' }, { status: 503 });
   }
 
   const parsed = await readJsonBody<ContactPayload>(req, 8_192);
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
   const requestLabel = REQUEST_LABELS[requestType] || REQUEST_LABELS.other;
 
   if (!name || !subject || !message) {
-    return NextResponse.json({ error: 'Tous les champs obligatoires doivent etre remplis.' }, { status: 400 });
+    return NextResponse.json({ error: 'All required fields must be completed.' }, { status: 400 });
   }
 
   const emailError = validateEmailAddress(email);
@@ -78,16 +78,16 @@ export async function POST(req: NextRequest) {
   }
 
   if (accountEmail && submittedEmail && submittedEmail !== accountEmail) {
-    return NextResponse.json({ error: "Utilisez l'email de votre compte connecte." }, { status: 400 });
+    return NextResponse.json({ error: 'Use the email attached to your signed-in account.' }, { status: 400 });
   }
 
   if (message.length < 10) {
-    return NextResponse.json({ error: 'Le message est trop court.' }, { status: 400 });
+    return NextResponse.json({ error: 'The message is too short.' }, { status: 400 });
   }
 
   if (containsBlockedContactLanguage(name, subject, message)) {
     return NextResponse.json(
-      { error: 'Votre message contient des termes qui ne peuvent pas etre envoyes au support.' },
+      { error: 'Your message contains terms that cannot be sent to support.' },
       { status: 400 }
     );
   }
@@ -107,25 +107,25 @@ export async function POST(req: NextRequest) {
     replyTo: email,
     subject: `[WZPRO Meta] ${requestLabel} - ${subject}`,
     text: [
-      `Nom: ${name}`,
+      `Name: ${name}`,
       `Email: ${email}`,
-      `Compte: ${user.name} (${user.provider})`,
+      `Account: ${user.name} (${user.provider})`,
       `User ID: ${user.sub}`,
       `Type: ${requestLabel}`,
-      `Sujet: ${subject}`,
+      `Subject: ${subject}`,
       '',
       message,
     ].join('\n'),
     html: `
       <div style="font-family:monospace;max-width:640px;margin:0 auto;padding:32px;background:#f5f5f0;color:#10100e">
         <p style="margin:0 0 20px;font-size:11px;letter-spacing:0.18em;opacity:.55;text-transform:uppercase">WZPRO Meta / Contact</p>
-        <h1 style="margin:0 0 24px;font-size:24px;line-height:1.2">Nouveau message contact</h1>
-        <p><strong>Nom:</strong> ${escapeHtml(name)}</p>
+        <h1 style="margin:0 0 24px;font-size:24px;line-height:1.2">New contact message</h1>
+        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
         <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-        <p><strong>Compte:</strong> ${escapeHtml(user.name)} (${escapeHtml(user.provider)})</p>
+        <p><strong>Account:</strong> ${escapeHtml(user.name)} (${escapeHtml(user.provider)})</p>
         <p><strong>User ID:</strong> ${escapeHtml(user.sub)}</p>
         <p><strong>Type:</strong> ${escapeHtml(requestLabel)}</p>
-        <p><strong>Sujet:</strong> ${escapeHtml(subject)}</p>
+        <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
         <hr style="border:0;border-top:1px solid rgba(16,16,14,.18);margin:24px 0">
         <p style="white-space:pre-wrap;line-height:1.6">${escapeHtml(message)}</p>
       </div>
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
   if (error) {
     await releaseContactCooldown(cooldown.key);
     console.error('Contact email failed', error);
-    return NextResponse.json({ error: "Impossible d'envoyer le message." }, { status: 500 });
+    return NextResponse.json({ error: 'Unable to send the message.' }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, cooldownSeconds: 10 * 60 });

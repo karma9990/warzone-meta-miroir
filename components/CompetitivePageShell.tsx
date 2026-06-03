@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import CompetitiveNav from '@/components/CompetitiveNav';
+import LocalizedLink from '@/components/LocalizedLink';
+import LocalizedSafariBar from '@/components/LocalizedSafariBar';
+import LocalizedText from '@/components/LocalizedText';
 
 type Active = 'top250' | 'calendar' | 'wsow' | 'resurgence' | 'ewc' | 'pullze';
 
@@ -818,28 +821,10 @@ export function EsportChrome({ active, children }: { active: Active; children: R
     <>
       <style>{competitivePageStyles}</style>
       <div className="pt-technical-backdrop" aria-hidden="true" />
-      <div className="safari-bar">
-        <Link className="brand-pill" href="/">
-          <b>WZ</b>
-          <span>Meta</span>
-        </Link>
-        <nav>
-          <Link href="/pro-tools">Pro Tools</Link>
-          <Link href="/#all-loadouts">Loadouts</Link>
-          <Link href="/set-up">Set-up</Link>
-          <Link href="/esport" aria-current="page">Esport</Link>
-          <Link href="/community">Community</Link>
-        </nav>
-        <label>
-          <span>Search</span>
-          <input placeholder="Competition, team, player" />
-        </label>
-        <div className="nav-readout" aria-hidden="true">
-          <span>COMPETITION // WARZONE</span>
-          <span>LEADERBOARDS: ACTIVE</span>
-          <span>STATUS: LIVE</span>
-        </div>
-      </div>
+      <LocalizedSafariBar
+        active="esport"
+        readout={['COMPETITION // WARZONE', 'LEADERBOARDS: ACTIVE', 'STATUS: LIVE']}
+      />
       <CompetitiveNav active={active} />
       {children}
     </>
@@ -888,21 +873,28 @@ export function CompetitiveLeaderboardPage({
         </header>
 
         <div className="competitive-actions">
-          <button className="is-primary">Event Leaderboards</button>
-          <Link href="/esport/calendar">Calendar</Link>
+          <button type="button" className="is-primary">
+            <LocalizedText values={{ en: 'Event Leaderboards', fr: 'Classements evenement', es: 'Clasificaciones del evento', de: 'Event-Ranglisten', it: 'Classifiche evento', pt: 'Rankings do evento', nl: 'Eventranglijsten', pl: 'Rankingi wydarzenia', ja: 'イベントランキング' }} />
+          </button>
+          <LocalizedLink href="/esport/calendar">
+            <LocalizedText values={{ en: 'Calendar', fr: 'Calendrier', es: 'Agenda', de: 'Kalender', it: 'Programma', pt: 'Agenda', nl: 'Kalender', pl: 'Kalendarz', ja: 'カレンダー' }} />
+          </LocalizedLink>
           <span>{year}</span>
         </div>
 
         <section className="competitive-board">
           <div className="competitive-tabs is-meta-only">
-            <p>Format: <strong>{format ?? (active === 'pullze' ? 'Regular Customs' : 'Match Point')}</strong> <span>Status: {status ?? (live ? 'Live Event' : 'Finished')}</span></p>
+            <p>
+              <LocalizedText values={{ en: 'Format', fr: 'Format', es: 'Formato', de: 'Format', it: 'Formato', pt: 'Formato', nl: 'Formaat', pl: 'Format', ja: '形式' }} />: <strong>{format ?? (active === 'pullze' ? 'Regular Customs' : 'Match Point')}</strong>
+              <span><LocalizedText values={{ en: 'Status', fr: 'Statut', es: 'Estado', de: 'Status', it: 'Stato', pt: 'Estado', nl: 'Status', pl: 'Status', ja: '状態' }} />: {status ?? (live ? <LocalizedText values={{ en: 'Live Event', fr: 'Evenement live', es: 'Evento en vivo', de: 'Live-Event', it: 'Evento live', pt: 'Evento ao vivo', nl: 'Live event', pl: 'Wydarzenie live', ja: 'ライブイベント' }} /> : <LocalizedText values={{ en: 'Finished', fr: 'Termine', es: 'Terminado', de: 'Beendet', it: 'Finito', pt: 'Finalizado', nl: 'Afgelopen', pl: 'Zakonczone', ja: '終了' }} />)}</span>
+            </p>
           </div>
 
           {live && (
             <div className="competitive-live-strip">
               <span />
-              Automated live view. No need to refresh. Data updates approximately every 10 seconds.
-              <button>Full Screen</button>
+              <LocalizedText values={{ en: 'Automated live view. No need to refresh. Data updates approximately every 10 seconds.', fr: 'Vue live automatisee. Pas besoin de rafraichir. Les donnees se mettent a jour environ toutes les 10 secondes.', es: 'Vista en vivo automatica. No hace falta actualizar. Los datos cambian aproximadamente cada 10 segundos.', de: 'Automatische Live-Ansicht. Kein Aktualisieren noetig. Daten etwa alle 10 Sekunden.', it: 'Vista live automatica. Non serve aggiornare. Dati circa ogni 10 secondi.', pt: 'Vista ao vivo automatica. Nao precisa atualizar. Dados a cada 10 segundos.', nl: 'Automatische liveweergave. Verversen is niet nodig. Data elke 10 seconden.', pl: 'Automatyczny widok live. Nie trzeba odswiezac. Dane co okolo 10 sekund.', ja: '自動ライブ表示です。更新不要で、約10秒ごとにデータが更新されます。' }} />
+              <button type="button"><LocalizedText values={{ en: 'Full Screen', fr: 'Plein ecran', es: 'Pantalla completa', de: 'Vollbild', it: 'Schermo intero', pt: 'Tela cheia', nl: 'Volledig scherm', pl: 'Pelny ekran', ja: '全画面' }} /></button>
             </div>
           )}
 
@@ -980,7 +972,9 @@ export function CompetitiveCalendarPage() {
                 </div>
               ))}
             </div>
-            <Link href="/esport/resurgence-series">Leaderboards</Link>
+            <LocalizedLink href="/esport/resurgence-series">
+              <LocalizedText values={{ en: 'Leaderboards', fr: 'Classements', es: 'Clasificaciones', de: 'Ranglisten', it: 'Classifiche', pt: 'Rankings', nl: 'Ranglijsten', pl: 'Rankingi', ja: 'ランキング' }} />
+            </LocalizedLink>
             <div className="competitive-source">
               <span>Event snapshot rebuilt for WZ Meta from public competitive data.</span>
               <Link href="https://codmunity.gg/calendar">Source: CODMunity Calendar</Link>

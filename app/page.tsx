@@ -1,46 +1,22 @@
-import HomeClient from '@/components/HomeClient';
-import { getLoadouts } from '@/lib/data';
-import { getPublicProfiles } from '@/lib/profileStore';
-import { getStatsSummary } from '@/lib/statsSummary';
+import type { Metadata } from 'next';
+import LanguageSelector from '@/components/LanguageSelector';
+import { LANDING_COPY } from '@/lib/i18n';
 
-export const dynamic = 'force-dynamic';
-
-export const metadata = {
-  title: 'WZPRO Meta - Warzone loadouts, meta weapons and pro tools',
-  description: 'Find the best Warzone loadouts, compare meta weapons, track patch changes and use Pro Tools for aim, movement, spawns and PC optimization.',
+export const metadata: Metadata = {
+  title: 'WZPRO Meta - Choose your language',
+  description: 'Choose your language before opening the Warzone meta loadout database and pro tools.',
 };
 
-export default async function HomePage() {
-  const loadouts = getLoadouts();
-  const loadoutById = new Map(loadouts.map((loadout) => [loadout.id, loadout]));
-  const profiles = await getPublicProfiles();
-  const searchableProfiles = profiles.map((profile) => {
-    const summary = getStatsSummary(profile.statsEntries);
-    const favoriteWeapons = profile.favoriteLoadouts
-      .map((loadoutId) => loadoutById.get(loadoutId)?.weapon)
-      .filter((weapon): weapon is string => Boolean(weapon))
-      .slice(0, 3);
-
-    return {
-      pseudo: profile.pseudo,
-      publicName: profile.publicName,
-      profilePicture: profile.profilePicture,
-      avatarPositionX: profile.avatarPositionX,
-      avatarPositionY: profile.avatarPositionY,
-      mainPlatform: profile.mainPlatform,
-      inputDevice: profile.inputDevice,
-      favoriteWeapons,
-      stats: profile.privacy.stats && summary.games > 0
-        ? {
-            games: summary.games,
-            kd: summary.kd,
-            kills: summary.kills,
-            winRate: summary.winRate,
-          }
-        : null,
-      updatedAt: profile.updatedAt,
-    };
-  });
-
-  return <HomeClient loadouts={loadouts} profiles={searchableProfiles} />;
+export default function LanguageLandingPage() {
+  return (
+    <main className="language-landing">
+      <section className="language-hero" aria-labelledby="language-title">
+        <div className="language-kicker">{LANDING_COPY.eyebrow}</div>
+        <h1 id="language-title">{LANDING_COPY.title}</h1>
+        <p>{LANDING_COPY.description}</p>
+        <LanguageSelector />
+        <em>{LANDING_COPY.note}</em>
+      </section>
+    </main>
+  );
 }

@@ -9,6 +9,10 @@ function safeNextPath(value: string | null) {
   return value;
 }
 
+function appendSignedIn(path: string) {
+  return `${path}${path.includes('?') ? '&' : '?'}signed_in=1`;
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
@@ -19,7 +23,7 @@ export async function GET(request: NextRequest) {
     if (supabase) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
-        return NextResponse.redirect(new URL(`${next}?signed_in=1`, request.url));
+        return NextResponse.redirect(new URL(appendSignedIn(next), request.url));
       }
     }
   }

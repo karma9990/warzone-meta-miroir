@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 type MapId = 'rebirth' | 'haven';
@@ -64,80 +65,86 @@ export default function LootTierMap() {
   const filtered = filterTier === 'all' ? map.zones : map.zones.filter(z => z.tier === filterTier);
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>MAP INTELLIGENCE</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>LOOT TIER MAP</div>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">MAP INTELLIGENCE</div>
+        <div className="text-base font-bold tracking-normal">LOOT TIER MAP</div>
       </div>
 
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+      <div className="flex border-b border-black/10">
         {(['rebirth', 'haven'] as MapId[]).map(m => (
-          <button key={m} onClick={() => { setActiveMap(m); setActiveZone(null); }} style={{
-            padding: '0.75rem 1.5rem', border: 'none',
-            borderBottom: activeMap === m ? '2px solid currentColor' : '2px solid transparent',
-            background: 'transparent', color: activeMap === m ? 'inherit' : 'rgba(0,0,0,0.35)',
-            fontSize: '0.6rem', letterSpacing: '0.15em', cursor: 'pointer', fontFamily: 'monospace', fontWeight: activeMap === m ? 700 : 400,
-          }}>{MAPS[m].label.toUpperCase()}</button>
+          <button type="button" key={m} onClick={() => { setActiveMap(m); setActiveZone(null); }}
+            className="font-mono text-xs tracking-normal cursor-pointer bg-transparent border-none"
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderBottom: activeMap === m ? '2px solid currentColor' : '2px solid transparent',
+              color: activeMap === m ? 'inherit' : 'rgba(0,0,0,0.35)',
+              fontWeight: activeMap === m ? 700 : 400,
+            }}
+          >{MAPS[m].label.toUpperCase()}</button>
         ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem', padding: '0 1rem', alignItems: 'center' }}>
+        <div className="ml-auto flex gap-1 px-4 items-center">
           {(['all', 'S', 'A', 'B', 'C'] as const).map(t => (
-            <button key={t} onClick={() => setFilterTier(t)} style={{
-              padding: '3px 8px', border: `1px solid ${filterTier === t ? (t === 'all' ? 'currentColor' : TIER_COLOR[t as Tier]) : 'rgba(0,0,0,0.12)'}`,
-              borderRadius: '2px', background: 'transparent',
-              color: filterTier === t && t !== 'all' ? TIER_COLOR[t as Tier] : 'inherit',
-              fontSize: '0.5rem', letterSpacing: '0.08em', cursor: 'pointer', fontFamily: 'monospace',
-              fontWeight: filterTier === t ? 700 : 400, opacity: filterTier === t ? 1 : 0.45,
-            }}>{t === 'all' ? 'ALL' : `[${t}]`}</button>
+            <button type="button" key={t} onClick={() => setFilterTier(t)}
+              className="font-mono text-xs tracking-normal cursor-pointer rounded-sm bg-transparent"
+              style={{
+                padding: '3px 8px',
+                border: `1px solid ${filterTier === t ? (t === 'all' ? 'currentColor' : TIER_COLOR[t as Tier]) : 'rgba(0,0,0,0.12)'}`,
+                color: filterTier === t && t !== 'all' ? TIER_COLOR[t as Tier] : 'inherit',
+                fontWeight: filterTier === t ? 700 : 400,
+                opacity: filterTier === t ? 1 : 0.45,
+              }}
+            >{t === 'all' ? 'ALL' : `[${t}]`}</button>
           ))}
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', alignItems: 'start' }}>
-        <div style={{ position: 'relative', background: '#111', borderRight: '1px solid rgba(0,0,0,0.08)' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={map.image} alt={map.label} style={{ width: '100%', height: 'auto', display: 'block', opacity: 0.7 }} />
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+      <div className="grid grid-cols-[1fr_280px] items-start">
+        <div className="relative bg-[#111] border-r border-black/8">
+          <Image src={map.image} alt={map.label} width={1000} height={700} className="w-full h-auto block opacity-70" />
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
             {filtered.map(z => {
               const isActive = z.id === activeZone;
               const color = TIER_COLOR[z.tier];
               return (
-                <g key={z.id} style={{ cursor: 'pointer' }} onClick={() => setActiveZone(isActive ? null : z.id)}>
+                <g key={z.id} className="cursor-pointer" onClick={() => setActiveZone(isActive ? null : z.id)}>
                   <circle cx={z.x} cy={z.y} r="4" fill="transparent" />
                   <circle cx={z.x} cy={z.y} r={isActive ? 3 : 2.2} fill={isActive ? color : `${color}99`} stroke={color} strokeWidth="0.4" />
                   {isActive && <circle cx={z.x} cy={z.y} r="4.5" fill="none" stroke={color} strokeWidth="0.4" opacity="0.5" />}
-                  <text x={z.x} y={z.y + 0.4} textAnchor="middle" dominantBaseline="middle" fontSize="1.8" fontWeight="bold" fill={isActive ? '#000' : '#fff'} style={{ pointerEvents: 'none', fontFamily: 'monospace' }}>{z.tier}</text>
+                  <text x={z.x} y={z.y + 0.4} textAnchor="middle" dominantBaseline="middle" fontSize="1.8" fontWeight="bold" fill={isActive ? '#000' : '#fff'} className="pointer-events-none font-mono">{z.tier}</text>
                 </g>
               );
             })}
           </svg>
           {!activeZone && (
-            <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', fontSize: '0.5rem', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.5)', background: 'rgba(0,0,0,0.5)', padding: '4px 10px', borderRadius: '2px', whiteSpace: 'nowrap' }}>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs tracking-normal whitespace-nowrap px-2.5 py-1 rounded-sm text-white/50 bg-black/50"
+            >
               SELECT A ZONE
             </div>
           )}
         </div>
 
-        <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="p-5 flex flex-col gap-3">
           {!zone ? (
             <>
-              <div style={{ fontSize: '0.55rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.25rem' }}>ZONE RANKING</div>
+              <div className="text-xs tracking-normal opacity-40 mb-1">ZONE RANKING</div>
               {(['S', 'A', 'B', 'C'] as Tier[]).map(tier => {
                 const zones = map.zones.filter(z => z.tier === tier && (filterTier === 'all' || filterTier === tier));
                 if (!zones.length) return null;
                 return (
                   <div key={tier}>
-                    <div style={{ fontSize: '0.5rem', fontWeight: 700, color: TIER_COLOR[tier], letterSpacing: '0.1em', marginBottom: '0.35rem' }}>[{tier}] TIER</div>
+                    <div className="text-xs font-bold tracking-normal mb-1.5" style={{ color: TIER_COLOR[tier] }}>[{tier}] TIER</div>
                     {zones.map(z => (
-                      <button key={z.id} onClick={() => setActiveZone(z.id)} style={{
-                        display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', width: '100%',
-                        background: TIER_BG[z.tier], border: `1px solid ${TIER_COLOR[z.tier]}30`,
-                        borderRadius: '2px', cursor: 'pointer', fontFamily: 'monospace', fontSize: '0.6rem',
-                        letterSpacing: '0.05em', textAlign: 'left', marginBottom: '0.25rem',
-                      }}
+                      <button type="button" key={z.id} onClick={() => setActiveZone(z.id)}
+                        className="font-mono text-xs tracking-normal cursor-pointer text-left w-full rounded-sm mb-1"
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px',
+                          background: TIER_BG[z.tier], border: `1px solid ${TIER_COLOR[z.tier]}30`,
+                        }}
                         onMouseEnter={e => (e.currentTarget.style.borderColor = TIER_COLOR[z.tier])}
                         onMouseLeave={e => (e.currentTarget.style.borderColor = `${TIER_COLOR[z.tier]}30`)}
                       >
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: TIER_COLOR[z.tier], flexShrink: 0 }} />
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: TIER_COLOR[z.tier] }} />
                         {z.label}
                       </button>
                     ))}
@@ -147,18 +154,20 @@ export default function LootTierMap() {
             </>
           ) : (
             <>
-              <button onClick={() => setActiveZone(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, padding: 0, textAlign: 'left' }}>← ALL ZONES</button>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: TIER_COLOR[zone.tier], border: `1px solid ${TIER_COLOR[zone.tier]}`, padding: '2px 6px', borderRadius: '2px' }}>[{zone.tier}]</span>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>{zone.label}</span>
+              <button type="button" onClick={() => setActiveZone(null)}
+                className="font-mono text-xs tracking-normal opacity-40 cursor-pointer bg-transparent border-none p-0 text-left"
+              >← ALL ZONES</button>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded-sm" style={{ color: TIER_COLOR[zone.tier], border: `1px solid ${TIER_COLOR[zone.tier]}` }}>[{zone.tier}]</span>
+                <span className="text-sm font-bold">{zone.label}</span>
               </div>
-              <div style={{ padding: '0.75rem', background: TIER_BG[zone.tier], borderRadius: '3px', fontSize: '0.57rem', opacity: 0.7, lineHeight: 1.6 }}>{zone.note}</div>
+              <div className="p-3 rounded-sm text-xs opacity-70 leading-relaxed" style={{ background: TIER_BG[zone.tier] }}>{zone.note}</div>
               <div>
-                <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.5rem' }}>EXPECTED LOOT</div>
-                {zone.items.map((item, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '0.3rem' }}>
-                    <span style={{ color: TIER_COLOR[zone.tier], fontSize: '0.55rem', flexShrink: 0 }}>▸</span>
-                    <span style={{ fontSize: '0.58rem', opacity: 0.7 }}>{item}</span>
+                <div className="text-xs tracking-normal opacity-40 mb-2">EXPECTED LOOT</div>
+                {zone.items.map((item) => (
+                  <div key={`${zone.id}-${item}`} className="flex gap-1.5 items-center mb-1">
+                    <span className="text-xs shrink-0" style={{ color: TIER_COLOR[zone.tier] }}>▸</span>
+                    <span className="text-xs opacity-70">{item}</span>
                   </div>
                 ))}
               </div>
@@ -167,7 +176,7 @@ export default function LootTierMap() {
         </div>
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         LOOT TIERS BASED ON ITEM DENSITY AND QUALITY — COMPETITIVE LOBBIES S03 2026
       </div>
     </div>

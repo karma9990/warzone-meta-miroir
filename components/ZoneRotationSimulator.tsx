@@ -91,21 +91,27 @@ export default function ZoneRotationSimulator() {
   const routes = zone && dir ? buildRoutes(zone, dir, map) : null;
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '2rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>INTERACTIVE SIMULATOR</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>ZONE ROTATION SIMULATOR</div>
+    <div className="border border-black/12 rounded mb-8 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">INTERACTIVE SIMULATOR</div>
+        <div className="text-base font-bold tracking-normal">ZONE ROTATION SIMULATOR</div>
       </div>
 
-      <div style={{ padding: '1.5rem' }}>
-
+      <div className="p-6">
         {/* Map selector */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.6rem' }}>MAP</div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="mb-6">
+          <div className="text-xs tracking-normal opacity-40 mb-2.5">MAP</div>
+          <div className="flex gap-2">
             {(['rebirth', 'haven'] as MapId[]).map(m => (
-              <button key={m} onClick={() => { setMap(m); setZone(''); setDir(null); }} style={{ padding: '6px 18px', border: `1px solid ${map === m ? '#00ff88' : 'rgba(0,0,0,0.15)'}`, background: map === m ? 'rgba(0,255,136,0.08)' : 'transparent', color: map === m ? '#00ff88' : 'rgba(0,0,0,0.45)', fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.12em', cursor: 'pointer', borderRadius: '2px' }}>
+              <button type="button" key={m} onClick={() => { setMap(m); setZone(''); setDir(null); }}
+                className="font-mono text-xs tracking-normal cursor-pointer rounded-sm"
+                style={{
+                  padding: '6px 18px',
+                  border: `1px solid ${map === m ? '#00ff88' : 'rgba(0,0,0,0.15)'}`,
+                  background: map === m ? 'rgba(0,255,136,0.08)' : 'transparent',
+                  color: map === m ? '#00ff88' : 'rgba(0,0,0,0.45)',
+                }}
+              >
                 {m === 'rebirth' ? 'REBIRTH ISLAND' : 'HAVEN HOLLOW'}
               </button>
             ))}
@@ -113,11 +119,19 @@ export default function ZoneRotationSimulator() {
         </div>
 
         {/* Zone selector */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.6rem' }}>CURRENT POSITION</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+        <div className="mb-6">
+          <div className="text-xs tracking-normal opacity-40 mb-2.5">CURRENT POSITION</div>
+          <div className="flex flex-wrap gap-1">
             {ZONES[map].map(z => (
-              <button key={z} onClick={() => setZone(z)} style={{ padding: '5px 12px', border: `1px solid ${zone === z ? '#00ff88' : 'rgba(0,0,0,0.12)'}`, background: zone === z ? 'rgba(0,255,136,0.08)' : 'transparent', color: zone === z ? '#00ff88' : 'rgba(0,0,0,0.5)', fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.05em', cursor: 'pointer', borderRadius: '2px', transition: 'border-color 0.1s' }}>
+              <button type="button" key={z} onClick={() => setZone(z)}
+                className="font-mono text-xs tracking-normal cursor-pointer rounded-sm transition-[border-color] duration-100"
+                style={{
+                  padding: '5px 12px',
+                  border: `1px solid ${zone === z ? '#00ff88' : 'rgba(0,0,0,0.12)'}`,
+                  background: zone === z ? 'rgba(0,255,136,0.08)' : 'transparent',
+                  color: zone === z ? '#00ff88' : 'rgba(0,0,0,0.5)',
+                }}
+              >
                 {z}
               </button>
             ))}
@@ -125,14 +139,25 @@ export default function ZoneRotationSimulator() {
         </div>
 
         {/* Direction compass */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.6rem' }}>CIRCLE DIRECTION</div>
-          <div style={{ display: 'inline-grid', gridTemplateColumns: 'repeat(3, 44px)', gridTemplateRows: 'repeat(3, 44px)', gap: '3px' }}>
+        <div className="mb-6">
+          <div className="text-xs tracking-normal opacity-40 mb-2.5">CIRCLE DIRECTION</div>
+          <div className="inline-grid grid-cols-3 gap-[3px]" style={{ gridTemplateRows: 'repeat(3, 44px)' }}>
             {COMPASS.map((d, i) =>
               d === null ? (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.06)', borderRadius: '3px', fontSize: '0.4rem', opacity: 0.3, letterSpacing: '0.06em' }}>POS</div>
+                <div key={i} className="flex items-center justify-center text-xs opacity-30 tracking-normal rounded-sm"
+                  style={{ background: 'rgba(0,0,0,0.06)' }}
+                >POS</div>
               ) : (
-                <button key={d} onClick={() => setDir(d)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${dir === d ? '#00ff88' : 'rgba(0,0,0,0.12)'}`, background: dir === d ? 'rgba(0,255,136,0.1)' : 'rgba(0,0,0,0.02)', color: dir === d ? '#00ff88' : 'rgba(0,0,0,0.45)', fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.06em', cursor: 'pointer', borderRadius: '3px', fontWeight: dir === d ? 700 : 400, transition: 'all 0.1s' }}>
+                <button type="button" key={d} onClick={() => setDir(d)}
+                  className="font-mono text-xs tracking-normal cursor-pointer rounded-sm transition-all duration-100"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `1px solid ${dir === d ? '#00ff88' : 'rgba(0,0,0,0.12)'}`,
+                    background: dir === d ? 'rgba(0,255,136,0.1)' : 'rgba(0,0,0,0.02)',
+                    color: dir === d ? '#00ff88' : 'rgba(0,0,0,0.45)',
+                    fontWeight: dir === d ? 700 : 400,
+                  }}
+                >
                   {d}
                 </button>
               )
@@ -143,41 +168,47 @@ export default function ZoneRotationSimulator() {
         {/* Routes output */}
         {routes ? (
           <div>
-            <div style={{ fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.75rem' }}>
+            <div className="text-xs tracking-normal opacity-40 mb-3">
               RECOMMENDED ROUTES - {zone.toUpperCase()} {'->'} CIRCLE {dir}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {routes.map((route, i) => {
+            <div className="flex flex-col gap-[0.65rem]">
+              {routes.map((route) => {
                 const rc = RISK_COLOR[route.risk];
                 return (
-                  <div key={i} style={{ borderLeft: `3px solid ${rc}`, border: `1px solid ${rc}30`, borderLeftWidth: '3px', borderRadius: '3px', padding: '1rem 1.25rem', background: `${rc}05` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em' }}>{route.name}</span>
-                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.45rem', opacity: 0.45, letterSpacing: '0.1em' }}>{route.time}</span>
-                        <span style={{ padding: '2px 8px', background: `${rc}18`, border: `1px solid ${rc}45`, borderRadius: '2px', fontSize: '0.45rem', letterSpacing: '0.1em', color: rc }}>
+                  <div key={`${route.name}-${route.time}`} className="rounded-sm"
+                    style={{
+                      borderLeft: `3px solid ${rc}`, border: `1px solid ${rc}30`, borderLeftWidth: '3px',
+                      padding: '1rem 1.25rem', background: `${rc}05`,
+                    }}
+                  >
+                    <div className="flex justify-between items-center mb-[0.45rem]">
+                      <span className="text-xs font-bold tracking-normal">{route.name}</span>
+                      <div className="flex gap-2 items-center">
+                        <span className="text-xs opacity-45 tracking-normal">{route.time}</span>
+                        <span className="text-xs tracking-normal rounded-sm px-2 py-0.5"
+                          style={{ background: `${rc}18`, border: `1px solid ${rc}45`, color: rc }}
+                        >
                           {route.risk} RISK
                         </span>
                       </div>
                     </div>
-                    <div style={{ fontSize: '0.52rem', opacity: 0.45, letterSpacing: '0.03em', marginBottom: '0.45rem', fontStyle: 'italic' }}>{route.path}</div>
-                    <div style={{ fontSize: '0.56rem', opacity: 0.65, lineHeight: 1.65 }}>{route.note}</div>
+                    <div className="text-xs opacity-45 tracking-normal mb-[0.45rem] italic">{route.path}</div>
+                    <div className="text-xs opacity-65 leading-relaxed">{route.note}</div>
                   </div>
                 );
               })}
             </div>
-            <div style={{ marginTop: '0.75rem', fontSize: '0.48rem', opacity: 0.28, letterSpacing: '0.08em' }}>
+            <div className="mt-3 text-xs opacity-28 tracking-normal">
               STRATEGIC ROUTES - ADAPT IN REAL TIME TO ENEMY POSITIONS
             </div>
           </div>
         ) : (
-          <div style={{ padding: '2rem', textAlign: 'center', border: '1px dashed rgba(0,0,0,0.1)', borderRadius: '3px' }}>
-            <div style={{ fontSize: '0.55rem', opacity: 0.32, letterSpacing: '0.12em' }}>
+          <div className="p-8 text-center border border-dashed border-black/10 rounded-sm">
+            <div className="text-xs opacity-32 tracking-normal">
               {!zone ? 'SELECT YOUR CURRENT POSITION' : 'SELECT THE CIRCLE DIRECTION'}
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

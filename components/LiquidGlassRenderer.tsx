@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 
 type GlassTarget = {
   selector: string;
@@ -136,7 +136,7 @@ export default function LiquidGlassRenderer() {
       });
     };
 
-    new RGBELoader().load('/assets/liquid/photo_studio_broadway_hall_4k.hdr', (texture) => {
+    new HDRLoader().load('/assets/liquid/photo_studio_broadway_hall_4k.hdr', (texture) => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       scene.environment = texture;
       rebuild();

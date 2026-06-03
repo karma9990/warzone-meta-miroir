@@ -1,17 +1,19 @@
 @AGENTS.md
-Lors de l'ajout d'une arme, utilise toujours data/template-arme.json comme base. Ne génère jamais la structure JSON de zéro.
 
-Utiliser data/template-arme.json comme base.
+## 🛠️ Instructions pour l'Assistant
 
-Préparer l'objet JSON avec les infos méta.
+### Gestion des armes (catalogue)
+- `data/template-arme.json` sert de base pour ajouter/modifier une arme dans le catalogue.
+- Le catalogue est stocké dans `scripts/weapons.json` (liste complète avec URLs d'images).
+- Pour **ajouter** une arme au catalogue : `node scripts/add-weapon.js '<json_object>'`
+- Pour **modifier** une arme au catalogue : `node scripts/update-weapon.js <id> '<json_object>'`
+- Ne jamais réécrire les fichiers JSON du catalogue manuellement.
 
-Exécuter : node scripts/add-weapon.js '{"id":"...", "name":"...", ...}'
+### Meta Loadouts (builds méta)
+- Les loadouts méta sont gérés dans `data/loadouts.json` via `lib/data.ts`.
+- Pour ajouter/modifier un loadout méta, utiliser les fonctions exportées de `lib/data.ts`.
+- Le catalogue d'armes (`scripts/weapons.json`) et les loadouts méta (`data/loadouts.json`) sont deux systèmes distincts.
 
-Ne jamais réécrire le fichier weapons.json manuellement.
-## 🛠️ Instructions pour l'Assistant (Claude Code)
-
-Pour toute modification des données d'armes (`data/*.json`), utilisez exclusivement les scripts fournis dans `/scripts`. 
-
-- **Pour ajouter une arme :** Utilisez `node scripts/add-weapon.js '<json_object>'`.
-- **Pour modifier une arme :** Utilisez `node scripts/update-weapon.js <id> '<json_object>'`.
-- **Règle stricte :** Ne modifiez jamais manuellement les fichiers JSON pour éviter les erreurs de structure et limiter la consommation de jetons.
+### Base de données / Cache
+- Le boilerplate Upstash Redis est centralisé dans `lib/upstash.ts`.
+- Utiliser `hasUpstash()`, `upstashCommand()`, `upstashPipeline()` depuis ce module.

@@ -6,6 +6,9 @@ import PatchNotesTracker from '@/components/PatchNotesTracker';
 import PeekAngleVisualizer from '@/components/PeekAngleVisualizer';
 import ContractPriorityGuide from '@/components/ContractPriorityGuide';
 import LootTierMap from '@/components/LootTierMap';
+import { withLocalePath } from '@/lib/i18n';
+import { GENERATED_PAGE_PACKS, getProToolsPageCopy } from '@/lib/pageCopy';
+import { getRequestLocale } from '@/lib/requestLocale';
 import '../pro-tools.css';
 
 const RESPONSE_CURVE_BODY = 'The response curve defines the mathematical relationship between how far you push the stick and how fast the crosshair moves. On a linear curve, pushing the stick 50% of the way produces exactly 50% of the maximum aim speed - the relationship is a straight line. On a dynamic or exponential curve, pushing the stick 50% of the way might produce only 30% of the speed, then the speed ramps up sharply at higher stick values. Dynamic feels smoother and more forgiving at low stick deflections, which is why it is the default in most games - it makes the aim feel more "natural" for casual players. For competitive play, linear is non-negotiable. With a dynamic curve, the same hand movement produces different crosshair speeds depending on how hard you push, which means there is no single repeatable reference point for your muscle memory to anchor to. Every micro-correction becomes a guess. With linear, the relationship is constant and predictable - your body can learn it precisely. Find this setting in the controller advanced options. If your game does not offer it directly, the closest equivalent is setting your inner deadzone to minimum and your outer deadzone to maximum, which approximates linear behaviour. After switching to linear, your aim may feel twitchy at first - that is because the dynamic curve was hiding the full speed of your stick input. Lower sensitivity by 0.5-1 unit and re-calibrate over 5 sessions.';
@@ -76,8 +79,11 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PreviewPageProps) {
+  const locale = await getRequestLocale();
+  const copy = getProToolsPageCopy(locale);
   const { previewId } = await params;
-  const preview = PREVIEWS.find((item) => item.id === previewId);
+  const previewBase = PREVIEWS.find((item) => item.id === previewId);
+  const preview = previewBase ? { ...previewBase, ...copy.modulesCopy[previewBase.id] } : null;
 
   return {
     title: preview ? `${preview.label} - Free preview | WZPRO Meta` : 'Pro Tools Preview | WZPRO Meta',
@@ -86,15 +92,24 @@ export async function generateMetadata({ params }: PreviewPageProps) {
 }
 
 export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
+  const locale = await getRequestLocale();
+  const copy = getProToolsPageCopy(locale);
+  const pack = GENERATED_PAGE_PACKS[locale];
+  const href = (pathname: string) => withLocalePath(pathname, locale);
   const { previewId } = await params;
-  const preview = PREVIEWS.find((item) => item.id === previewId);
+  const previewBase = PREVIEWS.find((item) => item.id === previewId);
 
-  if (!preview) notFound();
+  if (!previewBase) notFound();
+
+  const preview = {
+    ...previewBase,
+    ...copy.modulesCopy[previewBase.id],
+  };
 
   return (
     <main className="pt-preview-page pt-wt">
-      <Link className="pt-preview-back" href="/pro-tools">
-        Back to Pro Tools
+      <Link className="pt-preview-back" href={href('/pro-tools')}>
+        {locale === 'es' ? 'Volver a Herramientas Pro' : locale === 'fr' ? 'Retour aux Outils Pro' : pack ? pack.viewTools : 'Back to Pro Tools'}
       </Link>
 
       <article className="pt-preview-card">
@@ -104,18 +119,18 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
         </header>
 
         <div className="pt-preview-body">
-          <p className="pt-wt-hero-kicker">Free preview</p>
+          <p className="pt-wt-hero-kicker">{copy.freePreview}</p>
           <h1 className="pt-wt-hero-title">{preview.label}</h1>
           <p className="pt-wt-hero-lead">{preview.preview}</p>
 
           <div className="pt-preview-split">
             <section>
-              <span>Expected result</span>
+              <span>{locale === 'es' ? 'Resultado esperado' : locale === 'fr' ? 'Resultat attendu' : pack ? pack.result : 'Expected result'}</span>
               <p>{preview.result}</p>
             </section>
             <section>
-              <span>Next step</span>
-              <p>This page connects a dedicated preview tool without touching the paid pages.</p>
+              <span>{locale === 'es' ? 'Siguiente paso' : locale === 'fr' ? 'Etape suivante' : pack ? pack.openPreview : 'Next step'}</span>
+              <p>{locale === 'es' ? 'Esta pagina conecta una preview dedicada sin tocar las paginas de pago.' : locale === 'fr' ? 'Cette page connecte un apercu dedie sans toucher aux pages payantes.' : pack ? `${pack.openPreview}: ${pack.heroLead}` : 'This page connects a dedicated preview tool without touching the paid pages.'}</p>
             </section>
           </div>
         </div>
@@ -141,9 +156,9 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
           </article>
 
           <div className="pt-preview-unlock">
-            <span>Unlock full Aim Tools</span>
-            <p>Unlock the full calculators, guides and interactive tools for your aim.</p>
-            <Link href="/tools-individual">Unlock tool</Link>
+            <span>{locale === 'es' ? 'Desbloquear Herramientas de Aim completas' : locale === 'fr' ? 'Debloquer Aim Tools complet' : pack ? `${pack.goPro} Aim Tools` : 'Unlock full Aim Tools'}</span>
+            <p>{locale === 'es' ? 'Desbloquea calculadoras, guias y herramientas interactivas para tu aim.' : locale === 'fr' ? 'Debloque les calculateurs, guides et outils interactifs pour ton aim.' : pack ? pack.catalogLead : 'Unlock the full calculators, guides and interactive tools for your aim.'}</p>
+            <Link href={href('/tools-individual')}>{locale === 'es' ? 'Desbloquear herramienta' : locale === 'fr' ? 'Debloquer l outil' : pack ? pack.viewTools : 'Unlock tool'}</Link>
           </div>
         </section>
       )}
@@ -170,7 +185,7 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
           <div className="pt-preview-unlock">
             <span>Unlock full Next Meta</span>
             <p>Unlock full predictions, patch reads and meta signals before the rest of the lobby.</p>
-            <Link href="/tools-individual">Buy tool</Link>
+            <Link href={href('/tools-individual')}>Buy tool</Link>
           </div>
         </section>
       )}
@@ -197,7 +212,7 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
           <div className="pt-preview-unlock">
             <span>Unlock full Pro Movement</span>
             <p>Unlock the full visualizers, routines and guides to peek, rotate and win space.</p>
-            <Link href="/tools-individual">Unlock tool</Link>
+            <Link href={href('/tools-individual')}>Unlock tool</Link>
           </div>
         </section>
       )}
@@ -224,7 +239,7 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
           <div className="pt-preview-unlock">
             <span>Unlock full How To Be A Pro</span>
             <p>Unlock the full guides to structure sessions, read mistakes and progress like a competitive player.</p>
-            <Link href="/tools-individual">Unlock tool</Link>
+            <Link href={href('/tools-individual')}>Unlock tool</Link>
           </div>
         </section>
       )}
@@ -259,7 +274,7 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
           <div className="pt-preview-unlock">
             <span>Unlock full Pro Spawn</span>
             <p>Unlock maps, routes, spawns and control plans to gain the advantage from the drop.</p>
-            <Link href="/tools-individual">Unlock tool</Link>
+            <Link href={href('/tools-individual')}>Unlock tool</Link>
           </div>
         </section>
       )}
@@ -282,7 +297,7 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 referrerPolicy="strict-origin-when-cross-origin"
-                sandbox="allow-scripts allow-same-origin allow-presentation"
+                sandbox="allow-scripts allow-presentation"
               />
             </div>
             <h3 className="pt-preview-inline-title">NVIDIA Control Panel</h3>
@@ -305,7 +320,7 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 referrerPolicy="strict-origin-when-cross-origin"
-                sandbox="allow-scripts allow-same-origin allow-presentation"
+                sandbox="allow-scripts allow-presentation"
               />
             </div>
             <h3 className="pt-preview-inline-title">AMD Radeon Software</h3>
@@ -315,7 +330,7 @@ export default async function ProToolPreviewPage({ params }: PreviewPageProps) {
           <div className="pt-preview-unlock">
             <span>Unlock full Pro Opti</span>
             <p>Unlock the full guides for FPS, latency, network, audio and system optimization.</p>
-            <Link href="/tools-individual">Unlock tool</Link>
+            <Link href={href('/tools-individual')}>Unlock tool</Link>
           </div>
         </section>
       )}

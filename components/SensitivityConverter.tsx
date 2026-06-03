@@ -93,92 +93,91 @@ export default function SensitivityConverter() {
   const hasResult = result !== null || (resultH !== null && resultV !== null);
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.15)', background: 'rgba(0,0,0,0.02)', marginBottom: '3rem' }}>
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4 }}>EXCLUSIVE TOOL</span>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '0.95rem', letterSpacing: '0.1em', margin: '0.25rem 0 0' }}>SENSITIVITY CONVERTER</h2>
+    <div className="border border-black/15 bg-black/2 mb-12">
+      <div className="px-6 py-4 border-b border-black/10">
+        <span className="font-mono text-xs tracking-normal opacity-40">EXCLUSIVE TOOL</span>
+        <h2 className="font-mono text-sm tracking-normal mt-1">SENSITIVITY CONVERTER</h2>
       </div>
 
-      <div style={{ padding: '1.5rem' }}>
-        <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.5rem' }}>SOURCE GAME</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '1.25rem' }}>
+      <div className="p-6">
+        <p className="font-mono text-xs tracking-normal opacity-35 mb-2">SOURCE GAME</p>
+        <div className="flex flex-col gap-1 mb-5">
           {GAMES.map(g => (
-            <button key={g.id} onClick={() => handleGameChange(g.id)} style={{
-              textAlign: 'left', padding: '0.7rem 1rem',
-              border: `1px solid ${gameId === g.id ? 'blue' : 'rgba(0,0,0,0.12)'}`,
-              background: gameId === g.id ? 'rgba(0,0,255,0.04)' : 'rgba(255,255,255,0.5)',
-              cursor: 'pointer', fontFamily: 'monospace', fontSize: '0.72rem',
-              letterSpacing: '0.04em', transition: 'all 0.15s',
-            }}>
+            <button type="button" key={g.id} onClick={() => handleGameChange(g.id)}
+              className="font-mono text-xs tracking-normal text-left cursor-pointer transition-all duration-150"
+              style={{
+                padding: '0.7rem 1rem',
+                border: `1px solid ${gameId === g.id ? 'blue' : 'rgba(0,0,0,0.12)'}`,
+                background: gameId === g.id ? 'rgba(0,0,255,0.04)' : 'rgba(255,255,255,0.5)',
+              }}
+            >
               {g.label}
             </button>
           ))}
         </div>
 
-        <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.5rem' }}>
+        <p className="font-mono text-xs tracking-normal opacity-35 mb-2">
           YOUR {game.name.toUpperCase()} SENSITIVITY
         </p>
 
         {game.dual ? (
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '120px' }}>
-              <p style={{ fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.15em', opacity: 0.35, margin: '0 0 0.3rem' }}>HORIZONTAL</p>
-              <input type="number" min={game.minH} max={game.maxH} step={game.stepH} placeholder={game.placeholderH}
+          <div className="flex gap-3 mb-5 flex-wrap">
+            <div className="flex-1 min-w-[120px]">
+              <p className="font-mono text-xs tracking-normal opacity-35 mb-1">HORIZONTAL</p>
+              <input aria-label="Input" type="number" min={game.minH} max={game.maxH} step={game.stepH} placeholder={game.placeholderH}
                 value={inputH} onChange={e => { setInputH(e.target.value); setResultH(null); setResultV(null); }}
-                style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.9rem', padding: '0.75rem 1rem', border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.7)', outline: 'none', color: 'inherit', boxSizing: 'border-box' }}
+                className="w-full font-mono text-sm p-3 border border-black/18 bg-white/70 outline-2 outline-transparent box-border"
               />
             </div>
-            <div style={{ flex: 1, minWidth: '120px' }}>
-              <p style={{ fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.15em', opacity: 0.35, margin: '0 0 0.3rem' }}>VERTICAL</p>
-              <input type="number" min={game.minV} max={game.maxV} step={game.stepV} placeholder={game.placeholderV}
+            <div className="flex-1 min-w-[120px]">
+              <p className="font-mono text-xs tracking-normal opacity-35 mb-1">VERTICAL</p>
+              <input aria-label="Input" type="number" min={game.minV} max={game.maxV} step={game.stepV} placeholder={game.placeholderV}
                 value={inputV} onChange={e => { setInputV(e.target.value); setResultH(null); setResultV(null); }}
-                style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.9rem', padding: '0.75rem 1rem', border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.7)', outline: 'none', color: 'inherit', boxSizing: 'border-box' }}
+                className="w-full font-mono text-sm p-3 border border-black/18 bg-white/70 outline-2 outline-transparent box-border"
               />
             </div>
-            <button onClick={handleConvert} style={{
-              fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.12em',
-              padding: '0.75rem 1.25rem', background: 'blue', color: 'white',
-              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', alignSelf: 'flex-end',
-            }}>CONVERT →</button>
+            <button type="button" onClick={handleConvert}
+              className="font-mono text-xs tracking-normal border-none cursor-pointer whitespace-nowrap self-end"
+              style={{ padding: '0.75rem 1.25rem', background: 'blue', color: 'white' }}
+            >CONVERT →</button>
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <input type="number" min={game.min} max={game.max} step={game.step} placeholder={game.placeholder}
+          <div className="flex gap-3 mb-5">
+            <input aria-label="Input" type="number" min={game.min} max={game.max} step={game.step} placeholder={game.placeholder}
               value={inputVal} onChange={e => { setInputVal(e.target.value); setResult(null); }}
-              style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.9rem', padding: '0.75rem 1rem', border: '1px solid rgba(0,0,0,0.18)', background: 'rgba(255,255,255,0.7)', outline: 'none', color: 'inherit' }}
+              className="flex-1 font-mono text-sm p-3 border border-black/18 bg-white/70 outline-2 outline-transparent"
             />
-            <button onClick={handleConvert} style={{
-              fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.12em',
-              padding: '0.75rem 1.25rem', background: 'blue', color: 'white',
-              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-            }}>CONVERT →</button>
+            <button type="button" onClick={handleConvert}
+              className="font-mono text-xs tracking-normal border-none cursor-pointer whitespace-nowrap"
+              style={{ padding: '0.75rem 1.25rem', background: 'blue', color: 'white' }}
+            >CONVERT →</button>
           </div>
         )}
 
         {hasResult && (
-          <div style={{ border: '1px solid rgba(0,0,255,0.2)', background: 'rgba(0,0,255,0.03)', padding: '1.25rem 1.5rem', marginBottom: '1rem' }}>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.75rem' }}>WARZONE EQUIVALENT</p>
+          <div className="mb-4 px-6 py-5" style={{ border: '1px solid rgba(0,0,255,0.2)', background: 'rgba(0,0,255,0.03)' }}>
+            <p className="font-mono text-xs tracking-normal opacity-35 mb-3">WARZONE EQUIVALENT</p>
             {result !== null ? (
               <>
-                <p style={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, color: 'blue', margin: '0 0 0.5rem', letterSpacing: '0.05em' }}>{result.toFixed(2)}</p>
-                <p style={{ fontFamily: 'monospace', fontSize: '0.65rem', opacity: 0.5, margin: 0, lineHeight: 1.7 }}>Apply this value to both Horizontal and Vertical sensitivity in Warzone.</p>
+                <p className="font-mono text-3xl font-bold tracking-normal mb-2" style={{ color: 'blue' }}>{result.toFixed(2)}</p>
+                <p className="font-mono text-xs opacity-50 leading-relaxed">Apply this value to both Horizontal and Vertical sensitivity in Warzone.</p>
               </>
             ) : (
-              <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+              <div className="flex gap-8 flex-wrap">
                 <div>
-                  <p style={{ fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.15em', opacity: 0.35, margin: '0 0 0.3rem' }}>HORIZONTAL</p>
-                  <p style={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, color: 'blue', margin: 0, letterSpacing: '0.05em' }}>{resultH?.toFixed(2)}</p>
+                  <p className="font-mono text-xs tracking-normal opacity-35 mb-1">HORIZONTAL</p>
+                  <p className="font-mono text-3xl font-bold tracking-normal" style={{ color: 'blue' }}>{resultH?.toFixed(2)}</p>
                 </div>
                 <div>
-                  <p style={{ fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.15em', opacity: 0.35, margin: '0 0 0.3rem' }}>VERTICAL</p>
-                  <p style={{ fontFamily: 'monospace', fontSize: '2rem', fontWeight: 700, color: 'blue', margin: 0, letterSpacing: '0.05em' }}>{resultV?.toFixed(2)}</p>
+                  <p className="font-mono text-xs tracking-normal opacity-35 mb-1">VERTICAL</p>
+                  <p className="font-mono text-3xl font-bold tracking-normal" style={{ color: 'blue' }}>{resultV?.toFixed(2)}</p>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', lineHeight: 1.8, opacity: 0.38, margin: 0 }}>
+        <p className="font-mono text-xs leading-relaxed opacity-[0.38]">
           {game.note} All conversions are approximate — treat this as a starting point and fine-tune over 5–10 sessions.
         </p>
       </div>

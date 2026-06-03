@@ -2,6 +2,9 @@ import Link from 'next/link';
 import { EsportChrome } from '@/components/CompetitivePageShell';
 import { getWrsPageData } from '@/lib/competitive-data';
 import WrsEventControls from '@/components/WrsEventControls';
+import LocalizedText from '@/components/LocalizedText';
+import { withLocalePath, type Locale } from '@/lib/i18n';
+import { getRequestLocale } from '@/lib/requestLocale';
 
 export const metadata = {
   title: 'Warzone Resurgence Series Leaderboards - WZPRO Meta',
@@ -25,6 +28,7 @@ const views = [
 function viewHref(
   selected: Awaited<ReturnType<typeof getWrsPageData>>['selected'],
   view: string,
+  locale: Locale,
 ) {
   const params = new URLSearchParams();
 
@@ -34,7 +38,7 @@ function viewHref(
   if (selected.event?.value) params.set('event', selected.event.value);
   if (view !== 'live') params.set('view', view);
 
-  return `/esport/resurgence-series?${params.toString()}`;
+  return withLocalePath(`/esport/resurgence-series?${params.toString()}`, locale);
 }
 
 export default async function ResurgenceSeriesPage({
@@ -42,7 +46,7 @@ export default async function ResurgenceSeriesPage({
 }: {
   searchParams: Promise<{ year?: string; stage?: string; phase?: string; event?: string; view?: string }>;
 }) {
-  const query = await searchParams;
+  const [query, locale] = await Promise.all([searchParams, getRequestLocale()]);
   const activeView = views.some((view) => view.id === query.view) ? query.view || 'live' : 'live';
   const data = await getWrsPageData(query);
   const selectedEvent = data.selected.event;
@@ -64,8 +68,12 @@ export default async function ResurgenceSeriesPage({
         </header>
 
         <div className="competitive-actions">
-          <button className="is-primary">Event Leaderboards</button>
-          <Link href="/esport/calendar">Calendar</Link>
+          <button type="button" className="is-primary">
+            <LocalizedText values={{ en: 'Event Leaderboards', fr: 'Classements evenement', es: 'Clasificaciones del evento', de: 'Event-Ranglisten', it: 'Classifiche evento', pt: 'Rankings do evento', nl: 'Eventranglijsten', pl: 'Rankingi wydarzenia', ja: 'イベントランキング' }} />
+          </button>
+          <Link href={withLocalePath('/esport/calendar', locale)}>
+            <LocalizedText values={{ en: 'Calendar', fr: 'Calendrier', es: 'Agenda', de: 'Kalender', it: 'Programma', pt: 'Agenda', nl: 'Kalender', pl: 'Kalendarz', ja: 'カレンダー' }} />
+          </Link>
           <span>{data.filters[0]}</span>
         </div>
 
@@ -79,7 +87,7 @@ export default async function ResurgenceSeriesPage({
 
           <div className="competitive-filters wrs-search-row">
             <label>
-              <input placeholder="Search a player..." />
+              <input aria-label="Search a player" placeholder="Search a player..." />
             </label>
           </div>
 
@@ -89,7 +97,7 @@ export default async function ResurgenceSeriesPage({
                 <Link
                   key={view.id}
                   className={activeView === view.id ? 'is-live' : undefined}
-                  href={viewHref(data.selected, view.id)}
+                  href={viewHref(data.selected, view.id, locale)}
                 >
                   {view.label}
                 </Link>
@@ -102,7 +110,7 @@ export default async function ResurgenceSeriesPage({
             <div className="competitive-live-strip">
               <span />
               Automated live view. Data follows CODMunity public WRS scoring and refreshes from server cache.
-              <button>Full Screen</button>
+              <button type="button">Full Screen</button>
             </div>
           )}
 

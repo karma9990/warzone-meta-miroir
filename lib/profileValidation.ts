@@ -58,7 +58,7 @@ export function isAllowedProfileImage(value: string) {
 
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' || url.protocol === 'http:';
+    return url.protocol === 'https:';
   } catch {
     return false;
   }
@@ -70,11 +70,12 @@ export function getProfilePictureError(value: string) {
     : 'Profile picture must be a valid image URL or an uploaded PNG, JPG, WEBP or GIF under 500 KB.';
 }
 
-export function getProfileModerationError(input: { publicName?: string; pseudo?: string; profilePicture?: string }) {
+export function getProfileModerationError(input: { publicName?: string; pseudo?: string; profilePicture?: string; profileBanner?: string }) {
   return (
     getProfileNameError('Public name', input.publicName || '') ||
     getProfileNameError('Pseudo', input.pseudo || '') ||
-    getProfilePictureError(input.profilePicture || '')
+    getProfilePictureError(input.profilePicture || '') ||
+    getProfilePictureError(input.profileBanner || '')
   );
 }
 

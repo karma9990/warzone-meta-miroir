@@ -1,9 +1,12 @@
 import fs from 'fs';
 import path from 'path';
+import { hasUpstash, upstashCommand } from './upstash';
+import { getUserByEmail } from '@/lib/accountStore';
 import type { OAuthProvider, UserSession } from '@/lib/userAuth';
 
 const OAUTH_USERS_FILE = path.join(process.cwd(), 'data', 'oauth-users.json');
 const OAUTH_USERS_KEY_PREFIX = 'wz:user:oauth:';
+const OAUTH_EMAIL_KEY_PREFIX = 'wz:user:oauth-email:';
 
 export type StoredOAuthUser = {
   id: string;
@@ -17,30 +20,12 @@ export type StoredOAuthUser = {
   lastSignedInAt: string;
 };
 
-function hasUpstash() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-}
-
-async function upstash(command: unknown[]) {
-  const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify([command]),
-  });
-
-  if (!res.ok) {
-    throw new Error('OAuth account storage request failed.');
-  }
-
-  const data = await res.json() as Array<{ result: unknown }>;
-  return data[0]?.result;
-}
-
 function getOAuthUserKey(provider: OAuthProvider, providerSub: string) {
   return `${provider}:${providerSub}`;
+}
+
+function normalizeEmail(email?: string) {
+  return email?.trim().toLowerCase() || '';
 }
 
 function readLocalUsers(): StoredOAuthUser[] {
@@ -65,16 +50,36 @@ export async function getOAuthUser(provider: OAuthProvider, providerSub: string)
   const key = getOAuthUserKey(provider, providerSub);
 
   if (hasUpstash()) {
-    const value = await upstash(['GET', `${OAUTH_USERS_KEY_PREFIX}${key}`]);
+    const value = await upstashCommand(['GET', `${OAUTH_USERS_KEY_PREFIX}${key}`]);
     return typeof value === 'string' ? JSON.parse(value) as StoredOAuthUser : null;
   }
 
   return readLocalUsers().find((user) => getOAuthUserKey(user.provider, user.providerSub) === key) || null;
 }
 
+export async function getOAuthUserByEmail(email: string): Promise<StoredOAuthUser | null> {
+  const cleanEmail = normalizeEmail(email);
+  if (!cleanEmail) return null;
+
+  if (hasUpstash()) {
+    const key = await upstashCommand(['GET', `${OAUTH_EMAIL_KEY_PREFIX}${cleanEmail}`]);
+    if (typeof key !== 'string') return null;
+
+    const value = await upstashCommand(['GET', `${OAUTH_USERS_KEY_PREFIX}${key}`]);
+    return typeof value === 'string' ? JSON.parse(value) as StoredOAuthUser : null;
+  }
+
+  return readLocalUsers().find((user) => normalizeEmail(user.email) === cleanEmail) || null;
+}
+
 export async function saveOAuthUser(user: StoredOAuthUser) {
   if (hasUpstash()) {
-    await upstash(['SET', `${OAUTH_USERS_KEY_PREFIX}${getOAuthUserKey(user.provider, user.providerSub)}`, JSON.stringify(user)]);
+    const key = getOAuthUserKey(user.provider, user.providerSub);
+    await upstashCommand(['SET', `${OAUTH_USERS_KEY_PREFIX}${key}`, JSON.stringify(user)]);
+    const email = normalizeEmail(user.email);
+    if (email) {
+      await upstashCommand(['SET', `${OAUTH_EMAIL_KEY_PREFIX}${email}`, key]);
+    }
     return;
   }
 
@@ -92,16 +97,18 @@ export async function saveOAuthUser(user: StoredOAuthUser) {
 
 export async function recordOAuthSignIn(user: UserSession) {
   if (user.provider === 'email') {
-    return { account: null, isNew: false };
+    return { account: null, isNew: false, sessionUser: user };
   }
 
   const existing = await getOAuthUser(user.provider, user.sub);
+  const email = normalizeEmail(user.email);
+  const emailAccount = email ? await getUserByEmail(email) : null;
   const now = new Date().toISOString();
   const account: StoredOAuthUser = {
-    id: existing?.id || `${user.provider}:${user.sub}`,
+    id: emailAccount?.id || existing?.id || `${user.provider}:${user.sub}`,
     provider: user.provider,
     providerSub: user.sub,
-    email: user.email,
+    email,
     name: user.name,
     picture: user.picture,
     battletag: user.battletag,
@@ -110,5 +117,13 @@ export async function recordOAuthSignIn(user: UserSession) {
   };
 
   await saveOAuthUser(account);
-  return { account, isNew: !existing };
+  return {
+    account,
+    isNew: !existing,
+    sessionUser: {
+      ...user,
+      sub: account.id,
+      email: email || user.email,
+    },
+  };
 }

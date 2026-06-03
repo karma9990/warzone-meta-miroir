@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import LocalizedSafariBar from '@/components/LocalizedSafariBar';
+import { withLocalePath } from '@/lib/i18n';
+import { getRequestLocale } from '@/lib/requestLocale';
 
 export const metadata = {
   title: 'Warzone Tournament References - WZPRO Meta',
@@ -138,33 +141,19 @@ function ReferenceGroup({
   );
 }
 
-export default function EsportReferencesPage() {
+export default async function EsportReferencesPage() {
+  const locale = await getRequestLocale();
+  const href = (path: string) => withLocalePath(path, locale);
+
   return (
     <>
       <div className="pt-technical-backdrop" aria-hidden="true" />
 
-      <div className="safari-bar">
-        <Link className="brand-pill" href="/">
-          <b>WZ</b>
-          <span>Meta</span>
-        </Link>
-        <nav>
-          <Link href="/esport" aria-current="page">Esport</Link>
-          <Link href="/pro-tools">Pro Tools</Link>
-          <Link href="/#all-loadouts">Loadouts</Link>
-          <Link href="/set-up">Set-up</Link>
-          <Link href="/community">Community</Link>
-        </nav>
-        <label>
-          <span>Search</span>
-          <input placeholder="References, Discords, tournaments" />
-        </label>
-        <div className="nav-readout" aria-hidden="true">
-          <span>WARZONE // REFERENCES</span>
-          <span>LINKS: ACTIVE</span>
-          <span>VERIFY BEFORE JOINING</span>
-        </div>
-      </div>
+      <LocalizedSafariBar
+        active="esport"
+        searchPlaceholder={locale === 'es' ? 'Referencias, Discords, torneos' : locale === 'fr' ? 'References, Discords, tournois' : 'References, Discords, tournaments'}
+        readout={['WARZONE // REFERENCES', 'LINKS: ACTIVE', 'VERIFY BEFORE JOINING']}
+      />
 
       <main className="refs-main">
         <header className="refs-hero">
@@ -174,7 +163,7 @@ export default function EsportReferencesPage() {
             A practical directory for finding Warzone tournaments, grind Discords, scrims, platforms, and official resources.
             Tournament links move often: always verify the rules before paying or joining.
           </p>
-          <Link href="/esport">Back to the conversation</Link>
+          <Link href={href('/esport')}>Back to the conversation</Link>
         </header>
 
         <section className="refs-warning">

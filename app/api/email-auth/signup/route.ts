@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserByEmail, saveUser } from '@/lib/accountStore';
+import { getOAuthUserByEmail } from '@/lib/oauthAccountStore';
 import {
   normalizeEmail,
   sendEmailAuthLink,
@@ -59,9 +60,10 @@ export async function POST(req: NextRequest) {
   if (existingUser) {
     return NextResponse.json({ error: 'An account already exists for this email.' }, { status: 409 });
   }
+  const existingOAuthUser = await getOAuthUserByEmail(email);
 
   await saveUser({
-    id: randomUUID(),
+    id: existingOAuthUser?.id || randomUUID(),
     email,
     username,
     displayName,

@@ -10,11 +10,15 @@
 - Add a full loadout detail page with shareable URLs.
 - Add tests for loadout API validation and admin CRUD.
 - Add real subscription entitlement storage instead of access through email token links only.
-- Add a payment configuration screen or env validation for Paddle price IDs.
+- Add a payment configuration screen or env validation for Polar product IDs.
 - Localize the public copy consistently in French or English.
 - Split the large global CSS file into page/component styles.
-- Run a live Paddle sandbox checkout and webhook delivery test before launch.
+- Run a live Polar sandbox checkout and webhook delivery test before launch.
 - Replace placeholder legal entity fields with the final publisher and hosting details (using Option A - Anonymity for individual publisher).
 
 ## Next
 
+- Add route-level tests for Polar checkout, claim, and webhook handling.
+- Add visual smoke tests for desktop and mobile layouts.
+- Reduce the committed font set to the families actually used by the site.
+- Split the remaining large page/content files into typed data modules and smaller components.

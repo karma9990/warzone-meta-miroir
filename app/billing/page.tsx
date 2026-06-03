@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Billing Terms | WZPRO Meta',
+  description: 'Review billing, renewal, invoice and payment terms for WZPRO Meta products.',
+};
 import LegalPage from '@/components/LegalPage';
 import { LEGAL, SUPPORT_EMAIL } from '@/lib/siteConfig';
 
@@ -13,7 +19,7 @@ export default function BillingPage() {
       sections={[
         {
           title: '1. Payment Processor',
-          body: <p>Payments are processed through Paddle. Paddle may act as Merchant of Record, meaning it can handle payment collection, taxes, invoices, receipts, fraud checks and payment support.</p>,
+          body: <p>Payments are processed through Polar. Polar may act as Merchant of Record, meaning it can handle payment collection, taxes, invoices, receipts, fraud checks and payment support.</p>,
         },
         {
           title: '2. Prices and Taxes',
@@ -33,7 +39,7 @@ export default function BillingPage() {
         },
         {
           title: '6. Billing Support',
-          body: <p>For billing questions, contact {supportEmail} with your purchase email and Paddle receipt if available.</p>,
+          body: <p>For billing questions, contact {supportEmail} with your purchase email and Polar receipt if available.</p>,
         },
         {
           title: '7. Consumer Mediation',

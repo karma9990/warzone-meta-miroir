@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import { NextResponse, type NextRequest } from 'next/server';
+import { hasUpstash, upstashPipeline } from './upstash';
 
 const CONTACT_COOLDOWN_SECONDS = 10 * 60;
 const memoryCooldowns = new Map<string, number>();
@@ -19,27 +20,6 @@ const DEFAULT_BLOCKED_WORDS = [
   'salope',
   'shit',
 ];
-
-function hasUpstash() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-}
-
-async function upstashPipeline(commands: unknown[][]) {
-  const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(commands),
-  });
-
-  if (!res.ok) {
-    throw new Error('Upstash request failed.');
-  }
-
-  return await res.json() as Array<{ result?: unknown }>;
-}
 
 function clientIp(req: NextRequest) {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -79,7 +59,7 @@ export function containsBlockedContactLanguage(...parts: string[]) {
 export function contactCooldownResponse(retryAfter: number) {
   return NextResponse.json(
     {
-      error: 'Veuillez attendre avant de renvoyer un message.',
+      error: 'Please wait before sending another message.',
       retryAfter,
     },
     {

@@ -78,7 +78,6 @@ const QUESTIONS = [
 ];
 
 function calculate(answers: Answer): Result {
-  // Warzone sensitivity range: 1.55 – 2.25, steps of 0.05
   let base = 1.90;
 
   if (answers.playstyle === 'aggressive') base = 2.10;
@@ -91,7 +90,6 @@ function calculate(answers: Answer): Result {
   if (answers.experience === 'beginner') base -= 0.10;
   else if (answers.experience === 'veteran') base += 0.10;
 
-  // Dead zone defaults — new / like new controller (optimal values)
   let leftStickMin = 1;
   let leftStickMax = 75;
   let rightStickMin = 5;
@@ -116,7 +114,6 @@ function calculate(answers: Answer): Result {
     controllerNote = ' Your joystick is drifting — replace it as soon as possible. The dead zone workaround costs you responsiveness.';
   }
 
-  // Round to nearest 0.05, clamp strictly to 1.55–2.25
   const sens = Math.min(2.25, Math.max(1.55, Math.round(base * 20) / 20));
 
   const aimAssist = answers.playstyle === 'precision' ? 'Precision' : 'Black Ops';
@@ -161,7 +158,7 @@ export default function SettingsCalculator() {
     setAnswers(next);
 
     if (step < QUESTIONS.length - 1) {
-      setStep(step + 1);
+      setStep((current) => current + 1);
     } else {
       setResult(calculate(next as Answer));
     }
@@ -174,65 +171,74 @@ export default function SettingsCalculator() {
   }
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.15)', background: 'rgba(0,0,0,0.02)', marginBottom: '3rem' }}>
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="border border-black/15 bg-black/2 mb-12">
+      <div className="px-6 py-4 border-b border-black/10 flex justify-between items-center">
         <div>
-          <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4 }}>EXCLUSIVE TOOL</span>
-          <h2 style={{ fontFamily: 'monospace', fontSize: '0.95rem', letterSpacing: '0.1em', margin: '0.25rem 0 0' }}>PERSONALIZED SETTINGS CALCULATOR</h2>
+          <span className="font-mono text-xs tracking-normal opacity-40">EXCLUSIVE TOOL</span>
+          <h2 className="font-mono text-sm tracking-normal mt-1">PERSONALIZED SETTINGS CALCULATOR</h2>
         </div>
         {result && (
-          <button onClick={reset} style={{ fontFamily: 'monospace', fontSize: '0.6rem', letterSpacing: '0.12em', background: 'transparent', border: '1px solid rgba(0,0,0,0.2)', padding: '0.4rem 0.8rem', cursor: 'pointer', opacity: 0.5 }}>
+          <button type="button" onClick={reset}
+            className="font-mono text-xs tracking-normal bg-transparent border border-black/20 px-3 py-1.5 cursor-pointer opacity-50"
+          >
             RESTART
           </button>
         )}
       </div>
 
       {!result ? (
-        <div style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.5rem' }}>
+        <div className="p-6">
+          <div className="flex gap-1 mb-6">
             {QUESTIONS.map((_, i) => (
-              <div key={i} style={{ flex: 1, height: '2px', background: i <= step ? 'blue' : 'rgba(0,0,0,0.1)', transition: 'background 0.2s' }} />
+              <div key={i} className="flex-1 h-0.5 transition-[background] duration-200"
+                style={{ background: i <= step ? 'blue' : 'rgba(0,0,0,0.1)' }}
+              />
             ))}
           </div>
 
-          <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.4rem' }}>{currentQ.label}</p>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.04em', margin: '0 0 1.25rem', lineHeight: 1.5 }}>{currentQ.question}</p>
+          <p className="font-mono text-xs tracking-normal opacity-35 mb-1.5">{currentQ.label}</p>
+          <p className="font-mono text-sm tracking-normal mb-5 leading-relaxed">{currentQ.question}</p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="flex flex-col gap-2">
             {currentQ.options.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => handleSelect(opt.value)}
-                style={{ textAlign: 'left', padding: '0.9rem 1.1rem', border: '1px solid rgba(0,0,0,0.12)', background: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontFamily: 'monospace', transition: 'border-color 0.15s, background 0.15s' }}
+              <button type="button" key={opt.value} onClick={() => handleSelect(opt.value)}
+                className="font-mono text-left cursor-pointer transition-[border-color,background] duration-150"
+                style={{ padding: '0.9rem 1.1rem', border: '1px solid rgba(0,0,0,0.12)', background: 'rgba(255,255,255,0.5)' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'blue'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,255,0.03)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,0,0,0.12)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.5)'; }}
               >
-                <div style={{ fontSize: '0.78rem', letterSpacing: '0.06em', marginBottom: '0.2rem' }}>{opt.label}</div>
-                <div style={{ fontSize: '0.65rem', opacity: 0.45, lineHeight: 1.4 }}>{opt.desc}</div>
+                <div className="text-[0.78rem] tracking-normal mb-0.5">{opt.label}</div>
+                <div className="text-xs opacity-45 leading-relaxed">{opt.desc}</div>
               </button>
             ))}
           </div>
         </div>
       ) : (
-        <div style={{ padding: '1.5rem' }}>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 1.25rem' }}>YOUR RECOMMENDED SETTINGS</p>
+        <div className="p-6">
+          <p className="font-mono text-xs tracking-normal opacity-35 mb-5">YOUR RECOMMENDED SETTINGS</p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1px', background: 'rgba(0,0,0,0.1)', border: '1px solid rgba(0,0,0,0.1)', marginBottom: '1rem' }}>
+          <div className="grid gap-px mb-4 border border-black/10"
+            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', background: 'rgba(0,0,0,0.1)' }}
+          >
             {[
               { label: 'SENSITIVITY H', value: String(result.sensitivityH) },
               { label: 'SENSITIVITY V', value: String(result.sensitivityV) },
               { label: 'AIM ASSIST TYPE', value: result.aimAssist },
               { label: 'RESPONSE CURVE', value: result.responseCurve },
             ].map((item) => (
-              <div key={item.label} style={{ background: 'rgba(245,245,240,0.9)', padding: '1rem 1.1rem' }}>
-                <div style={{ fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.18em', opacity: 0.35, marginBottom: '0.4rem' }}>{item.label}</div>
-                <div style={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 700, color: 'blue', letterSpacing: '0.05em' }}>{item.value}</div>
+              <div key={item.label} className="px-[1.1rem] py-4"
+                style={{ background: 'rgba(245,245,240,0.9)' }}
+              >
+                <div className="font-mono text-xs tracking-normal opacity-35 mb-1.5">{item.label}</div>
+                <div className="font-mono text-lg font-bold tracking-normal" style={{ color: 'blue' }}>{item.value}</div>
               </div>
             ))}
           </div>
 
-          <p style={{ fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.5rem' }}>DEAD ZONES</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1px', background: 'rgba(0,0,0,0.1)', border: '1px solid rgba(0,0,0,0.1)', marginBottom: '1.25rem' }}>
+          <p className="font-mono text-xs tracking-normal opacity-35 mb-2">DEAD ZONES</p>
+          <div className="grid gap-px mb-5 border border-black/10"
+            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', background: 'rgba(0,0,0,0.1)' }}
+          >
             {[
               { label: 'LEFT STICK MIN', value: String(result.leftStickMin) },
               { label: 'LEFT STICK MAX', value: String(result.leftStickMax) },
@@ -241,19 +247,19 @@ export default function SettingsCalculator() {
               { label: 'TRIGGER LEFT', value: String(result.triggerLeft) },
               { label: 'TRIGGER RIGHT', value: String(result.triggerRight) },
             ].map((item) => (
-              <div key={item.label} style={{ background: 'rgba(245,245,240,0.9)', padding: '1rem 1.1rem' }}>
-                <div style={{ fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.18em', opacity: 0.35, marginBottom: '0.4rem' }}>{item.label}</div>
-                <div style={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 700, color: 'blue', letterSpacing: '0.05em' }}>{item.value}</div>
+              <div key={item.label} className="px-[1.1rem] py-4"
+                style={{ background: 'rgba(245,245,240,0.9)' }}
+              >
+                <div className="font-mono text-xs tracking-normal opacity-35 mb-1.5">{item.label}</div>
+                <div className="font-mono text-lg font-bold tracking-normal" style={{ color: 'blue' }}>{item.value}</div>
               </div>
             ))}
           </div>
 
-          <p style={{ fontFamily: 'monospace', fontSize: '0.68rem', lineHeight: 1.75, opacity: 0.55, margin: '0 0 1.25rem' }}>
-            {result.note}
-          </p>
+          <p className="font-mono text-xs leading-relaxed opacity-55 mb-5">{result.note}</p>
 
-          <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '1rem' }}>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', lineHeight: 1.8, opacity: 0.4, margin: 0 }}>
+          <div className="border-t border-black/8 pt-4">
+            <p className="font-mono text-xs leading-relaxed opacity-40">
               These settings are a starting point — not a final answer. Every player&apos;s hands, hardware, and muscle memory are different. Apply these values, play 10 full sessions, then fine-tune based on what you actually feel in gunfights. This calculator is designed as a calibrated baseline for players who do not know where to start — experienced players should treat it as a reference and adjust from there.
             </p>
           </div>

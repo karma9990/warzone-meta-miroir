@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useRef, useState } from 'react';
+import { GENERATED_PAGE_PACKS } from '@/lib/pageCopy';
+import { useCurrentLocale } from '@/lib/useCurrentLocale';
 
 interface Shot { x: number; y: number; }
 
@@ -58,16 +60,34 @@ const ORIGIN_X = W / 2;
 const ORIGIN_Y = H - 40;
 
 export default function RecoilVisualizer() {
+  const locale = useCurrentLocale();
+  const pack = GENERATED_PAGE_PACKS[locale];
+  const copy = {
+    exclusive: locale === 'es' ? 'HERRAMIENTA EXCLUSIVA' : locale === 'fr' ? 'OUTIL EXCLUSIF' : pack ? pack.preview.toUpperCase() : 'EXCLUSIVE TOOL',
+    title: locale === 'es' ? 'VISUALIZADOR DE PATRON DE RETROCESO' : locale === 'fr' ? 'VISUALISEUR DE RECUL' : pack ? `${pack.result.toUpperCase()} RECOIL` : 'RECOIL PATTERN VISUALIZER',
+    selectWeapon: locale === 'es' ? 'SELECCIONA ARMA' : locale === 'fr' ? 'CHOISIR UNE ARME' : pack ? pack.tools.toUpperCase() : 'SELECT WEAPON',
+    impactMap: locale === 'es' ? 'MAPA DE IMPACTOS' : locale === 'fr' ? 'CARTE DES IMPACTS' : pack ? `${pack.result.toUpperCase()} MAP` : 'BULLET IMPACT MAP',
+    fire: locale === 'es' ? 'DISPARAR' : locale === 'fr' ? 'TIRER' : pack ? pack.get.toUpperCase() : 'FIRE',
+    firing: locale === 'es' ? 'DISPARANDO...' : locale === 'fr' ? 'TIR EN COURS...' : pack?.opening ?? 'FIRING...',
+    replay: locale === 'es' ? 'REPETIR' : locale === 'fr' ? 'REJOUER' : pack ? pack.openPreview.toUpperCase() : 'REPLAY',
+    reset: locale === 'es' ? 'REINICIAR' : locale === 'fr' ? 'RESET' : pack ? pack.get.toUpperCase() : 'RESET',
+    guide: locale === 'es' ? 'GUIA DE COMPENSACION' : locale === 'fr' ? 'GUIDE DE COMPENSATION' : pack ? `${pack.result.toUpperCase()} GUIDE` : 'COUNTER-PULL GUIDE',
+    howToRead: locale === 'es' ? 'COMO LEER' : locale === 'fr' ? 'COMMENT LIRE' : pack ? pack.openPreview.toUpperCase() : 'HOW TO READ',
+    rounds: locale === 'es' ? 'balas' : locale === 'fr' ? 'balles' : 'rounds',
+  };
   const [weaponId, setWeaponId] = useState('ds20');
   const [visibleShots, setVisibleShots] = useState(0);
   const [running, setRunning] = useState(false);
   const rafRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const weapon = WEAPONS[weaponId];
-
-  useEffect(() => {
-    return () => { if (rafRef.current) clearTimeout(rafRef.current); };
-  }, []);
+  const counterDesc = locale === 'es'
+    ? `${weapon.label} tiene un patron de retroceso repetible. Compensa en la direccion opuesta al desplazamiento y manten una ligera presion hacia abajo para controlar la subida vertical. Practica rafagas cortas hasta que la correccion sea automatica.`
+    : locale === 'fr'
+      ? `${weapon.label} a un schema de recul repetable. Compense dans la direction opposee au deplacement et garde une legere pression vers le bas pour controler la montee verticale. Travaille par courtes rafales jusqu a automatiser la correction.`
+      : pack
+        ? `${weapon.label}: ${pack.heroLead}`
+        : weapon.counterDesc;
 
   function startAnimation() {
     setVisibleShots(0);
@@ -107,26 +127,23 @@ export default function RecoilVisualizer() {
   }
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.15)', background: 'rgba(0,0,0,0.02)', marginBottom: '3rem' }}>
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4 }}>EXCLUSIVE TOOL</span>
-        <h2 style={{ fontFamily: 'monospace', fontSize: '0.95rem', letterSpacing: '0.1em', margin: '0.25rem 0 0' }}>RECOIL PATTERN VISUALIZER</h2>
+    <div className="border border-black/15 bg-black/2 mb-12">
+      <div className="px-6 py-4 border-b border-black/10">
+        <span className="font-mono text-xs tracking-normal opacity-40">{copy.exclusive}</span>
+        <h2 className="font-mono text-sm tracking-normal mt-1">{copy.title}</h2>
       </div>
 
-      <div style={{ padding: '1.5rem' }}>
-        <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.5rem' }}>SELECT WEAPON</p>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+      <div className="p-6">
+        <p className="font-mono text-xs tracking-normal opacity-35 mb-2">{copy.selectWeapon}</p>
+        <div className="flex gap-2 mb-6 flex-wrap">
           {Object.entries(WEAPONS).map(([id, w]) => (
-            <button
-              key={id}
-              onClick={() => changeWeapon(id)}
+            <button type="button" key={id} onClick={() => changeWeapon(id)}
+              className="font-mono text-xs tracking-normal cursor-pointer transition-all duration-150"
               style={{
-                fontFamily: 'monospace', fontSize: '0.65rem', letterSpacing: '0.08em',
                 padding: '0.55rem 1rem',
                 border: `1px solid ${weaponId === id ? 'blue' : 'rgba(0,0,0,0.15)'}`,
                 background: weaponId === id ? 'blue' : 'transparent',
                 color: weaponId === id ? 'white' : 'inherit',
-                cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
               {w.label}
@@ -134,10 +151,10 @@ export default function RecoilVisualizer() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          <div style={{ flex: '0 0 auto' }}>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.5rem' }}>BULLET IMPACT MAP</p>
-            <svg width={W} height={H} style={{ display: 'block', background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex gap-8 flex-wrap items-start">
+          <div className="shrink-0">
+            <p className="font-mono text-xs tracking-normal opacity-35 mb-2">{copy.impactMap}</p>
+            <svg width={W} height={H} className="block bg-black/85" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
               {/* Crosshair origin */}
               <line x1={ORIGIN_X - 10} y1={ORIGIN_Y} x2={ORIGIN_X + 10} y2={ORIGIN_Y} stroke="rgba(255,255,255,0.3)" strokeWidth={1} />
               <line x1={ORIGIN_X} y1={ORIGIN_Y - 10} x2={ORIGIN_X} y2={ORIGIN_Y + 10} stroke="rgba(255,255,255,0.3)" strokeWidth={1} />
@@ -163,56 +180,49 @@ export default function RecoilVisualizer() {
               {/* Shot number label */}
               {visibleShots > 0 && (
                 <text x={8} y={16} fill="rgba(255,255,255,0.3)" fontSize={9} fontFamily="monospace">
-                  {visibleShots}/{weapon.shots.length} rounds
+                  {visibleShots}/{weapon.shots.length} {copy.rounds}
                 </text>
               )}
             </svg>
 
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-              <button
-                onClick={startAnimation}
-                disabled={running}
+            <div className="flex gap-2 mt-3">
+              <button type="button" onClick={startAnimation} disabled={running}
+                className="font-mono text-xs tracking-normal border-none cursor-pointer"
                 style={{
-                  flex: 1, fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.1em',
-                  padding: '0.6rem', background: running ? 'rgba(0,0,0,0.1)' : 'blue',
-                  color: running ? 'inherit' : 'white', border: 'none',
-                  cursor: running ? 'not-allowed' : 'pointer', opacity: running ? 0.4 : 1,
+                  flex: 1, padding: '0.6rem',
+                  background: running ? 'rgba(0,0,0,0.1)' : 'blue',
+                  color: running ? 'inherit' : 'white',
+                  opacity: running ? 0.4 : 1,
                 }}
               >
-                {running ? 'FIRING…' : visibleShots > 0 ? 'REPLAY' : 'FIRE'}
+                {running ? copy.firing : visibleShots > 0 ? copy.replay : copy.fire}
               </button>
               {visibleShots > 0 && !running && (
-                <button
-                  onClick={reset}
-                  style={{
-                    fontFamily: 'monospace', fontSize: '0.62rem', letterSpacing: '0.1em',
-                    padding: '0.6rem 1rem', background: 'transparent',
-                    border: '1px solid rgba(0,0,0,0.15)', cursor: 'pointer',
-                  }}
+                <button type="button" onClick={reset}
+                  className="font-mono text-xs tracking-normal bg-transparent border border-black/15 cursor-pointer"
+                  style={{ padding: '0.6rem 1rem' }}
                 >
-                  RESET
+                  {copy.reset}
                 </button>
               )}
             </div>
           </div>
 
-          <div style={{ flex: 1, minWidth: '180px' }}>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.75rem' }}>COUNTER-PULL GUIDE</p>
-            <p style={{ fontFamily: 'monospace', fontSize: '0.72rem', lineHeight: 1.85, opacity: 0.65, margin: '0 0 1.25rem' }}>
-              {weapon.counterDesc}
-            </p>
+          <div className="flex-1 min-w-[180px]">
+            <p className="font-mono text-xs tracking-normal opacity-35 mb-3">{copy.guide}</p>
+            <p className="font-mono text-xs leading-relaxed opacity-65 mb-5">{counterDesc}</p>
 
-            <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '0.75rem' }}>
-              <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', letterSpacing: '0.18em', opacity: 0.35, margin: '0 0 0.4rem' }}>HOW TO READ</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <div className="border-t border-black/8 pt-3">
+              <p className="font-mono text-xs tracking-normal opacity-35 mb-1.5">{copy.howToRead}</p>
+              <div className="flex flex-col gap-1">
                 {[
                   { color: 'rgba(255,200,100,1)', label: 'First shots — less recoil' },
                   { color: '#ff4444', label: 'Last shot fired' },
                   { color: 'rgba(0,100,255,0.6)', label: 'Bullet path trajectory' },
                 ].map(item => (
-                  <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', opacity: 0.5 }}>{item.label}</span>
+                  <div key={item.label} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: item.color }} />
+                    <span className="font-mono text-xs opacity-50">{item.label}</span>
                   </div>
                 ))}
               </div>

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { hasUpstash, upstashCommand, upstashPipeline } from './upstash';
 import type { ProToolId } from '@/lib/toolAccess';
 
 const ENTITLEMENTS_FILE = path.join(process.cwd(), 'data', 'entitlements.json');
@@ -14,46 +15,6 @@ export type EntitlementRecord = {
   tools: ProToolId[];
   updatedAt: string;
 };
-
-function hasUpstash() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-}
-
-async function upstash(command: unknown[]) {
-  const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify([command]),
-  });
-
-  if (!res.ok) {
-    throw new Error('Entitlement storage request failed.');
-  }
-
-  const data = await res.json() as Array<{ result: unknown }>;
-  return data[0]?.result;
-}
-
-async function upstashPipeline(commands: unknown[][]) {
-  const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(commands),
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    throw new Error('Entitlement storage request failed.');
-  }
-
-  return await res.json() as Array<{ result: unknown }>;
-}
 
 function readLocalEntitlements(): EntitlementRecord[] {
   if (process.env.NODE_ENV === 'production') {
@@ -194,7 +155,7 @@ export async function consumeClaimToken(jti: string) {
 
   if (hasUpstash()) {
     const key = `${CLAIM_KEY_PREFIX}${jti}`;
-    return await upstash(['SET', key, '1', 'EX', 60 * 60 * 24 * 370, 'NX']) === 'OK';
+    return await upstashCommand(['SET', key, '1', 'EX', 60 * 60 * 24 * 370, 'NX']) === 'OK';
   }
 
   const ids = readLocalClaimIds();

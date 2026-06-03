@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { hasUpstash, upstashCommand } from './upstash';
 
 const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
 const USERS_KEY_PREFIX = 'wz:user:email:';
@@ -13,28 +14,6 @@ export type StoredUser = {
   createdAt: string;
   emailVerifiedAt?: string;
 };
-
-function hasUpstash() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-}
-
-async function upstash(command: unknown[]) {
-  const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify([command]),
-  });
-
-  if (!res.ok) {
-    throw new Error('Account storage request failed.');
-  }
-
-  const data = await res.json() as Array<{ result: unknown }>;
-  return data[0]?.result;
-}
 
 function readLocalUsers(): StoredUser[] {
   if (process.env.NODE_ENV === 'production') {
@@ -56,7 +35,7 @@ function writeLocalUsers(users: StoredUser[]) {
 
 export async function getUserByEmail(email: string): Promise<StoredUser | null> {
   if (hasUpstash()) {
-    const value = await upstash(['GET', `${USERS_KEY_PREFIX}${email}`]);
+    const value = await upstashCommand(['GET', `${USERS_KEY_PREFIX}${email}`]);
     return typeof value === 'string' ? JSON.parse(value) as StoredUser : null;
   }
 
@@ -65,7 +44,7 @@ export async function getUserByEmail(email: string): Promise<StoredUser | null> 
 
 export async function saveUser(user: StoredUser) {
   if (hasUpstash()) {
-    await upstash(['SET', `${USERS_KEY_PREFIX}${user.email}`, JSON.stringify(user)]);
+    await upstashCommand(['SET', `${USERS_KEY_PREFIX}${user.email}`, JSON.stringify(user)]);
     return;
   }
 

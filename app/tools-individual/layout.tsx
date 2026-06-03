@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Outils Warzone individuels - Aim, Meta, Movement | WZPRO Meta',
-  description: 'Choisis un outil Warzone precis: Aim Tools, Next Meta, Pro Movement, Pro Spawn, Pro Opti ou How To Be A Pro.',
+  title: 'Individual Warzone Tools - Aim, Meta, Movement | WZPRO Meta',
+  description: 'Choose a focused Warzone tool: Aim Tools, Next Meta, Pro Movement, Pro Spawn, Pro Opti or How To Be A Pro.',
 };
 
 export default function ToolsIndividualLayout({ children }: { children: React.ReactNode }) {

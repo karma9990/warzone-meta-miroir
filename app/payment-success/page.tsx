@@ -1,5 +1,11 @@
-import Link from 'next/link';
-import PaddleClaimForm from '@/components/PaddleClaimForm';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Payment Successful | WZPRO Meta',
+  description: 'Confirm your WZPRO Meta purchase and claim access to your Warzone pro tools.',
+};
+import LocalizedLink from '@/components/LocalizedLink';
+import PolarClaimForm from '@/components/PolarClaimForm';
 
 export default function PaymentSuccessPage() {
   return (
@@ -10,7 +16,7 @@ export default function PaymentSuccessPage() {
         <h1 className="ps-title">ACCESS GRANTED</h1>
         <p className="ps-desc">
           Your payment was successful. Access stays active while the subscription is active.
-          Sign in with the purchase email, or open access with the Paddle transaction ID.
+          Sign in with the purchase email, or open access with the Polar checkout ID.
         </p>
 
         <div className="ps-divider" />
@@ -22,7 +28,7 @@ export default function PaymentSuccessPage() {
           </div>
           <div className="ps-step">
             <span className="ps-step-num">02</span>
-            <p className="ps-step-text">Paste the Paddle transaction ID if access did not open automatically</p>
+            <p className="ps-step-text">Paste the Polar checkout ID if access did not open automatically</p>
           </div>
           <div className="ps-step">
             <span className="ps-step-num">03</span>
@@ -30,11 +36,11 @@ export default function PaymentSuccessPage() {
           </div>
         </div>
 
-        <PaddleClaimForm />
+        <PolarClaimForm />
 
         <div className="ps-actions">
-          <Link href="/pro-tools" className="ps-btn ps-btn--ghost">Back to Pro Tools</Link>
-          <Link href="/" className="ps-btn ps-btn--ghost">Home</Link>
+          <LocalizedLink href="/pro-tools" className="ps-btn ps-btn--ghost">Back to Pro Tools</LocalizedLink>
+          <LocalizedLink href="/" className="ps-btn ps-btn--ghost">Home</LocalizedLink>
         </div>
       </main>
 

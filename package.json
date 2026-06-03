@@ -9,10 +9,12 @@
     "deploy": "npx.cmd vercel@latest --prod",
     "deploy:preview": "npx.cmd vercel@latest",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "test:paddle-webhook": "node scripts/test-paddle-webhook.mjs"
+    "test": "node --no-warnings --experimental-strip-types --test tests/*.test.mjs && node scripts/audit-assets.mjs",
+    "audit:assets": "node scripts/audit-assets.mjs",
+    "setup:polar": "node scripts/setup-polar.mjs"
   },
   "dependencies": {
+    "@polar-sh/sdk": "^0.47.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.1",
     "bcryptjs": "^3.0.3",

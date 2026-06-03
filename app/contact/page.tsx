@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Contact Support | WZPRO Meta',
+  description: 'Contact WZPRO Meta for support, billing questions, access issues and legal notices.',
+};
 import LegalPage from '@/components/LegalPage';
 import ContactForm from '@/components/ContactForm';
 import { LEGAL, SUPPORT_EMAIL } from '@/lib/siteConfig';
@@ -35,7 +41,7 @@ export default async function ContactPage() {
         },
         {
           title: 'Payment Support',
-          body: <p>If the issue is about a Paddle transaction, include the Paddle receipt or transaction email so we can identify the purchase faster.</p>,
+          body: <p>If the issue is about a Polar transaction, include the Polar receipt or transaction email so we can identify the purchase faster.</p>,
         },
         {
           title: 'Consumer Mediation',

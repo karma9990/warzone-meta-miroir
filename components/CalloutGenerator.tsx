@@ -203,58 +203,80 @@ export default function CalloutGenerator() {
   };
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>COMMUNICATION</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>CALLOUT GENERATOR</div>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">COMMUNICATION</div>
+        <div className="text-base font-bold tracking-normal">CALLOUT GENERATOR</div>
       </div>
 
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.1)', alignItems: 'center' }}>
+      <div className="flex border-b border-black/10 items-center">
         {(['rebirth', 'haven'] as MapId[]).map(m => (
-          <button key={m} onClick={() => { setMap(m); setExpanded(null); setSearch(''); }} style={{
-            padding: '0.75rem 1.5rem', border: 'none',
-            borderBottom: map === m ? '2px solid currentColor' : '2px solid transparent',
-            background: 'transparent', color: map === m ? 'inherit' : 'rgba(0,0,0,0.35)',
-            fontSize: '0.6rem', letterSpacing: '0.15em', cursor: 'pointer', fontFamily: 'monospace', fontWeight: map === m ? 700 : 400,
-          }}>{MAPS[m].label.toUpperCase()}</button>
+          <button type="button" key={m} onClick={() => { setMap(m); setExpanded(null); setSearch(''); }}
+            className="font-mono text-xs tracking-normal cursor-pointer bg-transparent border-none"
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderBottom: map === m ? '2px solid currentColor' : '2px solid transparent',
+              color: map === m ? 'inherit' : 'rgba(0,0,0,0.35)',
+              fontWeight: map === m ? 700 : 400,
+            }}
+          >{MAPS[m].label.toUpperCase()}</button>
         ))}
-        <div style={{ marginLeft: 'auto', padding: '0 1rem' }}>
-          <input
-            value={search} onChange={e => setSearch(e.target.value)} placeholder="Search zone..."
-            style={{ fontFamily: 'monospace', fontSize: '0.6rem', padding: '5px 8px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', width: '140px' }}
+        <div className="ml-auto px-4">
+          <input aria-label="Input" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search zone..."
+            className="font-mono text-xs px-2 py-1 border border-black/15 rounded-sm bg-transparent w-[140px]"
           />
         </div>
       </div>
 
       <div>
         {filtered.map((c, i) => (
-          <div key={c.zone} style={{ borderBottom: i < filtered.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none' }}>
-            <div
+          <div key={c.zone} className="border-b border-black/6 last:border-none">
+            <div role="button" tabIndex={0}
               onClick={() => setExpanded(expanded === c.zone ? null : c.zone)}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 1.5rem', cursor: 'pointer', userSelect: 'none' }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setExpanded(expanded === c.zone ? null : c.zone);
+                }
+              }}
+              className="flex justify-between items-center px-6 cursor-pointer select-none"
+              style={{ paddingTop: '0.85rem', paddingBottom: '0.85rem' }}
             >
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em' }}>{c.zone}</span>
-                <span style={{ fontSize: '0.5rem', letterSpacing: '0.15em', padding: '2px 6px', border: '1px solid rgba(0,0,0,0.12)', borderRadius: '2px', opacity: 0.5 }}>{c.callout}</span>
+              <div className="flex gap-4 items-center">
+                <span className="text-xs font-bold tracking-normal">{c.zone}</span>
+                <span className="text-xs tracking-normal px-1.5 py-0.5 border border-black/12 rounded-sm opacity-50">{c.callout}</span>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <button
-                  onClick={e => { e.stopPropagation(); copy(c.callout, c.zone); }}
-                  style={{ padding: '3px 8px', border: '1px solid rgba(0,0,0,0.12)', borderRadius: '2px', background: copied === c.zone ? 'rgba(0,255,136,0.1)' : 'transparent', fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'monospace', color: copied === c.zone ? '#00ff88' : 'inherit' }}
+              <div className="flex gap-2 items-center">
+                <button type="button" onClick={e => { e.stopPropagation(); copy(c.callout, c.zone); }}
+                  className="font-mono text-xs cursor-pointer rounded-sm"
+                  style={{
+                    padding: '3px 8px',
+                    border: '1px solid rgba(0,0,0,0.12)',
+                    background: copied === c.zone ? 'rgba(0,255,136,0.1)' : 'transparent',
+                    color: copied === c.zone ? '#00ff88' : 'inherit',
+                  }}
                 >
                   {copied === c.zone ? 'COPIED' : 'COPY'}
                 </button>
-                <span style={{ fontSize: '0.5rem', opacity: 0.3 }}>{expanded === c.zone ? '▲' : '▼'}</span>
+                <span className="text-xs opacity-30">{expanded === c.zone ? '▲' : '▼'}</span>
               </div>
             </div>
             {expanded === c.zone && (
-              <div style={{ padding: '0 1.5rem 0.9rem', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem' }}>
+              <div className="px-6 pb-[0.9rem] grid grid-cols-2 gap-1">
                 {c.sub.map(s => (
-                  <div key={s.spot} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 8px', background: 'rgba(0,0,0,0.03)', borderRadius: '2px' }}>
-                    <span style={{ fontSize: '0.55rem', opacity: 0.6 }}>{s.spot}</span>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.06em' }}>{s.call}</span>
-                      <button onClick={() => copy(s.call, s.call)} style={{ padding: '2px 6px', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '2px', background: copied === s.call ? 'rgba(0,255,136,0.1)' : 'transparent', fontSize: '0.45rem', cursor: 'pointer', fontFamily: 'monospace', color: copied === s.call ? '#00ff88' : 'inherit' }}>
+                  <div key={s.spot} className="flex justify-between items-center px-2 py-1 bg-black/3 rounded-sm">
+                    <span className="text-xs opacity-60">{s.spot}</span>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs font-bold tracking-normal">{s.call}</span>
+                      <button type="button" onClick={() => copy(s.call, s.call)}
+                        className="font-mono text-xs cursor-pointer rounded-sm"
+                        style={{
+                          padding: '2px 6px',
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          background: copied === s.call ? 'rgba(0,255,136,0.1)' : 'transparent',
+                          color: copied === s.call ? '#00ff88' : 'inherit',
+                        }}
+                      >
                         {copied === s.call ? '✓' : 'COPY'}
                       </button>
                     </div>
@@ -266,7 +288,7 @@ export default function CalloutGenerator() {
         ))}
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         STANDARDIZED CALLOUTS FOR COMPETITIVE COMMUNICATION — SHARE WITH YOUR SQUAD
       </div>
     </div>

@@ -4,9 +4,11 @@ import { join } from 'node:path';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const scriptPath = join(process.cwd(), 'gaming-optimizer.ps1');
+const scriptPromise = readFile(scriptPath, 'utf8');
+
 export async function GET() {
-  const scriptPath = join(process.cwd(), 'gaming-optimizer.ps1');
-  const script = await readFile(scriptPath, 'utf8');
+  const script = await scriptPromise;
 
   return new Response(script, {
     headers: {

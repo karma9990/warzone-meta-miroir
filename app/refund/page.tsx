@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Refund Policy | WZPRO Meta',
+  description: 'Read the WZPRO Meta refund policy for digital products and subscription access.',
+};
 import LegalPage from '@/components/LegalPage';
 import { SUPPORT_EMAIL } from '@/lib/siteConfig';
 
@@ -37,7 +43,7 @@ export default function RefundPage() {
         },
         {
           title: '7. Contact',
-          body: <p>Refund requests can be sent to {supportEmail}. Paddle may also assist with payment-related refund handling where it acts as Merchant of Record.</p>,
+          body: <p>Refund requests can be sent to {supportEmail}. Polar may also assist with payment-related refund handling where it acts as Merchant of Record.</p>,
         },
       ]}
     />

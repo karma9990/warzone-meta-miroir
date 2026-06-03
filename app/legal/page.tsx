@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Legal Notice | WZPRO Meta',
+  description: 'Read WZPRO Meta legal notice, publisher information and contact details.',
+};
 import LegalPage from '@/components/LegalPage';
 import { LEGAL, SUPPORT_EMAIL } from '@/lib/siteConfig';
 
@@ -40,7 +46,7 @@ export default function LegalNoticePage() {
         },
         {
           title: '6. Intellectual Property and Third-Party Marks',
-          body: <p>WZPRO Meta is independent and is not affiliated with Activision, Call of Duty, Warzone, Microsoft, NVIDIA, AMD, Intel, Paddle or other third parties mentioned on the site. Third-party names remain the property of their respective owners.</p>,
+          body: <p>WZPRO Meta is independent and is not affiliated with Activision, Call of Duty, Warzone, Microsoft, NVIDIA, AMD, Intel, Polar or other third parties mentioned on the site. Third-party names remain the property of their respective owners.</p>,
         },
       ]}
     />

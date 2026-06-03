@@ -16,14 +16,13 @@ export async function POST(
   const parsed = await readJsonBody<{ delta?: unknown }>(req);
   if ('error' in parsed) return parsed.error;
 
-  const { postId } = await params;
-  const user = await getUserSession();
+  const [{ postId }, user] = await Promise.all([params, getUserSession()]);
   if (!user) {
     return NextResponse.json({ error: 'Sign in required.' }, { status: 401 });
   }
 
   const delta = typeof parsed.data.delta === 'number' ? parsed.data.delta : 1;
-  const result = await voteCommunityPost(postId, delta);
+  const result = await voteCommunityPost(postId, delta, user.sub);
 
   if ('error' in result) {
     return NextResponse.json({ error: result.error }, { status: 404 });

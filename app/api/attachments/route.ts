@@ -4,10 +4,11 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-static';
 
+const attachmentsFile = path.join(process.cwd(), 'scripts', 'attachments-slots.json');
+const attachmentsData = JSON.parse(fs.readFileSync(attachmentsFile, 'utf-8'));
+
 export async function GET() {
-  const file = path.join(process.cwd(), 'scripts', 'attachments-slots.json');
-  const data = JSON.parse(fs.readFileSync(file, 'utf-8'));
-  return NextResponse.json(data, {
+  return NextResponse.json(attachmentsData, {
     headers: { 'Cache-Control': 'public, max-age=86400' },
   });
 }

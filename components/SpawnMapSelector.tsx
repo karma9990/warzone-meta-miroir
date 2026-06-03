@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 type MapId = 'rebirth' | 'haven';
@@ -46,8 +47,7 @@ const DIFF_COLOR = {
 };
 
 function scrollTo(id: string) {
-  const titleId = `rebirth-${id}` in document.getElementById ? id : id;
-  const el = document.getElementById(titleId);
+  const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -61,22 +61,24 @@ export default function SpawnMapSelector() {
     : '/assets/tools/pro-movement/map-haven.jpg';
 
   return (
-    <div style={{ marginBottom: '2.5rem', border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', overflow: 'hidden' }}>
+    <div className="mb-10 border border-black/12 rounded overflow-hidden">
       {/* Header */}
-      <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="px-6 py-4 border-b border-black/10 bg-black/2 flex justify-between items-center">
         <div>
-          <div style={{ fontFamily: 'monospace', fontSize: '0.45rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.2rem' }}>INTERACTIVE MAP</div>
-          <div style={{ fontFamily: 'monospace', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.08em' }}>CLICK A POI TO JUMP TO ITS SECTION</div>
+          <div className="font-mono text-xs tracking-normal opacity-40 mb-0.5">INTERACTIVE MAP</div>
+          <div className="font-mono text-sm font-bold tracking-normal">CLICK A POI TO JUMP TO ITS SECTION</div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="flex gap-2">
           {(['rebirth', 'haven'] as MapId[]).map(m => (
-            <button key={m} onClick={() => setMap(m)} style={{
-              fontFamily: 'monospace', fontSize: '0.5rem', letterSpacing: '0.12em',
-              padding: '5px 14px', borderRadius: '2px', cursor: 'pointer',
-              border: `1px solid ${map === m ? '#00ff88' : 'rgba(0,0,0,0.2)'}`,
-              background: map === m ? 'rgba(0,255,136,0.08)' : 'transparent',
-              color: map === m ? '#00ff88' : 'rgba(0,0,0,0.5)',
-            }}>
+            <button type="button" key={m} onClick={() => setMap(m)}
+              className="font-mono text-xs tracking-normal cursor-pointer rounded-sm"
+              style={{
+                padding: '5px 14px',
+                border: `1px solid ${map === m ? '#00ff88' : 'rgba(0,0,0,0.2)'}`,
+                background: map === m ? 'rgba(0,255,136,0.08)' : 'transparent',
+                color: map === m ? '#00ff88' : 'rgba(0,0,0,0.5)',
+              }}
+            >
               {m === 'rebirth' ? 'REBIRTH' : 'HAVEN'}
             </button>
           ))}
@@ -84,11 +86,11 @@ export default function SpawnMapSelector() {
       </div>
 
       {/* Legend */}
-      <div style={{ padding: '0.6rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', gap: '1.5rem' }}>
+      <div className="px-6 py-2.5 border-b border-black/6 flex gap-6">
         {(['hot', 'medium', 'quiet'] as const).map(d => (
-          <div key={d} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: DIFF_COLOR[d] }} />
-            <span style={{ fontFamily: 'monospace', fontSize: '0.42rem', letterSpacing: '0.12em', opacity: 0.5 }}>
+          <div key={d} className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ background: DIFF_COLOR[d] }} />
+            <span className="font-mono text-xs tracking-normal opacity-50">
               {d === 'hot' ? 'HOT DROP' : d === 'medium' ? 'MEDIUM' : 'QUIET'}
             </span>
           </div>
@@ -96,53 +98,35 @@ export default function SpawnMapSelector() {
       </div>
 
       {/* Map */}
-      <div style={{ position: 'relative', width: '100%' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={mapSrc} alt={map} style={{ width: '100%', height: 'auto', display: 'block' }} />
+      <div className="relative w-full">
+        <Image src={mapSrc} alt={map} width={1000} height={700} className="w-full h-auto block" />
 
         {pois.map(poi => (
-          <button
-            key={poi.id}
-            onClick={() => scrollTo(poi.id)}
+          <button type="button" key={poi.id} onClick={() => scrollTo(poi.id)}
             onMouseEnter={() => setHovered(poi.id)}
             onMouseLeave={() => setHovered(null)}
+            className="absolute bg-transparent border-none p-0 cursor-pointer"
             style={{
-              position: 'absolute',
-              left: `${poi.x}%`,
-              top: `${poi.y}%`,
-              transform: 'translate(-50%, -50%)',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              zIndex: 10,
+              left: `${poi.x}%`, top: `${poi.y}%`,
+              transform: 'translate(-50%, -50%)', zIndex: 10,
             }}
           >
-            <div style={{
-              width: hovered === poi.id ? 14 : 10,
-              height: hovered === poi.id ? 14 : 10,
-              borderRadius: '50%',
-              background: DIFF_COLOR[poi.difficulty],
-              border: `2px solid rgba(0,0,0,0.5)`,
-              boxShadow: `0 0 6px ${DIFF_COLOR[poi.difficulty]}`,
-              transition: 'all 0.15s',
-            }} />
+            <div className="rounded-full transition-all duration-150"
+              style={{
+                width: hovered === poi.id ? 14 : 10,
+                height: hovered === poi.id ? 14 : 10,
+                background: DIFF_COLOR[poi.difficulty],
+                border: '2px solid rgba(0,0,0,0.5)',
+                boxShadow: `0 0 6px ${DIFF_COLOR[poi.difficulty]}`,
+              }}
+            />
             {hovered === poi.id && (
-              <div style={{
-                position: 'absolute',
-                bottom: '120%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: 'rgba(0,0,0,0.85)',
-                color: '#fff',
-                fontFamily: 'monospace',
-                fontSize: '0.5rem',
-                letterSpacing: '0.1em',
-                padding: '3px 8px',
-                borderRadius: '2px',
-                whiteSpace: 'nowrap',
-                pointerEvents: 'none',
-              }}>
+              <div className="absolute font-mono text-xs tracking-normal whitespace-nowrap px-2 py-[3px] rounded-sm pointer-events-none"
+                style={{
+                  bottom: '120%', left: '50%', transform: 'translateX(-50%)',
+                  background: 'rgba(0,0,0,0.85)', color: '#fff',
+                }}
+              >
                 {poi.label}
               </div>
             )}

@@ -4,7 +4,7 @@ import { isAuthenticated } from '@/lib/auth';
 import { readJsonBody } from '@/lib/security';
 
 export async function GET() {
-  const loadouts = getLoadouts();
+  const loadouts = await getLoadouts();
   return NextResponse.json(loadouts);
 }
 
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   const parsed = await readJsonBody(req);
   if ('error' in parsed) return parsed.error;
   const body = parsed.data;
-  const loadouts = getLoadouts();
+  const loadouts = await getLoadouts();
   const result = buildLoadoutFromInput(body);
 
   if ('error' in result) {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   };
 
   loadouts.push(newLoadout);
-  saveLoadouts(loadouts);
+  await saveLoadouts(loadouts);
 
   return NextResponse.json(newLoadout, { status: 201 });
 }

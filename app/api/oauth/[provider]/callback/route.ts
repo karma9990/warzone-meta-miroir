@@ -51,6 +51,28 @@ function signInError(req: NextRequest, error: string) {
   return NextResponse.redirect(new URL(`/sign-in?error=${encodeURIComponent(error)}`, req.url));
 }
 
+function safeNextPath(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+    return '/';
+  }
+
+  return value;
+}
+
+function appendSignedIn(path: string) {
+  return `${path}${path.includes('?') ? '&' : '?'}signed_in=1`;
+}
+
+function decodeNextPath(encoded: string | undefined) {
+  if (!encoded) return '/';
+
+  try {
+    return safeNextPath(Buffer.from(encoded, 'base64url').toString('utf8'));
+  } catch {
+    return '/';
+  }
+}
+
 async function exchangeCode(
   req: NextRequest,
   provider: OAuthProvider,
@@ -82,6 +104,7 @@ async function exchangeCode(
     method: 'POST',
     headers,
     body,
+    cache: 'no-store',
   });
 
   return tokenRes.json();
@@ -148,6 +171,7 @@ async function getProfile(provider: OAuthProvider, accessToken: string): Promise
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+    cache: 'no-store',
   });
 
   if (!profileRes.ok) {
@@ -207,7 +231,9 @@ async function handleCallback(
   ) {
     return signInError(req, 'state');
   }
-  const intent = state.split('.')[1] === 'signup' ? 'signup' : 'signin';
+  const stateParts = state.split('.');
+  const intent = stateParts[1] === 'signup' ? 'signup' : 'signin';
+  const nextPath = decodeNextPath(stateParts[2]);
 
   let token: TokenResponse;
   try {
@@ -223,10 +249,10 @@ async function handleCallback(
     const user = provider === 'apple' && idToken
       ? await getAppleProfile(idToken, postedUser)
       : await getProfile(provider, token.access_token);
-    const { isNew } = await recordOAuthSignIn(user);
-    if ((isNew || intent === 'signup') && user.email) {
+    const { isNew, sessionUser } = await recordOAuthSignIn(user);
+    if ((isNew || intent === 'signup') && sessionUser.email) {
       try {
-        const { error } = await sendOAuthWelcomeEmail(req, user) || {};
+        const { error } = await sendOAuthWelcomeEmail(req, sessionUser) || {};
         if (error) {
           console.warn('OAuth welcome email failed.');
         }
@@ -234,9 +260,9 @@ async function handleCallback(
         console.warn('OAuth welcome email failed.');
       }
     }
-    const res = NextResponse.redirect(new URL('/?signed_in=1', req.url));
+    const res = NextResponse.redirect(new URL(appendSignedIn(nextPath), req.url));
     res.cookies.delete(OAUTH_STATE_COOKIE);
-    await setUserSessionCookie(res, user);
+    await setUserSessionCookie(res, sessionUser);
     return res;
   } catch (error) {
     return signInError(req, error instanceof Error ? error.message : 'profile');

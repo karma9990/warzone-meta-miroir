@@ -1,22 +1,32 @@
-import { timingSafeEqual } from 'crypto';
+import { timingSafeEqual, randomBytes } from 'crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const DEV_JWT_SECRET = 'dev-only-jwt-secret-change-before-production-32chars';
+function requireEnvVar(name: string, devFallback?: string): string {
+  const value = process.env[name];
+  if (value) return value;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(`${name} must be configured in production.`);
+  }
+  if (devFallback !== undefined) return devFallback;
+  throw new Error(`${name} must be configured.`);
+}
+
+let devJwtSecret: string | null = null;
+function getDevJwtSecret() {
+  if (!devJwtSecret) {
+    devJwtSecret = randomBytes(32).toString('hex');
+    console.warn('WARNING: JWT_SECRET not set. Using ephemeral random secret. Session will not persist across restarts.');
+  }
+  return devJwtSecret;
+}
 
 export function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
-  if (!secret && process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET must be configured in production.');
-  }
-  return new TextEncoder().encode(secret ?? DEV_JWT_SECRET);
+  return new TextEncoder().encode(secret ?? getDevJwtSecret());
 }
 
 export function getAdminPassword() {
-  const password = process.env.ADMIN_PASSWORD;
-  if (!password && process.env.NODE_ENV === 'production') {
-    throw new Error('ADMIN_PASSWORD must be configured in production.');
-  }
-  return password ?? 'dev-admin-password';
+  return requireEnvVar('ADMIN_PASSWORD', '');
 }
 
 export function safeCompare(a: string, b: string) {

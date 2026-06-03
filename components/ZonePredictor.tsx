@@ -123,77 +123,91 @@ export default function ZonePredictor() {
   };
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>MAP INTELLIGENCE</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>ZONE PREDICTOR</div>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">MAP INTELLIGENCE</div>
+        <div className="text-base font-bold tracking-normal">ZONE PREDICTOR</div>
       </div>
 
       {/* Map selector */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+      <div className="flex border-b border-black/10">
         {(['rebirth', 'haven'] as MapId[]).map(m => (
-          <button key={m} onClick={() => handleMapChange(m)} style={{
-            padding: '0.75rem 1.5rem', border: 'none',
-            borderBottom: map === m ? '2px solid currentColor' : '2px solid transparent',
-            background: 'transparent', color: map === m ? 'inherit' : 'rgba(0,0,0,0.35)',
-            fontSize: '0.6rem', letterSpacing: '0.15em', cursor: 'pointer', fontFamily: 'monospace', fontWeight: map === m ? 700 : 400,
-          }}>
+          <button type="button" key={m} onClick={() => handleMapChange(m)}
+            className="font-mono text-xs tracking-normal cursor-pointer bg-transparent border-none"
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderBottom: map === m ? '2px solid currentColor' : '2px solid transparent',
+              color: map === m ? 'inherit' : 'rgba(0,0,0,0.35)',
+              fontWeight: map === m ? 700 : 400,
+            }}
+          >
             {MAP_DATA[m].label.toUpperCase()}
           </button>
         ))}
       </div>
 
       {/* Spawn selector */}
-      <div style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+      <div className="px-6 py-3 border-b border-black/8 flex flex-wrap gap-1">
         {data.zones.map(z => (
-          <button key={z.spawn} onClick={() => setSpawn(z.spawn)} style={{
-            padding: '4px 12px', border: `1px solid ${spawn === z.spawn ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
-            borderRadius: '2px', background: 'transparent', fontSize: '0.55rem', letterSpacing: '0.08em',
-            cursor: 'pointer', fontFamily: 'monospace', fontWeight: spawn === z.spawn ? 700 : 400, opacity: spawn === z.spawn ? 1 : 0.5,
-          }}>
+          <button type="button" key={z.spawn} onClick={() => setSpawn(z.spawn)}
+            className="font-mono text-xs tracking-normal cursor-pointer rounded-sm bg-transparent"
+            style={{
+              padding: '4px 12px',
+              border: `1px solid ${spawn === z.spawn ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
+              fontWeight: spawn === z.spawn ? 700 : 400,
+              opacity: spawn === z.spawn ? 1 : 0.5,
+            }}
+          >
             {z.spawn}
           </button>
         ))}
       </div>
 
       {/* Zone probabilities */}
-      <div style={{ padding: '1.5rem' }}>
-        <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '1rem' }}>
+      <div className="p-6">
+        <div className="text-xs tracking-normal opacity-40 mb-4">
           FINAL CIRCLE PROBABILITY — DROP: {spawnData.spawn.toUpperCase()}
         </div>
 
-        {spawnData.zones.map((zone, i) => (
-          <div key={i} style={{ marginBottom: '1.1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 600 }}>{zone.area}</span>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: zone.probability >= 35 ? '#00ff88' : zone.probability >= 20 ? '#ffcc00' : '#8899aa' }}>
+        {spawnData.zones.map((zone) => (
+          <div key={zone.area} className="mb-[1.1rem]">
+            <div className="flex justify-between mb-1">
+              <span className="text-xs font-semibold">{zone.area}</span>
+              <span className="text-xs font-bold"
+                style={{ color: zone.probability >= 35 ? '#00ff88' : zone.probability >= 20 ? '#ffcc00' : '#8899aa' }}
+              >
                 {zone.probability}%
               </span>
             </div>
-            <div style={{ height: '5px', background: 'rgba(0,0,0,0.07)', borderRadius: '2px', marginBottom: '0.3rem' }}>
-              <div style={{
-                height: '100%', borderRadius: '2px', transition: 'width 0.4s',
-                width: `${zone.probability}%`,
-                background: zone.probability >= 35 ? '#00ff88' : zone.probability >= 20 ? '#ffcc00' : '#8899aa',
-              }} />
+            <div className="h-[5px] bg-black/7 rounded-sm mb-1">
+              <div className="h-full rounded-sm transition-[width] duration-[400ms]"
+                style={{
+                  width: `${zone.probability}%`,
+                  background: zone.probability >= 35 ? '#00ff88' : zone.probability >= 20 ? '#ffcc00' : '#8899aa',
+                }}
+              />
             </div>
-            <div style={{ fontSize: '0.54rem', opacity: 0.5, lineHeight: 1.5 }}>{zone.note}</div>
+            <div className="text-xs opacity-50 leading-relaxed">{zone.note}</div>
           </div>
         ))}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1.5rem' }}>
-          <div style={{ padding: '0.9rem', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '3px', background: 'rgba(0,255,136,0.04)' }}>
-            <div style={{ fontSize: '0.45rem', letterSpacing: '0.12em', color: '#00ff88', marginBottom: '0.4rem' }}>EARLY ADVANTAGE</div>
-            <div style={{ fontSize: '0.57rem', opacity: 0.7, lineHeight: 1.6 }}>{spawnData.earlyAdvantage}</div>
+        <div className="grid grid-cols-2 gap-4 mt-6">
+          <div className="p-[0.9rem] rounded-sm"
+            style={{ border: '1px solid rgba(0,255,136,0.2)', background: 'rgba(0,255,136,0.04)' }}
+          >
+            <div className="text-xs tracking-normal mb-1.5" style={{ color: '#00ff88' }}>EARLY ADVANTAGE</div>
+            <div className="text-xs opacity-70 leading-relaxed">{spawnData.earlyAdvantage}</div>
           </div>
-          <div style={{ padding: '0.9rem', border: '1px solid rgba(255,68,85,0.2)', borderRadius: '3px', background: 'rgba(255,68,85,0.04)' }}>
-            <div style={{ fontSize: '0.45rem', letterSpacing: '0.12em', color: '#ff4455', marginBottom: '0.4rem' }}>LATE RISK</div>
-            <div style={{ fontSize: '0.57rem', opacity: 0.7, lineHeight: 1.6 }}>{spawnData.lateRisk}</div>
+          <div className="p-[0.9rem] rounded-sm"
+            style={{ border: '1px solid rgba(255,68,85,0.2)', background: 'rgba(255,68,85,0.04)' }}
+          >
+            <div className="text-xs tracking-normal mb-1.5" style={{ color: '#ff4455' }}>LATE RISK</div>
+            <div className="text-xs opacity-70 leading-relaxed">{spawnData.lateRisk}</div>
           </div>
         </div>
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         PROBABILITIES BASED ON COMPETITIVE LOBBY DATA — S03 2026
       </div>
     </div>

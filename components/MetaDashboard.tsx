@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { WEAPON_CATALOG, CATEGORY_COLORS } from '@/lib/weaponData';
 
 type Trend = 'rising' | 'stable' | 'falling';
-type Category = 'SMG' | 'AR' | 'Marksman' | 'LMG' | 'Sniper' | 'Shotgun';
 
 interface WeaponTrend {
   name: string;
-  category: Category;
+  category: string;
   tier: 'S' | 'A' | 'B' | 'C';
   trend: Trend;
   note: string;
@@ -22,14 +22,14 @@ interface EquipmentTrend {
 }
 
 const WEAPON_TRENDS: WeaponTrend[] = [
-  { name: 'Kogot-7',      category: 'SMG',      tier: 'S', trend: 'rising',  note: 'Fastest ADS in the current patch',      delta: '+2' },
-  { name: 'VST',          category: 'SMG',      tier: 'S', trend: 'rising',  note: 'Unmatched TTK under 15m',               delta: '+1' },
-  { name: 'DS20 Mirage',  category: 'AR',       tier: 'S', trend: 'stable',  note: 'Mid-range dominant for 3 patches',      delta: '=' },
-  { name: 'Voyak KT-3',   category: 'AR',       tier: 'S', trend: 'falling', note: 'Recoil nerf currently in testing',      delta: '-1' },
-  { name: 'Carbon 57',    category: 'SMG',      tier: 'S', trend: 'rising',  note: 'Silent buff in last hotfix',            delta: '+3' },
-  { name: 'MK.78',        category: 'LMG',      tier: 'A', trend: 'stable',  note: 'Zone control unchanged',               delta: '=' },
-  { name: 'Dravec 45',    category: 'SMG',      tier: 'A', trend: 'falling', note: 'Outclassed by Kogot-7 and VST',        delta: '-2' },
-  { name: 'M15 MOD 0',    category: 'AR',       tier: 'B', trend: 'rising',  note: 'Semi-auto establishing itself',        delta: '+2' },
+  { ...WEAPON_CATALOG.find(w => w.name === 'Kogot-7')!,     tier: 'S', trend: 'rising',  note: 'Fastest ADS in the current patch',      delta: '+2' },
+  { ...WEAPON_CATALOG.find(w => w.name === 'VST')!,          tier: 'S', trend: 'rising',  note: 'Unmatched TTK under 15m',               delta: '+1' },
+  { ...WEAPON_CATALOG.find(w => w.name === 'DS20 Mirage')!,  tier: 'S', trend: 'stable',  note: 'Mid-range dominant for 3 patches',      delta: '=' },
+  { ...WEAPON_CATALOG.find(w => w.name === 'Voyak KT-3')!,   tier: 'S', trend: 'falling', note: 'Recoil nerf currently in testing',      delta: '-1' },
+  { ...WEAPON_CATALOG.find(w => w.name === 'Carbon 57')!,    tier: 'S', trend: 'rising',  note: 'Silent buff in last hotfix',            delta: '+3' },
+  { ...WEAPON_CATALOG.find(w => w.name === 'MK.78')!,        tier: 'A', trend: 'stable',  note: 'Zone control unchanged',               delta: '=' },
+  { ...WEAPON_CATALOG.find(w => w.name === 'Dravec 45')!,    tier: 'A', trend: 'falling', note: 'Outclassed by Kogot-7 and VST',        delta: '-2' },
+  { ...WEAPON_CATALOG.find(w => w.name === 'M15 MOD 0')!,    tier: 'B', trend: 'rising',  note: 'Semi-auto establishing itself',        delta: '+2' },
 ];
 
 const EQUIPMENT_TRENDS: EquipmentTrend[] = [
@@ -61,15 +61,6 @@ const TIER_COLOR: Record<string, string> = {
   C: 'var(--tier-c, #888888)',
 };
 
-const CATEGORY_COLORS: Record<Category, string> = {
-  SMG:      '#00ccff',
-  AR:       '#00ff88',
-  Marksman: '#ffaa00',
-  LMG:      '#ff6600',
-  Sniper:   '#cc88ff',
-  Shotgun:  '#ff4455',
-};
-
 type Tab = 'weapons' | 'equipment' | 'perks';
 
 export default function MetaDashboard() {
@@ -85,43 +76,28 @@ export default function MetaDashboard() {
   const stable  = WEAPON_TRENDS.filter(w => w.trend === 'stable').length;
 
   return (
-    <div style={{
-      border: '1px solid rgba(0,0,0,0.12)',
-      borderRadius: '4px',
-      marginBottom: '3rem',
-      overflow: 'hidden',
-      fontFamily: 'monospace',
-    }}>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
       {/* Header */}
-      <div style={{
-        padding: '1.25rem 1.5rem',
-        borderBottom: '1px solid rgba(0,0,0,0.1)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        background: 'rgba(0,0,0,0.02)',
-      }}>
+      <div className="px-6 py-5 border-b border-black/10 flex items-center justify-between flex-wrap gap-4 bg-black/2">
         <div>
-          <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>
+          <div className="text-xs tracking-normal opacity-40 mb-1">
             LIVE META SNAPSHOT — UPDATE 2026-05-10
           </div>
-          <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>
+          <div className="text-base font-bold tracking-normal">
             META DASHBOARD
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          {[
+        <div className="flex gap-4">
+          {([
             { trend: 'rising'  as Trend, count: rising },
             { trend: 'stable'  as Trend, count: stable },
             { trend: 'falling' as Trend, count: falling },
-          ].map(({ trend, count }) => (
-            <div key={trend} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: TREND_CONFIG[trend].color }}>
+          ] as { trend: Trend; count: number }[]).map(({ trend, count }) => (
+            <div key={trend} className="text-center">
+              <div className="text-lg font-bold" style={{ color: TREND_CONFIG[trend].color }}>
                 {TREND_CONFIG[trend].arrow} {count}
               </div>
-              <div style={{ fontSize: '0.5rem', letterSpacing: '0.15em', opacity: 0.45 }}>
+              <div className="text-xs tracking-normal opacity-45">
                 {TREND_CONFIG[trend].label}
               </div>
             </div>
@@ -130,26 +106,21 @@ export default function MetaDashboard() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+      <div className="flex border-b border-black/10">
         {([
           { key: 'weapons',   label: 'WEAPONS' },
           { key: 'equipment', label: 'EQUIPMENT' },
           { key: 'perks',     label: 'PERKS' },
         ] as { key: Tab; label: string }[]).map(tab => (
-          <button
+          <button type="button"
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
+            className="font-mono text-xs tracking-normal cursor-pointer bg-transparent transition-all duration-150"
             style={{
               padding: '0.75rem 1.25rem',
               border: 'none',
               borderBottom: activeTab === tab.key ? '2px solid currentColor' : '2px solid transparent',
-              background: 'transparent',
               color: activeTab === tab.key ? 'inherit' : 'rgba(0,0,0,0.35)',
-              fontSize: '0.6rem',
-              letterSpacing: '0.15em',
-              cursor: 'pointer',
-              fontFamily: 'monospace',
-              transition: 'all 0.15s',
             }}
           >
             {tab.label}
@@ -161,21 +132,17 @@ export default function MetaDashboard() {
       {activeTab === 'weapons' && (
         <>
           {/* Filter */}
-          <div style={{ padding: '0.75rem 1.5rem', display: 'flex', gap: '0.5rem', borderBottom: '1px solid rgba(0,0,0,0.07)', flexWrap: 'wrap' }}>
+          <div className="px-6 py-3 flex gap-2 border-b border-black/7 flex-wrap">
             {(['all', 'rising', 'stable', 'falling'] as const).map(f => (
-              <button
+              <button type="button"
                 key={f}
                 onClick={() => setFilterTrend(f)}
+                className="font-mono text-xs tracking-normal cursor-pointer rounded-sm"
                 style={{
                   padding: '3px 10px',
                   border: `1px solid ${filterTrend === f ? (f === 'all' ? 'currentColor' : TREND_CONFIG[f as Trend].color) : 'rgba(0,0,0,0.12)'}`,
-                  borderRadius: '2px',
                   background: filterTrend === f && f !== 'all' ? TREND_CONFIG[f as Trend].bg : 'transparent',
                   color: filterTrend === f && f !== 'all' ? TREND_CONFIG[f as Trend].color : 'inherit',
-                  fontSize: '0.55rem',
-                  letterSpacing: '0.12em',
-                  cursor: 'pointer',
-                  fontFamily: 'monospace',
                   opacity: filterTrend === f ? 1 : 0.5,
                 }}
               >
@@ -191,57 +158,38 @@ export default function MetaDashboard() {
               return (
                 <div
                   key={w.name}
+                  className="grid grid-cols-[2rem_3rem_6rem_1fr_3.5rem_3rem] gap-3 items-center px-6 transition-[background] duration-100"
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '2rem 3rem 6rem 1fr 3.5rem 3rem',
-                    gap: '0.75rem',
-                    alignItems: 'center',
-                    padding: '0.85rem 1.5rem',
+                    paddingTop: '0.85rem',
+                    paddingBottom: '0.85rem',
                     borderBottom: i < filteredWeapons.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
                     background: tc.bg,
-                    transition: 'background 0.1s',
                   }}
                 >
-                  <span style={{ fontSize: '0.5rem', opacity: 0.3 }}>{String(i + 1).padStart(2, '0')}</span>
-                  <span style={{
-                    fontSize: '0.55rem',
-                    fontWeight: 700,
-                    color: TIER_COLOR[w.tier],
-                    letterSpacing: '0.08em',
-                  }}>
+                  <span className="text-xs opacity-30">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="text-xs font-bold tracking-normal" style={{ color: TIER_COLOR[w.tier] }}>
                     [{w.tier}]
                   </span>
-                  <span style={{
-                    fontSize: '0.55rem',
-                    padding: '2px 6px',
-                    borderRadius: '2px',
-                    background: `${CATEGORY_COLORS[w.category]}18`,
-                    color: CATEGORY_COLORS[w.category],
-                    letterSpacing: '0.08em',
-                    whiteSpace: 'nowrap',
-                  }}>
+                  <span className="text-xs tracking-normal whitespace-nowrap rounded-sm px-1.5 py-0.5"
+                    style={{
+                      background: `${CATEGORY_COLORS[w.category]}18`,
+                      color: CATEGORY_COLORS[w.category],
+                    }}
+                  >
                     {w.category}
                   </span>
                   <div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.04em' }}>{w.name}</div>
-                    <div style={{ fontSize: '0.6rem', opacity: 0.45, marginTop: '1px' }}>{w.note}</div>
+                    <div className="text-[0.78rem] font-semibold tracking-normal">{w.name}</div>
+                    <div className="text-xs opacity-45 mt-px">{w.note}</div>
                   </div>
-                  <span style={{
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    color: tc.color,
-                    letterSpacing: '0.08em',
-                    textAlign: 'center',
-                  }}>
+                  <span className="text-xs font-bold tracking-normal text-center"
+                    style={{ color: tc.color }}
+                  >
                     {tc.arrow} {tc.label}
                   </span>
-                  <span style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    color: tc.color,
-                    textAlign: 'right',
-                    opacity: 0.8,
-                  }}>
+                  <span className="text-xs font-bold text-right opacity-80"
+                    style={{ color: tc.color }}
+                  >
                     {w.delta}
                   </span>
                 </div>
@@ -259,35 +207,24 @@ export default function MetaDashboard() {
             return (
               <div
                 key={eq.name}
+                className="grid grid-cols-[5rem_1fr_auto] gap-4 items-center px-6"
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '5rem 1fr auto',
-                  gap: '1rem',
-                  alignItems: 'center',
-                  padding: '0.9rem 1.5rem',
+                  paddingTop: '0.9rem',
+                  paddingBottom: '0.9rem',
                   borderBottom: i < EQUIPMENT_TRENDS.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
                   background: tc.bg,
                 }}
               >
-                <span style={{
-                  fontSize: '0.5rem',
-                  letterSpacing: '0.1em',
-                  opacity: 0.4,
-                  textTransform: 'uppercase',
-                }}>
+                <span className="text-xs tracking-normal opacity-40 uppercase">
                   {eq.slot}
                 </span>
                 <div>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '2px' }}>{eq.name}</div>
-                  <div style={{ fontSize: '0.62rem', opacity: 0.5 }}>{eq.reason}</div>
+                  <div className="text-[0.78rem] font-semibold tracking-normal mb-0.5">{eq.name}</div>
+                  <div className="text-xs opacity-50">{eq.reason}</div>
                 </div>
-                <span style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 700,
-                  color: tc.color,
-                  letterSpacing: '0.08em',
-                  whiteSpace: 'nowrap',
-                }}>
+                <span className="text-xs font-bold tracking-normal whitespace-nowrap"
+                  style={{ color: tc.color }}
+                >
                   {tc.arrow} {tc.label}
                 </span>
               </div>
@@ -304,27 +241,21 @@ export default function MetaDashboard() {
             return (
               <div
                 key={p.name}
+                className="grid grid-cols-[1fr_auto] gap-4 items-center px-6"
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto',
-                  gap: '1rem',
-                  alignItems: 'center',
-                  padding: '0.9rem 1.5rem',
+                  paddingTop: '0.9rem',
+                  paddingBottom: '0.9rem',
                   borderBottom: i < PERK_TRENDS.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
                   background: tc.bg,
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.04em', marginBottom: '2px' }}>{p.name}</div>
-                  <div style={{ fontSize: '0.62rem', opacity: 0.5 }}>{p.note}</div>
+                  <div className="text-[0.78rem] font-semibold tracking-normal mb-0.5">{p.name}</div>
+                  <div className="text-xs opacity-50">{p.note}</div>
                 </div>
-                <span style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 700,
-                  color: tc.color,
-                  letterSpacing: '0.08em',
-                  whiteSpace: 'nowrap',
-                }}>
+                <span className="text-xs font-bold tracking-normal whitespace-nowrap"
+                  style={{ color: tc.color }}
+                >
                   {tc.arrow} {tc.label}
                 </span>
               </div>
@@ -334,15 +265,7 @@ export default function MetaDashboard() {
       )}
 
       {/* Footer */}
-      <div style={{
-        padding: '0.75rem 1.5rem',
-        borderTop: '1px solid rgba(0,0,0,0.08)',
-        fontSize: '0.5rem',
-        letterSpacing: '0.12em',
-        opacity: 0.35,
-        display: 'flex',
-        justifyContent: 'space-between',
-      }}>
+      <div className="px-6 py-3 border-t border-black/8 text-xs tracking-normal opacity-35 flex justify-between">
         <span>DATA BASED ON COMPETITIVE LOBBIES / WARZONE S03 2026</span>
         <span>WZPRO-META INTEL</span>
       </div>

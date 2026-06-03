@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { addCommunityReply } from '@/lib/communityStore';
+import { getProfile } from '@/lib/profileStore';
 import { readJsonBody } from '@/lib/security';
 import { getUserSession } from '@/lib/userAuth';
 import { rateLimit } from '@/lib/rateLimit';
@@ -16,13 +17,16 @@ export async function POST(
   const parsed = await readJsonBody(req);
   if ('error' in parsed) return parsed.error;
 
-  const { postId } = await params;
-  const user = await getUserSession();
+  const [{ postId }, user] = await Promise.all([params, getUserSession()]);
   if (!user) {
     return NextResponse.json({ error: 'Sign in required.' }, { status: 401 });
   }
 
-  const result = await addCommunityReply(postId, parsed.data, user.name);
+  const profile = await getProfile(user.sub);
+  const result = await addCommunityReply(postId, {
+    ...(typeof parsed.data === 'object' && parsed.data ? parsed.data : {}),
+    authorPseudo: profile?.pseudo || '',
+  }, profile?.pseudo || user.name);
 
   if ('error' in result) {
     return NextResponse.json({ error: result.error }, { status: 404 });

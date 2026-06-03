@@ -58,56 +58,64 @@ export default function DeathAnalyzer() {
     : null;
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>PROGRESSION</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>DEATH ANALYZER</div>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">PROGRESSION</div>
+        <div className="text-base font-bold tracking-normal">DEATH ANALYZER</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+      <div className="grid grid-cols-2 gap-0">
         {/* Input */}
-        <div style={{ padding: '1.25rem', borderRight: '1px solid rgba(0,0,0,0.08)' }}>
-          <div style={{ fontSize: '0.5rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.75rem' }}>WHY DID YOU DIE THIS SESSION?</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1rem' }}>
+        <div className="p-5 border-r border-black/8">
+          <div className="text-xs tracking-normal opacity-40 mb-3">WHY DID YOU DIE THIS SESSION?</div>
+          <div className="flex flex-col gap-1 mb-4">
             {CAUSES.map(c => {
               const isOn = current.includes(c.id);
               return (
-                <button key={c.id} onClick={() => toggle(c.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px',
-                  border: `1px solid ${isOn ? CAT_COLOR[c.category] : 'rgba(0,0,0,0.1)'}`,
-                  borderRadius: '2px', background: isOn ? `${CAT_COLOR[c.category]}12` : 'transparent',
-                  cursor: 'pointer', fontFamily: 'monospace', fontSize: '0.57rem', textAlign: 'left', width: '100%',
-                  color: isOn ? CAT_COLOR[c.category] : 'inherit',
-                }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: CAT_COLOR[c.category], flexShrink: 0 }} />
+                <button type="button" key={c.id} onClick={() => toggle(c.id)}
+                  className="font-mono text-xs cursor-pointer text-left w-full rounded-sm"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px',
+                    border: `1px solid ${isOn ? CAT_COLOR[c.category] : 'rgba(0,0,0,0.1)'}`,
+                    background: isOn ? `${CAT_COLOR[c.category]}12` : 'transparent',
+                    color: isOn ? CAT_COLOR[c.category] : 'inherit',
+                  }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: CAT_COLOR[c.category] }} />
                   {c.label}
                 </button>
               );
             })}
           </div>
-          <input
-            value={note} onChange={e => setNote(e.target.value)} placeholder="Optional note..."
-            style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.58rem', padding: '6px 8px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', marginBottom: '0.75rem', boxSizing: 'border-box' }}
+          <input aria-label="Input" value={note} onChange={e => setNote(e.target.value)} placeholder="Optional note..."
+            className="w-full font-mono text-xs px-2 py-1.5 border border-black/15 rounded-sm bg-transparent mb-3 box-border"
           />
-          <button onClick={save} disabled={!current.length} style={{
-            padding: '7px 16px', border: '1px solid #00ff88', borderRadius: '2px',
-            background: current.length ? 'rgba(0,255,136,0.08)' : 'transparent',
-            fontSize: '0.6rem', letterSpacing: '0.1em', cursor: current.length ? 'pointer' : 'not-allowed',
-            fontFamily: 'monospace', color: '#00ff88', fontWeight: 700, opacity: current.length ? 1 : 0.4,
-          }}>LOG SESSION</button>
+          <button type="button" onClick={save} disabled={!current.length}
+            className="font-mono text-xs tracking-normal font-bold rounded-sm"
+            style={{
+              padding: '7px 16px',
+              border: '1px solid #00ff88',
+              background: current.length ? 'rgba(0,255,136,0.08)' : 'transparent',
+              color: '#00ff88',
+              cursor: current.length ? 'pointer' : 'not-allowed',
+              opacity: current.length ? 1 : 0.4,
+            }}
+          >LOG SESSION</button>
         </div>
 
         {/* Analysis */}
-        <div style={{ padding: '1.25rem' }}>
+        <div className="p-5">
           {sessions.length === 0 ? (
-            <div style={{ textAlign: 'center', opacity: 0.35, fontSize: '0.6rem', paddingTop: '3rem' }}>LOG A SESSION TO SEE YOUR PATTERNS</div>
+            <div className="text-center opacity-35 text-xs pt-12">LOG A SESSION TO SEE YOUR PATTERNS</div>
           ) : (
             <>
               {topCategory && (
-                <div style={{ padding: '0.9rem', border: `1px solid ${CAT_COLOR[topCategory]}40`, background: `${CAT_COLOR[topCategory]}08`, borderRadius: '3px', marginBottom: '1rem' }}>
-                  <div style={{ fontSize: '0.45rem', letterSpacing: '0.12em', color: CAT_COLOR[topCategory], marginBottom: '0.3rem' }}>PRIMARY WEAKNESS</div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: CAT_COLOR[topCategory], textTransform: 'uppercase', letterSpacing: '0.08em' }}>{topCategory}</div>
-                  <div style={{ fontSize: '0.55rem', opacity: 0.6, marginTop: '0.35rem' }}>
+                <div className="p-[0.9rem] rounded-sm mb-4"
+                  style={{ border: `1px solid ${CAT_COLOR[topCategory]}40`, background: `${CAT_COLOR[topCategory]}08` }}
+                >
+                  <div className="text-xs tracking-normal mb-1" style={{ color: CAT_COLOR[topCategory] }}>PRIMARY WEAKNESS</div>
+                  <div className="text-sm font-bold uppercase tracking-normal" style={{ color: CAT_COLOR[topCategory] }}>{topCategory}</div>
+                  <div className="text-xs opacity-60 mt-1.5">
                     {topCategory === 'positioning' && 'You are dying from bad map position. Focus on high ground and cover.'}
                     {topCategory === 'mechanics' && 'Your aim and gunfight execution needs work. Prioritize aim training.'}
                     {topCategory === 'decision' && 'Your in-game decisions are costing you. Focus on game sense.'}
@@ -116,27 +124,29 @@ export default function DeathAnalyzer() {
                 </div>
               )}
 
-              <div style={{ fontSize: '0.45rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.6rem' }}>DEATH FREQUENCY</div>
+              <div className="text-xs tracking-normal opacity-40 mb-2.5">DEATH FREQUENCY</div>
               {freq.slice(0, 5).map(c => (
-                <div key={c.id} style={{ marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.2rem' }}>
-                    <span style={{ fontSize: '0.57rem', opacity: 0.8 }}>{c.label}</span>
-                    <span style={{ fontSize: '0.55rem', fontWeight: 700, color: CAT_COLOR[c.category] }}>{c.count}×</span>
+                <div key={c.id} className="mb-3">
+                  <div className="flex justify-between mb-[0.2rem]">
+                    <span className="text-xs opacity-80">{c.label}</span>
+                    <span className="text-xs font-bold" style={{ color: CAT_COLOR[c.category] }}>{c.count}×</span>
                   </div>
-                  <div style={{ height: '3px', background: 'rgba(0,0,0,0.07)', borderRadius: '1px' }}>
-                    <div style={{ height: '100%', width: `${(c.count / (freq[0]?.count || 1)) * 100}%`, background: CAT_COLOR[c.category], transition: 'width 0.3s' }} />
+                  <div className="h-[3px] bg-black/7 rounded-xs">
+                    <div className="h-full rounded-xs transition-[width] duration-300"
+                      style={{ width: `${(c.count / (freq[0]?.count || 1)) * 100}%`, background: CAT_COLOR[c.category] }}
+                    />
                   </div>
-                  <div style={{ fontSize: '0.5rem', opacity: 0.5, marginTop: '0.2rem', lineHeight: 1.5 }}>▸ {c.fix}</div>
+                  <div className="text-xs opacity-50 mt-[0.2rem] leading-relaxed">▸ {c.fix}</div>
                 </div>
               ))}
 
-              <div style={{ fontSize: '0.45rem', opacity: 0.35, marginTop: '0.75rem' }}>{sessions.length} SESSION{sessions.length > 1 ? 'S' : ''} LOGGED</div>
+              <div className="text-xs opacity-35 mt-3">{sessions.length} SESSION{sessions.length > 1 ? 'S' : ''} LOGGED</div>
             </>
           )}
         </div>
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         DATA IS LOCAL — NOT PERSISTED BETWEEN PAGE RELOADS
       </div>
     </div>

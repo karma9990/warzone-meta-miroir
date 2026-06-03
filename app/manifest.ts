@@ -1,0 +1,20 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "WZPRO Meta",
+    short_name: "WZ Meta",
+    description: "Warzone loadouts, meta weapons, pro tools and competitive guides.",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#efeee8",
+    theme_color: "#163cff",
+    icons: [
+      {
+        src: "/favicon.ico",
+        sizes: "48x48",
+        type: "image/x-icon",
+      },
+    ],
+  };
+}

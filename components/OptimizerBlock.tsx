@@ -85,7 +85,7 @@ export default function OptimizerBlock() {
         Run PowerShell as Administrator. Restart Windows before judging FPS, CPU usage or latency.
       </p>
 
-      <style jsx>{`
+      <style>{`
         .optimizer-block {
           margin-top: 3rem;
           border: 1px solid rgba(0, 0, 255, 0.2);

@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Disclaimer | WZPRO Meta',
+  description: 'Understand the limits of WZPRO Meta guides, tools, data and recommendations.',
+};
 import LegalPage from '@/components/LegalPage';
 import { SUPPORT_EMAIL } from '@/lib/siteConfig';
 
@@ -25,7 +31,7 @@ export default function DisclaimerPage() {
         },
         {
           title: '4. Third-Party Names',
-          body: <p>WZPRO Meta is not affiliated with Activision, Call of Duty, Warzone, Microsoft, NVIDIA, AMD, Intel, Paddle or other third parties mentioned on the site.</p>,
+          body: <p>WZPRO Meta is not affiliated with Activision, Call of Duty, Warzone, Microsoft, NVIDIA, AMD, Intel, Polar or other third parties mentioned on the site.</p>,
         },
         {
           title: '5. Contact',

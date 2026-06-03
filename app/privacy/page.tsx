@@ -1,3 +1,9 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy | WZPRO Meta',
+  description: 'Learn how WZPRO Meta collects, uses and protects account and site data.',
+};
 import LegalPage from '@/components/LegalPage';
 import { LEGAL, SUPPORT_EMAIL } from '@/lib/siteConfig';
 
@@ -21,7 +27,7 @@ export default function PrivacyPage() {
         },
         {
           title: '3. Payments',
-          body: <p>Payment data is processed by Paddle. We do not store full card numbers. Paddle may collect payment, billing, tax and fraud prevention information according to its own privacy terms.</p>,
+          body: <p>Payment data is processed by Polar. We do not store full card numbers. Polar may collect payment, billing, tax and fraud prevention information according to its own privacy terms.</p>,
         },
         {
           title: '4. Purposes and Legal Bases',
@@ -29,7 +35,7 @@ export default function PrivacyPage() {
         },
         {
           title: '5. Service Providers',
-          body: <p>We may share necessary data with service providers such as Supabase for authentication and session handling, Paddle for checkout and tax handling, Resend for email delivery, hosting and database providers, OAuth providers selected by the user, analytics providers if enabled, security tooling, and fraud prevention services. We do not sell personal information.</p>,
+          body: <p>We may share necessary data with service providers such as Supabase for authentication and session handling, Polar for checkout and tax handling, Resend for email delivery, hosting and database providers, OAuth providers selected by the user, analytics providers if enabled, security tooling, and fraud prevention services. We do not sell personal information.</p>,
         },
         {
           title: '6. Retention',

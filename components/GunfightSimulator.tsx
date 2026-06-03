@@ -82,51 +82,72 @@ export default function GunfightSimulator() {
   const winLabel = winChance >= 65 ? 'FAVORABLE' : winChance >= 40 ? 'CONTESTED' : 'AVOID';
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '3rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>MECHANICS</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>GUNFIGHT SIMULATOR</div>
+    <div className="border border-black/12 rounded mb-12 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">MECHANICS</div>
+        <div className="text-base font-bold tracking-normal">GUNFIGHT SIMULATOR</div>
       </div>
 
       {/* Scenario selector */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+      <div className="flex border-b border-black/10">
         {(['1v1', '1v2', '1v3'] as Scenario[]).map(s => (
-          <button key={s} onClick={() => setScenario(s)} style={{
-            flex: 1, padding: '0.75rem 0', border: 'none',
-            borderBottom: scenario === s ? '2px solid currentColor' : '2px solid transparent',
-            background: 'transparent', fontSize: '0.65rem', letterSpacing: '0.12em',
-            color: scenario === s ? 'inherit' : 'rgba(0,0,0,0.35)',
-            cursor: 'pointer', fontFamily: 'monospace', fontWeight: scenario === s ? 700 : 400,
-          }}>{s}</button>
+          <button type="button" key={s} onClick={() => setScenario(s)}
+            className="font-mono text-xs tracking-normal cursor-pointer bg-transparent"
+            style={{
+              flex: 1, padding: '0.75rem 0', border: 'none',
+              borderBottom: scenario === s ? '2px solid currentColor' : '2px solid transparent',
+              color: scenario === s ? 'inherit' : 'rgba(0,0,0,0.35)',
+              fontWeight: scenario === s ? 700 : 400,
+            }}
+          >{s}</button>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+      <div className="grid grid-cols-2 gap-0">
         {/* Your setup */}
-        <div style={{ padding: '1.25rem', borderRight: '1px solid rgba(0,0,0,0.08)' }}>
-          <div style={{ fontSize: '0.5rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.75rem' }}>YOUR SETUP</div>
+        <div className="p-5 border-r border-black/8">
+          <div className="text-xs tracking-normal opacity-40 mb-3">YOUR SETUP</div>
 
-          <div style={{ marginBottom: '0.75rem' }}>
-            <div style={{ fontSize: '0.45rem', opacity: 0.4, marginBottom: '0.3rem' }}>WEAPON</div>
-            <select value={myWeapon} onChange={e => setMyWeapon(e.target.value)} style={{ fontFamily: 'monospace', fontSize: '0.6rem', padding: '4px 6px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', width: '100%', cursor: 'pointer' }}>
+          <div className="mb-3">
+            <div className="text-xs opacity-40 mb-1">WEAPON</div>
+            <select aria-label="Select" value={myWeapon} onChange={e => setMyWeapon(e.target.value)}
+              className="font-mono text-xs px-1.5 py-1 border border-black/15 rounded-sm bg-transparent w-full cursor-pointer"
+            >
               {WEAPONS.map(w => <option key={w.name} value={w.name}>{w.name}</option>)}
             </select>
           </div>
 
-          <div style={{ marginBottom: '0.75rem' }}>
-            <div style={{ fontSize: '0.45rem', opacity: 0.4, marginBottom: '0.3rem' }}>ARMOR PLATES</div>
-            <div style={{ display: 'flex', gap: '0.3rem' }}>
+          <div className="mb-3">
+            <div className="text-xs opacity-40 mb-1">ARMOR PLATES</div>
+            <div className="flex gap-1">
               {([0, 1, 2, 3] as Armor[]).map(a => (
-                <button key={a} onClick={() => setMyArmor(a)} style={{ flex: 1, padding: '4px 0', border: `1px solid ${myArmor === a ? 'currentColor' : 'rgba(0,0,0,0.12)'}`, borderRadius: '2px', background: 'transparent', fontSize: '0.6rem', cursor: 'pointer', fontFamily: 'monospace', fontWeight: myArmor === a ? 700 : 400, opacity: myArmor === a ? 1 : 0.4 }}>{a}</button>
+                <button type="button" key={a} onClick={() => setMyArmor(a)}
+                  className="font-mono text-xs cursor-pointer rounded-sm bg-transparent"
+                  style={{
+                    flex: 1, padding: '4px 0',
+                    border: `1px solid ${myArmor === a ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
+                    fontWeight: myArmor === a ? 700 : 400,
+                    opacity: myArmor === a ? 1 : 0.4,
+                  }}
+                >{a}</button>
               ))}
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.45rem', opacity: 0.4, marginBottom: '0.3rem' }}>YOUR POSITION</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+            <div className="text-xs opacity-40 mb-1">YOUR POSITION</div>
+            <div className="flex flex-col gap-1">
               {(Object.keys(POSITION_LABEL) as Position[]).map(p => (
-                <button key={p} onClick={() => setMyPosition(p)} style={{ padding: '5px 8px', border: `1px solid ${myPosition === p ? 'currentColor' : 'rgba(0,0,0,0.12)'}`, borderRadius: '2px', background: myPosition === p ? 'rgba(0,0,0,0.05)' : 'transparent', fontSize: '0.58rem', cursor: 'pointer', fontFamily: 'monospace', textAlign: 'left', fontWeight: myPosition === p ? 700 : 400, opacity: myPosition === p ? 1 : 0.45 }}>
+                <button type="button" key={p} onClick={() => setMyPosition(p)}
+                  className="font-mono text-xs cursor-pointer text-left rounded-sm"
+                  style={{
+                    padding: '5px 8px',
+                    border: `1px solid ${myPosition === p ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
+                    background: myPosition === p ? 'rgba(0,0,0,0.05)' : 'transparent',
+                    fontWeight: myPosition === p ? 700 : 400,
+                    opacity: myPosition === p ? 1 : 0.45,
+                  }}
+                >
                   {POSITION_LABEL[p]}
                 </button>
               ))}
@@ -135,31 +156,50 @@ export default function GunfightSimulator() {
         </div>
 
         {/* Enemies */}
-        <div style={{ padding: '1.25rem' }}>
-          <div style={{ fontSize: '0.5rem', letterSpacing: '0.15em', opacity: 0.4, marginBottom: '0.75rem' }}>ENEMIES</div>
+        <div className="p-5">
+          <div className="text-xs tracking-normal opacity-40 mb-3">ENEMIES</div>
           {activeEnemies.map((enemy, i) => (
-            <div key={i} style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(0,0,0,0.03)', borderRadius: '3px', border: `1px solid ${priority[0] === i ? 'rgba(255,68,85,0.4)' : 'rgba(0,0,0,0.08)'}` }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.6rem', fontWeight: 700 }}>ENEMY {i + 1}</span>
-                {priority[0] === i && <span style={{ fontSize: '0.45rem', color: '#ff4455', letterSpacing: '0.1em', fontWeight: 700 }}>PRIORITY TARGET</span>}
+            <div key={`${enemy.position}-${enemy.distance}-${enemy.armor}-${i + 1}`} className="mb-4 rounded-sm"
+              style={{
+                padding: '0.75rem',
+                background: 'rgba(0,0,0,0.03)',
+                border: `1px solid ${priority[0] === i ? 'rgba(255,68,85,0.4)' : 'rgba(0,0,0,0.08)'}`,
+              }}
+            >
+              <div className="flex justify-between mb-2 items-center">
+                <span className="text-xs font-bold">ENEMY {i + 1}</span>
+                {priority[0] === i && <span className="text-xs tracking-normal font-bold" style={{ color: '#ff4455' }}>PRIORITY TARGET</span>}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <div style={{ fontSize: '0.4rem', opacity: 0.4, marginBottom: '0.25rem' }}>ARMOR</div>
-                  <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  <div className="text-xs opacity-40 mb-1">ARMOR</div>
+                  <div className="flex gap-1">
                     {([0, 1, 2, 3] as Armor[]).map(a => (
-                      <button key={a} onClick={() => updateEnemy(i, 'armor', a)} style={{ flex: 1, padding: '3px 0', border: `1px solid ${enemy.armor === a ? 'currentColor' : 'rgba(0,0,0,0.12)'}`, borderRadius: '2px', background: 'transparent', fontSize: '0.5rem', cursor: 'pointer', fontFamily: 'monospace', opacity: enemy.armor === a ? 1 : 0.4 }}>{a}</button>
+                      <button type="button" key={a} onClick={() => updateEnemy(i, 'armor', a)}
+                        className="font-mono text-xs cursor-pointer rounded-sm bg-transparent"
+                        style={{
+                          flex: 1, padding: '3px 0',
+                          border: `1px solid ${enemy.armor === a ? 'currentColor' : 'rgba(0,0,0,0.12)'}`,
+                          opacity: enemy.armor === a ? 1 : 0.4,
+                        }}
+                      >{a}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.4rem', opacity: 0.4, marginBottom: '0.25rem' }}>DIST (m)</div>
-                  <input type="number" min={1} max={150} value={enemy.distance} onChange={e => updateEnemy(i, 'distance', Number(e.target.value))} style={{ width: '100%', fontFamily: 'monospace', fontSize: '0.6rem', padding: '3px 6px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', boxSizing: 'border-box' }} />
+                  <div className="text-xs opacity-40 mb-1">DIST (m)</div>
+                  <input aria-label="Input" type="number" min={1} max={150} value={enemy.distance}
+                    onChange={e => updateEnemy(i, 'distance', Number(e.target.value))}
+                    className="w-full font-mono text-xs px-1.5 py-[3px] border border-black/15 rounded-sm bg-transparent box-border"
+                  />
                 </div>
               </div>
-              <div style={{ marginTop: '0.5rem' }}>
-                <div style={{ fontSize: '0.4rem', opacity: 0.4, marginBottom: '0.25rem' }}>POSITION</div>
-                <select value={enemy.position} onChange={e => updateEnemy(i, 'position', e.target.value as Position)} style={{ fontFamily: 'monospace', fontSize: '0.55rem', padding: '3px 6px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '2px', background: 'transparent', width: '100%', cursor: 'pointer' }}>
+              <div className="mt-2">
+                <div className="text-xs opacity-40 mb-1">POSITION</div>
+                <select aria-label="Select" value={enemy.position}
+                  onChange={e => updateEnemy(i, 'position', e.target.value as Position)}
+                  className="font-mono text-xs px-1.5 py-[3px] border border-black/15 rounded-sm bg-transparent w-full cursor-pointer"
+                >
                   {(Object.keys(POSITION_LABEL) as Position[]).map(p => <option key={p} value={p}>{POSITION_LABEL[p]}</option>)}
                 </select>
               </div>
@@ -169,28 +209,32 @@ export default function GunfightSimulator() {
       </div>
 
       {/* Result */}
-      <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.1)', background: `${winColor}08`, display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '1.5rem', alignItems: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: winColor, lineHeight: 1 }}>{winChance}%</div>
-          <div style={{ fontSize: '0.55rem', fontWeight: 700, color: winColor, letterSpacing: '0.12em', marginTop: '2px' }}>{winLabel}</div>
+      <div className="px-6 py-5 border-t border-black/10 grid grid-cols-[auto_1fr_auto] gap-6 items-center"
+        style={{ background: `${winColor}08` }}
+      >
+        <div className="text-center">
+          <div className="text-4xl font-bold leading-none" style={{ color: winColor }}>{winChance}%</div>
+          <div className="text-xs font-bold tracking-normal mt-0.5" style={{ color: winColor }}>{winLabel}</div>
         </div>
         <div>
-          <div style={{ fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.4, marginBottom: '0.5rem' }}>TARGET PRIORITY</div>
+          <div className="text-xs tracking-normal opacity-40 mb-2">TARGET PRIORITY</div>
           {priority.slice(0, numEnemies).map((idx, rank) => (
-            <div key={idx} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '0.25rem' }}>
-              <span style={{ fontSize: '0.55rem', color: rank === 0 ? '#ff4455' : rank === 1 ? '#ffcc00' : '#8899aa', fontWeight: 700, minWidth: '14px' }}>{rank + 1}.</span>
-              <span style={{ fontSize: '0.57rem', opacity: 0.7 }}>Enemy {idx + 1} — {POSITION_LABEL[activeEnemies[idx].position]}, {activeEnemies[idx].distance}m, {activeEnemies[idx].armor} plates</span>
+            <div key={`priority-enemy-${idx + 1}`} className="flex gap-1.5 items-center mb-1">
+              <span className="text-xs font-bold min-w-[14px]"
+                style={{ color: rank === 0 ? '#ff4455' : rank === 1 ? '#ffcc00' : '#8899aa' }}
+              >{rank + 1}.</span>
+              <span className="text-xs opacity-70">Enemy {idx + 1} — {POSITION_LABEL[activeEnemies[idx].position]}, {activeEnemies[idx].distance}m, {activeEnemies[idx].armor} plates</span>
             </div>
           ))}
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '0.45rem', opacity: 0.4, marginBottom: '0.25rem' }}>YOUR TTK</div>
-          <div style={{ fontSize: '1rem', fontWeight: 700 }}>{calcTTK(weapon, HP[myArmor])} ms</div>
-          <div style={{ fontSize: '0.45rem', opacity: 0.4, marginTop: '0.25rem' }}>vs {HP[myArmor]} HP</div>
+        <div className="text-center">
+          <div className="text-xs opacity-40 mb-1">YOUR TTK</div>
+          <div className="text-base font-bold">{calcTTK(weapon, HP[myArmor])} ms</div>
+          <div className="text-xs opacity-40 mt-1">vs {HP[myArmor]} HP</div>
         </div>
       </div>
 
-      <div style={{ padding: '0.6rem 1.5rem', borderTop: '1px solid rgba(0,0,0,0.08)', fontSize: '0.5rem', letterSpacing: '0.12em', opacity: 0.3 }}>
+      <div className="px-6 py-2.5 border-t border-black/8 text-xs tracking-normal opacity-30">
         WIN CHANCE IS AN ESTIMATE — EXECUTION, CROSSHAIR PLACEMENT, AND LUCK ARE NOT MODELED
       </div>
     </div>

@@ -25,11 +25,11 @@ const TERRAIN_ROWS = [
 ];
 
 function SpeedBar({ value, color }: { value: number; color: string }) {
-  if (value === 0) return <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#ff4444', opacity: 0.7 }}>--</span>;
+  if (value === 0) return <span className="text-sm font-bold opacity-70" style={{ color: '#ff4444' }}>--</span>;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <div style={{ width: `${Math.min(value, 112) * 0.55}px`, height: '3px', background: color, borderRadius: '2px', minWidth: '8px' }} />
-      <span style={{ fontSize: '0.72rem', fontWeight: 700, color }}>{value}%</span>
+    <div className="flex items-center gap-2">
+      <div className="h-[3px] rounded-sm min-w-[8px]" style={{ width: `${Math.min(value, 112) * 0.55}px`, background: color }} />
+      <span className="text-xs font-bold" style={{ color }}>{value}%</span>
     </div>
   );
 }
@@ -53,48 +53,56 @@ export default function MovementSpeedReference() {
   const [tab, setTab] = useState<Tab>('weapon');
 
   return (
-    <div style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: '4px', marginBottom: '2rem', overflow: 'hidden', fontFamily: 'monospace' }}>
-      <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(0,0,0,0.1)', background: 'rgba(0,0,0,0.02)' }}>
-        <div style={{ fontSize: '0.55rem', letterSpacing: '0.2em', opacity: 0.4, marginBottom: '0.3rem' }}>REFERENCE TABLE</div>
-        <div style={{ fontSize: '1rem', fontWeight: 700, letterSpacing: '0.08em' }}>MOVEMENT SPEED REFERENCE</div>
+    <div className="border border-black/12 rounded mb-8 overflow-hidden font-mono">
+      <div className="px-6 py-5 border-b border-black/10 bg-black/2">
+        <div className="text-xs tracking-normal opacity-40 mb-1">REFERENCE TABLE</div>
+        <div className="text-base font-bold tracking-normal">MOVEMENT SPEED REFERENCE</div>
       </div>
 
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+      <div className="flex border-b border-black/10">
         {([['weapon', 'BY WEAPON CLASS'], ['terrain', 'BY TERRAIN']] as [Tab, string][]).map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} style={{ padding: '0.75rem 1.5rem', border: 'none', borderBottom: tab === id ? '2px solid currentColor' : '2px solid transparent', background: 'transparent', color: tab === id ? 'inherit' : 'rgba(0,0,0,0.35)', fontSize: '0.6rem', letterSpacing: '0.15em', cursor: 'pointer', fontFamily: 'monospace', fontWeight: tab === id ? 700 : 400 }}>
+          <button type="button" key={id} onClick={() => setTab(id)}
+            className="font-mono text-xs tracking-normal cursor-pointer bg-transparent border-none"
+            style={{
+              padding: '0.75rem 1.5rem',
+              borderBottom: tab === id ? '2px solid currentColor' : '2px solid transparent',
+              color: tab === id ? 'inherit' : 'rgba(0,0,0,0.35)',
+              fontWeight: tab === id ? 700 : 400,
+            }}
+          >
             {label}
           </button>
         ))}
       </div>
 
-      <div style={{ padding: '1.25rem 1.5rem' }}>
+      <div className="px-6 py-5">
         {tab === 'weapon' && (
           <>
-            <div style={{ fontSize: '0.48rem', letterSpacing: '0.1em', opacity: 0.35, marginBottom: '1rem' }}>
+            <div className="text-xs tracking-normal opacity-35 mb-4">
               BASE = 100% (pistol / no primary). Values are approximate and vary by attachment setup.
             </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.62rem' }}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-xs">
                 <thead>
                   <tr>
                     {['CLASS', 'SPRINT', 'TACTICAL SPRINT', 'ADS WALK'].map((h) => (
-                      <th key={h} style={{ padding: '0.55rem 0.75rem', textAlign: 'left', borderBottom: '1px solid rgba(0,0,0,0.1)', fontSize: '0.48rem', letterSpacing: '0.12em', opacity: 0.38, fontWeight: 400 }}>{h}</th>
+                      <th key={h} className="text-xs tracking-normal font-normal text-left px-3 py-[0.55rem] border-b border-black/10 opacity-[0.38]">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {WEAPON_ROWS.map((row) => (
-                    <tr key={row.label} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                      <td style={{ padding: '0.65rem 0.75rem', letterSpacing: '0.03em', opacity: 0.8 }}>{row.label}</td>
-                      <td style={{ padding: '0.65rem 0.75rem' }}><SpeedBar value={row.sprint} color={speedColor(row.sprint)} /></td>
-                      <td style={{ padding: '0.65rem 0.75rem' }}><SpeedBar value={row.tacSprint} color={speedColor(row.tacSprint)} /></td>
-                      <td style={{ padding: '0.65rem 0.75rem' }}><SpeedBar value={row.adsWalk} color={speedColor(row.adsWalk)} /></td>
+                    <tr key={row.label} className="border-b border-black/5">
+                      <td className="px-3 py-[0.65rem] tracking-normal opacity-80">{row.label}</td>
+                      <td className="px-3 py-[0.65rem]"><SpeedBar value={row.sprint} color={speedColor(row.sprint)} /></td>
+                      <td className="px-3 py-[0.65rem]"><SpeedBar value={row.tacSprint} color={speedColor(row.tacSprint)} /></td>
+                      <td className="px-3 py-[0.65rem]"><SpeedBar value={row.adsWalk} color={speedColor(row.adsWalk)} /></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div style={{ marginTop: '1rem', padding: '0.65rem 0.85rem', background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.06)', borderRadius: '2px', fontSize: '0.52rem', opacity: 0.55, lineHeight: 1.65 }}>
+            <div className="mt-4 px-[0.85rem] py-[0.65rem] bg-black/3 border border-black/6 rounded-sm text-xs opacity-55 leading-relaxed">
               When rotating under fire, holding a pistol or stowing your primary gives the highest movement speed. In late circles, every percent matters.
             </div>
           </>
@@ -102,20 +110,22 @@ export default function MovementSpeedReference() {
 
         {tab === 'terrain' && (
           <>
-            <div style={{ fontSize: '0.48rem', letterSpacing: '0.1em', opacity: 0.35, marginBottom: '1rem' }}>
+            <div className="text-xs tracking-normal opacity-35 mb-4">
               Relative sprint speed compared to flat ground. Terrain penalties apply across all weapon classes.
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            <div className="flex flex-col gap-[0.45rem]">
               {TERRAIN_ROWS.map((row) => {
                 const rs = RISK_STYLE[row.risk];
                 return (
-                  <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: '1rem', alignItems: 'center', padding: '0.8rem 1rem', border: `1px solid ${rs.border}`, borderRadius: '3px', background: rs.bg }}>
+                  <div key={row.label} className="grid grid-cols-[1fr_90px] gap-4 items-center rounded-sm"
+                    style={{ padding: '0.8rem 1rem', border: `1px solid ${rs.border}`, background: rs.bg }}
+                  >
                     <div>
-                      <div style={{ fontSize: '0.65rem', letterSpacing: '0.04em', marginBottom: '0.2rem' }}>{row.label}</div>
-                      <div style={{ fontSize: '0.5rem', opacity: 0.45, lineHeight: 1.55 }}>{row.note}</div>
+                      <div className="text-xs tracking-normal mb-[0.2rem]">{row.label}</div>
+                      <div className="text-xs opacity-45 leading-relaxed">{row.note}</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '0.44rem', opacity: 0.35, letterSpacing: '0.1em', marginBottom: '0.2rem' }}>SPRINT</div>
+                    <div className="text-right">
+                      <div className="text-xs opacity-35 tracking-normal mb-[0.2rem]">SPRINT</div>
                       <SpeedBar value={row.sprint} color={speedColor(row.sprint)} />
                     </div>
                   </div>
