@@ -814,6 +814,130 @@ const competitivePageStyles = `
     .wrs-table { min-width: 640px; }
     .wrs-panel { overflow-x: auto; }
   }
+
+  .competitive-nav,
+  .competitive-page,
+  .competitive-page::before,
+  .competitive-actions button,
+  .competitive-actions a,
+  .competitive-actions > span,
+  .competitive-filters button,
+  .competitive-filters select,
+  .competitive-filters input,
+  .competitive-tabs button,
+  .competitive-tabs a,
+  .competitive-stat-grid article,
+  .competitive-ranking article,
+  .competitive-ranking .is-empty,
+  .event-now article,
+  .past-events article,
+  .event-started,
+  .event-standings,
+  .wrs-live-wrap,
+  .wrs-panel,
+  .wrs-detail-card {
+    background: #000 !important;
+    color: #fff !important;
+  }
+
+  .competitive-ranking .is-gold,
+  .competitive-ranking .is-silver,
+  .competitive-ranking .is-bronze,
+  .competitive-ranking .is-green,
+  .competitive-ranking .is-pink,
+  .wrs-live-row.is-winner,
+  .competitive-tabs .is-selected,
+  .competitive-tabs .is-live,
+  .competitive-live-strip {
+    background: rgba(22, 60, 255, 0.28) !important;
+  }
+
+  .competitive-nav,
+  .competitive-nav a,
+  .competitive-logo,
+  .competitive-actions button,
+  .competitive-actions a,
+  .competitive-actions > span,
+  .competitive-board,
+  .competitive-filters button,
+  .competitive-filters select,
+  .competitive-filters input,
+  .competitive-tabs button,
+  .competitive-tabs a,
+  .competitive-stat-grid article,
+  .competitive-ranking article,
+  .event-now article,
+  .past-events article,
+  .event-tags span,
+  .past-events article span,
+  .event-started,
+  .event-standings,
+  .wrs-live-wrap,
+  .wrs-live-wrap .wrs-panel,
+  .wrs-panel,
+  .wrs-panel header,
+  .wrs-live-row,
+  .wrs-table th,
+  .wrs-table td,
+  .wrs-status,
+  .wrs-detail-card,
+  .wrs-overall-table th,
+  .wrs-overall-table td {
+    border-color: rgba(22, 60, 255, 0.72) !important;
+  }
+
+  .competitive-hero h1,
+  .competitive-logo,
+  .competitive-tabs strong,
+  .competitive-stat-grid strong,
+  .competitive-ranking div strong,
+  .competitive-ranking p strong,
+  .event-now h1,
+  .past-events h2,
+  .past-events h3,
+  .event-card-head h2,
+  .event-started,
+  .event-standings,
+  .event-standings h3,
+  .event-standings b,
+  .event-standings strong,
+  .wrs-panel h2,
+  .wrs-live-row strong,
+  .wrs-points,
+  .wrs-table th,
+  .wrs-table td,
+  .wrs-detail-card strong,
+  .wrs-detail-card dl,
+  .wrs-overall-table th,
+  .wrs-overall-table td {
+    color: #fff !important;
+  }
+
+  .competitive-kicker,
+  .competitive-hero small,
+  .competitive-tabs p,
+  .competitive-stat-grid span,
+  .competitive-ranking div span,
+  .competitive-ranking p,
+  .competitive-source,
+  .event-card-head p,
+  .past-events p,
+  .event-tags span,
+  .past-events article span,
+  .wrs-event-controls label > span,
+  .wrs-panel header span,
+  .wrs-live-row small,
+  .wrs-points span,
+  .wrs-status,
+  .wrs-detail-card p,
+  .wrs-detail-card dt,
+  .wrs-overall-table th {
+    color: rgba(255, 255, 255, 0.68) !important;
+  }
+
+  .competitive-filters input::placeholder {
+    color: rgba(255, 255, 255, 0.52) !important;
+  }
 `;
 
 export function EsportChrome({ active, children }: { active: Active; children: React.ReactNode }) {
@@ -934,12 +1058,42 @@ export function CompetitiveLeaderboardPage({
   );
 }
 
-export function CompetitiveCalendarPage() {
-  const liveTeams = [
+export type CalendarData = {
+  liveEvent?: {
+    tags: string[];
+    title: string;
+    subtitle?: string;
+    series?: string;
+    startedAt?: string;
+    standings: Array<{ rank: number; players: string; team: string; points: string }>;
+  } | null;
+  pastEvents?: Array<{ tags: string[]; title: string; subtitle?: string; when?: string }>;
+};
+
+export function CompetitiveCalendarPage({ data }: { data?: CalendarData } = {}) {
+  const fallbackLiveTeams: Array<readonly [string, string, string, string]> = [
     ['1', 'Niasen / iheedz / kingchawk', 'Ravens', '159.6'],
     ['2', 'Newbz / Dongy / Hisoka', 'Team Falcons', '151.2'],
     ['3', 'Almond / zSmit / Shifty', 'Twisted Minds', '134'],
   ];
+
+  const live = data?.liveEvent;
+  const liveTeams: Array<readonly [string, string, string, string]> = live?.standings?.length
+    ? live.standings.map((s) => [String(s.rank), s.players, s.team, s.points] as const)
+    : fallbackLiveTeams;
+  const liveTags = live?.tags?.length ? live.tags : ['LIVE', '2026', 'COD:WRS Atlanta', 'Finals'];
+  const liveTitle = live?.title || 'LAN Finals';
+  const liveSubtitle = live?.subtitle || 'Resurgence - LAN Atlanta';
+  const liveSeries = live?.series || 'WARZONE RESURGENCE SERIES';
+  const liveStarted = live?.startedAt || 'Started at May 17, 2026, 12:00 PM';
+
+  const pastEvents = data?.pastEvents?.length
+    ? data.pastEvents
+    : [
+        { tags: ['COD:WRS Atlanta', 'Round 2'], title: 'LAN Open', when: 'May 16, 2026, 8:51 PM' },
+        { tags: ['WSOW 2025', 'Finals'], title: 'Global LAN Finals', when: 'Global LAN - finished' },
+        { tags: ['EWC 2025', 'Finals'], title: 'EWC Final', when: 'Riyadh LAN - finished' },
+      ];
 
   return (
     <EsportChrome active="calendar">
@@ -948,23 +1102,24 @@ export function CompetitiveCalendarPage() {
           <h1><span>LIVE</span> Live Warzone Event Now</h1>
           <article>
             <div className="event-tags">
-              <span>LIVE</span>
-              <span>2026</span>
-              <span>COD:WRS Atlanta</span>
-              <span>Finals</span>
+              {liveTags.map((tag, index) => (
+                <span key={`${tag}-${index}`}>{tag}</span>
+              ))}
             </div>
             <div className="event-card-head">
               <div>
-                <h2>LAN Finals</h2>
-                <p>Resurgence - LAN Atlanta</p>
+                <h2>{liveTitle}</h2>
+                <p>{liveSubtitle}</p>
               </div>
-              <strong>WARZONE<br />RESURGENCE<br />SERIES</strong>
+              <strong>
+                {liveSeries.split(/\s+/).flatMap((word, index) => (index === 0 ? [word] : [<br key={index} />, word]))}
+              </strong>
             </div>
-            <div className="event-started">Started at May 17, 2026, 12:00 PM</div>
+            <div className="event-started">{liveStarted}</div>
             <div className="event-standings">
               <h3>Current Standings</h3>
               {liveTeams.map(([rank, players, team, points]) => (
-                <div key={rank}>
+                <div key={`${rank}-${team}`}>
                   <span>{rank}</span>
                   <b>{players}</b>
                   <strong>{team}</strong>
@@ -984,14 +1139,15 @@ export function CompetitiveCalendarPage() {
 
         <section className="past-events">
           <h2>Past Warzone Events</h2>
-          {['LAN Open', 'Global LAN Finals', 'EWC Final'].map((event, index) => (
-            <article key={event}>
+          {pastEvents.map((event, index) => (
+            <article key={`${event.title}-${index}`}>
               <div>
-                <span>{index === 0 ? 'COD:WRS Atlanta' : index === 1 ? 'WSOW 2025' : 'EWC 2025'}</span>
-                <span>{index === 0 ? 'Round 2' : 'Finals'}</span>
+                {(event.tags || []).slice(0, 2).map((tag, tagIndex) => (
+                  <span key={`${tag}-${tagIndex}`}>{tag}</span>
+                ))}
               </div>
-              <h3>{event}</h3>
-              <p>{index === 0 ? 'May 16, 2026, 8:51 PM' : index === 1 ? 'Global LAN - finished' : 'Riyadh LAN - finished'}</p>
+              <h3>{event.title}</h3>
+              <p>{event.when || event.subtitle || ''}</p>
             </article>
           ))}
         </section>

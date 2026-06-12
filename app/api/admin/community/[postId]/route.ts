@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
 import { deleteCommunityPost, setCommunityPostHidden } from '@/lib/communityStore';
-import { readJsonBody } from '@/lib/security';
+import { readJsonBody, sameOriginGuard } from '@/lib/security';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,6 +25,9 @@ export async function PATCH(req: NextRequest, context: Context) {
 }
 
 export async function DELETE(_req: NextRequest, context: Context) {
+  const csrfError = sameOriginGuard(_req);
+  if (csrfError) return csrfError;
+
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

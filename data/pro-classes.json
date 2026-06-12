@@ -1,0 +1,212 @@
+[
+  {
+    "name": "Hisoka",
+    "team": "Falcons",
+    "role": "",
+    "photo": "/assets/pros/pro-01.webp",
+    "weapon1": {
+      "name": "DS20 Mirage",
+      "image": "/assets/weapons/wzstats/ds20-mirage.avif",
+      "attachments": "OPTIC EAM XL REFLEX - MUZZLE MONOLITHIC - BARREL ABDICATOR 17.1 - MAGAZINE ANDEAN EXTENDED - STOCK TRUNK MIX"
+    },
+    "weapon2": {
+      "name": "MPC-25",
+      "image": "/assets/weapons/wzstats/mpc-25.avif",
+      "attachments": "BARREL VAS ASHE 14.5 - UNDRBARREL FLOWGUARD - MAGAZINE SUSTAINE-25 - REAR GRIP QUICKSHIFT GRIP - STOCK VIPER WIRE "
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "COMBAT AXE",
+    "perk1": "MOUNTAINEER",
+    "perk2": "SPRINTER",
+    "perk3": "TEMPERED"
+  },
+  {
+    "name": "Dongy",
+    "team": "Falcons",
+    "role": "",
+    "photo": "/assets/pros/pro-02.webp",
+    "weapon1": {
+      "name": "MXR-17",
+      "image": "/assets/weapons/wzstats/mxr-17.avif",
+      "attachments": "MUZZLE REDWELL SHADE-X - BARREL 17. GREAVES SCOURGE - UNDERBARREL VAS CONVERGENCE - MAGAZINE TWINPACK FLIP MAGS   "
+    },
+    "weapon2": {
+      "name": "CARBON-57",
+      "image": "/assets/weapons/wzstats/carbon-57.avif",
+      "attachments": " BARREL 11. GREAVES REPOSE - UNDERBARREL QUICKSTEP - MAGAZINE MFS RENOWN - STOCK BOWEN RESOLUTE - Fire Mods 5.7x28MM "
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "COMBAT AXE",
+    "perk1": "MOUNTAINEER",
+    "perk2": "SPRINTER",
+    "perk3": "TEMPERED"
+  },
+  {
+    "name": "Enkeo",
+    "team": "Gentle Mate",
+    "role": "",
+    "photo": "/assets/pros/pro-03.webp",
+    "weapon1": {
+      "name": "DS20 Mirage",
+      "image": "/assets/weapons/wzstats/ds20-mirage.avif",
+      "attachments": "OPTIC REDWELL 30-S - MUZZLE GREAVES TI - BARREL GREAVES - UNDERBARREL VAS CONVERGENCE - FIRE MODS 5.56 NATO"
+    },
+    "weapon2": {
+      "name": "CARBON-57",
+      "image": "/assets/weapons/wzstats/carbon-57.avif",
+      "attachments": "MUZZLE KS STALKER - BARREL 8.6 ORBITAL - MAGAZINE MFS RENOWN - STOCK HEAVY BOUND - FIRE MODS 5.7x28MM"
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "COMBAT AXE",
+    "perk1": "MOUNTAINEER",
+    "perk2": "SPRINTER",
+    "perk3": "TEMPERED"
+  },
+  {
+    "name": "Newbz",
+    "team": "Falcons",
+    "role": "",
+    "photo": "/assets/pros/pro-04.webp",
+    "weapon1": {
+      "name": "MXR-17",
+      "image": "/assets/weapons/wzstats/mxr-17.avif",
+      "attachments": "MUZZLE MONOLITHIC - BARREL 17. GREAVES - UNDERBARREL VAS CONVERGENCE - MAGAZINE TWINPACK FLIP - FIRE MODS 7.62 NATO"
+    },
+    "weapon2": {
+      "name": "CARBON-57",
+      "image": "/assets/weapons/wzstats/carbon-57.avif",
+      "attachments": "MUZZLE KUHN PORTED - BARREL 8.6 ORBITAL - MAGAZINE MFS RENOWN - STOCK HAMMER - FIRE MODS 5.7x28MM"
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "SEMTEX",
+    "perk1": "FIELD MEDIC",
+    "perk2": "SPRINTER",
+    "perk3": "GHOST"
+  },
+  {
+    "name": "Destroy",
+    "team": "",
+    "role": "",
+    "photo": "/assets/pros/pro-05.webp",
+    "weapon1": {
+      "name": "MXR-17",
+      "image": "/assets/weapons/wzstats/mxr-17.avif",
+      "attachments": "MUZZLE MONOLITHIC - BARREL 17. GREAVES - UNDERBARREL VAS CONVERGENCE - MAGAZINE TWINPACK FLIP - FIRE MODS 7.62 NATO"
+    },
+    "weapon2": {
+      "name": "MPC-25",
+      "image": "/assets/weapons/wzstats/mpc-25.avif",
+      "attachments": "MUZZLE REDWELL SHADE-X -BARREL 8.6 ORBITAL - FLOWGUARD FOREGRIP - MAGAZINE SUSTAIN-25 EXTENDED - STOCK SABOT HAMMER"
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "FRAG",
+    "perk1": "FIELD MEDIC",
+    "perk2": "SPRINTER",
+    "perk3": "GHOST"
+  },
+  {
+    "name": "Biffle",
+    "team": "Falcons",
+    "role": "",
+    "photo": "/assets/pros/pro-06.webp",
+    "weapon1": {
+      "name": "MXR-17",
+      "image": "/assets/weapons/wzstats/mxr-17.avif",
+      "attachments": "MUZZLE MONOLITHIC - BARREL 17. GREAVES - UNDERBARREL VAS CONVERGENCE - MAGAZINE TWINPACK FLIP - FIRE MODS 7.62 NATO"
+    },
+    "weapon2": {
+      "name": "DRAVEC 45",
+      "image": "/assets/weapons/wzstats/dravec-45.avif",
+      "attachments": "MUZZLE HYBRID - MAGAZINE GATOR EXTENDED - STOCK SERVAL Q-STEP - LASER MFS AGILE - FIRE MODS .45 CAL FMJ"
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "SEMTEX",
+    "perk1": "SCAVENGER",
+    "perk2": "SPRINTER",
+    "perk3": "TEMPERED"
+  },
+  {
+    "name": "Shifty",
+    "team": "Falcons",
+    "role": "",
+    "photo": "/assets/pros/pro-07.webp",
+    "weapon1": {
+      "name": "MXR-17",
+      "image": "/assets/weapons/wzstats/mxr-17.avif",
+      "attachments": "MUZZLE MONOLITHIC - BARREL 17. GREAVES - STOCK WINCH  - MAGAZINE TWINPACK FLIP - FIRE MODS 7.62 NATO"
+    },
+    "weapon2": {
+      "name": "CARBON-57",
+      "image": "/assets/weapons/wzstats/carbon-57.avif",
+      "attachments": " BARREL 11. GREAVES REPOSE - UNDERBARREL QUICKSTEP - MAGAZINE MFS RENOWN - STOCK BOWEN RESOLUTE - Fire Mods 5.7x28MM "
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "SEMTEX",
+    "perk1": "FIELD MEDIC",
+    "perk2": "SPRINTER",
+    "perk3": "TEMPERED"
+  },
+  {
+    "name": "Aydan",
+    "team": "Twisted Minds",
+    "role": "",
+    "photo": "/assets/pros/pro-08.webp",
+    "weapon1": {
+      "name": "AK 27",
+      "image": "/assets/weapons/wzstats/ak-27.avif",
+      "attachments": "OPTIC FANG HOVERPOINT - MUZZLE MONOLITHIC - BARREL 17.6 VANDAL - MAGAZINE EPITAPH - FIRE MODS 7.62 SOVIET"
+    },
+    "weapon2": {
+      "name": "CARBON-57",
+      "image": "/assets/weapons/wzstats/carbon-57.avif",
+      "attachments": " BARREL 11. GREAVES REPOSE - UNDERBARREL QUICKSTEP - MAGAZINE MFS RENOWN - STOCK BOWEN RESOLUTE - Fire Mods 5.7x28MM "
+    },
+    "utility1": "SMOKE GRENADE",
+    "utility2": "FRAG",
+    "perk1": "SCAVENGER",
+    "perk2": "SPRINTER",
+    "perk3": "SURVIVOR"
+  },
+  {
+    "name": "Almond",
+    "team": "Twisted Minds",
+    "role": "",
+    "photo": "/assets/pros/pro-09.webp",
+    "weapon1": {
+      "name": "MXR-17",
+      "image": "/assets/weapons/wzstats/mxr-17.avif",
+      "attachments": "MUZZLE MONOLITHIC - BARREL 17. GREAVES - STOCK VAS TH-09  - MAGAZINE TWINPACK FLIP - FIRE MODS FMJ ROUNDS"
+    },
+    "weapon2": {
+      "name": "CARBON-57",
+      "image": "/assets/weapons/wzstats/carbon-57.avif",
+      "attachments": "LTI SENTORIAN BRAKE - 8.6 ORBITAL - HAMMER PLATOON , FMJ ROUNDS , PRESTIGE MAG"
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "MOLOTOV",
+    "perk1": "SCAVENGER",
+    "perk2": "SPRINTER",
+    "perk3": "GHOST"
+  },
+  {
+    "name": "Blazt",
+    "team": "Twisted Minds",
+    "role": "",
+    "photo": "/assets/pros/pro-10.webp",
+    "weapon1": {
+      "name": "MXR-17",
+      "image": "/assets/weapons/wzstats/mxr-17.avif",
+      "attachments": "MUZZLE MONOLITHIC - BARREL 17 GREAVES - UNDERBARREL VAS CONVERGENCE - MAGAZINE TWINPACK - FIRE MODS 7.62 NATO"
+    },
+    "weapon2": {
+      "name": "CARBON-57",
+      "image": "/assets/weapons/wzstats/carbon-57.avif",
+      "attachments": "BARREL 11. GREAVES REPOSE - UNDERBARREL QUICKSTEP - MAGAZINE MFS RENOWN - STOCK BOWEN RESOLUTE - Fire Mods 5.7x28MM "
+    },
+    "utility1": "STIM SHOT",
+    "utility2": "MOLOTOV",
+    "perk1": "FIELD MEDIC",
+    "perk2": "SPRINTER",
+    "perk3": "GHOST"
+  }
+]

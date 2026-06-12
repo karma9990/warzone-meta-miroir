@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
-import AuthButton from '@/components/AuthButton';
 import LocalizedLink from '@/components/LocalizedLink';
 import LocalizedSafariBar from '@/components/LocalizedSafariBar';
 import type { CommunityPost, CommunityPostType } from '@/lib/communityStore';
@@ -218,15 +217,16 @@ function typeLabelsFor(locale: Locale): Record<CommunityPostType | 'all', string
   };
 }
 
-function formatTime(value: string) {
+function formatTime(value: string, locale: Locale = 'en') {
   const date = new Date(value);
   const diffMs = Date.now() - date.getTime();
   const diffMinutes = Math.max(1, Math.round(diffMs / 60000));
+  const suffix = locale === 'fr' ? 'il y a' : locale === 'es' ? 'hace' : '';
 
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffMinutes < 60) return suffix ? `${suffix} ${diffMinutes}m` : `${diffMinutes}m ago`;
   const diffHours = Math.round(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  if (diffHours < 24) return suffix ? `${suffix} ${diffHours}h` : `${diffHours}h ago`;
+  return date.toLocaleDateString(locale === 'fr' ? 'fr-FR' : locale === 'es' ? 'es-ES' : 'en-GB', { day: '2-digit', month: 'short' });
 }
 
 function normalizeTags(value: string) {
@@ -238,45 +238,120 @@ function normalizeTags(value: string) {
 }
 
 function localizeCommunityText(value: string, locale: Locale) {
-  if (locale !== 'es') return value;
-
-  const map: Record<string, string> = {
-    'Looking for two ranked Resurgence teammates tonight': 'Busco dos companeros ranked Resurgence para esta noche',
-    'Goal: clean rotations, short callouts, no rage quit. I play SMG support and I am available 21:00-00:00.': 'Objetivo: rotaciones limpias, callouts cortos y nada de rage quit. Juego soporte SMG y estoy disponible 21:00-00:00.',
-    'Which SMG are you running after the latest patch?': 'Que SMG estas usando despues del ultimo parche?',
-    'I am in. AR anchor, Diamond too. I can start around 21:15.': 'Me apunto. AR anchor, tambien Diamond. Puedo empezar sobre las 21:15.',
-    'Mode, time, rank, playstyle...': 'Modo, hora, rango, estilo de juego...',
-    'Looking for a ranked duo tonight': 'Busco duo ranked esta noche',
-    'Short join request...': 'Solicitud corta para unirse...',
-    'Sign in to ask to join': 'Inicia sesion para pedir unirte',
-    'Reply, suggest a session, share a build...': 'Responde, propone una sesion, comparte una clase...',
-    'Sign in to reply': 'Inicia sesion para responder',
+  const maps: Partial<Record<Locale, Record<string, string>>> = {
+    fr: {
+      'Looking for two ranked Resurgence teammates tonight': 'Recherche deux mates ranked Resurgence ce soir',
+      'Goal: clean rotations, short callouts, no rage quit. I play SMG support and I am available 21:00-00:00.': 'Objectif : rotations propres, calls courts, pas de rage quit. Je joue support SMG et je suis dispo 21:00-00:00.',
+      'Which SMG are you running after the latest patch?': 'Quel SMG tu joues apres le dernier patch ?',
+      'Carbon 57 feels more reliable up close, but I still see a lot of VST. What builds are you using?': 'Le Carbon 57 semble plus fiable de pres, mais je vois encore beaucoup de VST. Quelles classes vous utilisez ?',
+      'I am in. AR anchor, Diamond too. I can start around 21:15.': 'Je suis chaud. Anchor AR, Diamond aussi. Je peux commencer vers 21:15.',
+      'VST if you want full mobility, Carbon if you want to win duels a little farther out.': 'VST si tu veux la mobilite max, Carbon si tu veux gagner des duels un peu plus loin.',
+      'Callout template for playing with new teammates': 'Template de callouts pour jouer avec des nouveaux mates',
+      'Before queueing: decide who IGLs, who carries smokes, and who calls rotations. In game: position, number, armor, intention. Example: Prison roof, two, cracked one, I hold cross.': 'Avant de lancer : decidez qui IGL, qui porte les smokes et qui call les rotations. En game : position, nombre, armure, intention. Exemple : toit Prison, deux, un crack, je tiens le cross.',
+      'Mode, time, rank, playstyle...': 'Mode, heure, rang, style de jeu...',
+      'Looking for a ranked duo tonight': 'Recherche un duo ranked ce soir',
+      'Short join request...': 'Petit message pour rejoindre...',
+      'Sign in to ask to join': 'Connecte-toi pour demander a rejoindre',
+      'Reply, suggest a session, share a build...': 'Reponds, propose une session, partage une classe...',
+      'Sign in to reply': 'Connecte-toi pour repondre',
+      'Plan a session, exchange IDs, confirm roles...': 'Planifie une session, echange les IDs, confirme les roles...',
+      'Sign in to message players': 'Connecte-toi pour ecrire aux joueurs',
+      'Tonight 21:00-00:00': 'Ce soir 21:00-00:00',
+      'No message yet.': 'Aucun message pour le moment.',
+      New: 'Nouveau',
+    },
+    es: {
+      'Looking for two ranked Resurgence teammates tonight': 'Busco dos companeros ranked Resurgence para esta noche',
+      'Goal: clean rotations, short callouts, no rage quit. I play SMG support and I am available 21:00-00:00.': 'Objetivo: rotaciones limpias, callouts cortos y nada de rage quit. Juego soporte SMG y estoy disponible 21:00-00:00.',
+      'Which SMG are you running after the latest patch?': 'Que SMG estas usando despues del ultimo parche?',
+      'Carbon 57 feels more reliable up close, but I still see a lot of VST. What builds are you using?': 'Carbon 57 se siente mas fiable de cerca, pero sigo viendo mucho VST. Que clases usan?',
+      'I am in. AR anchor, Diamond too. I can start around 21:15.': 'Me apunto. AR anchor, tambien Diamond. Puedo empezar sobre las 21:15.',
+      'VST if you want full mobility, Carbon if you want to win duels a little farther out.': 'VST si quieres movilidad total, Carbon si quieres ganar duelos un poco mas lejos.',
+      'Callout template for playing with new teammates': 'Plantilla de callouts para jugar con nuevos companeros',
+      'Before queueing: decide who IGLs, who carries smokes, and who calls rotations. In game: position, number, armor, intention. Example: Prison roof, two, cracked one, I hold cross.': 'Antes de entrar en cola: decidan quien es IGL, quien lleva smokes y quien canta rotaciones. En partida: posicion, numero, armadura, intencion. Ejemplo: techo Prison, dos, uno crackeado, cubro el cruce.',
+      'Mode, time, rank, playstyle...': 'Modo, hora, rango, estilo de juego...',
+      'Looking for a ranked duo tonight': 'Busco duo ranked esta noche',
+      'Short join request...': 'Solicitud corta para unirse...',
+      'Sign in to ask to join': 'Inicia sesion para pedir unirte',
+      'Reply, suggest a session, share a build...': 'Responde, propone una sesion, comparte una clase...',
+      'Sign in to reply': 'Inicia sesion para responder',
+      'Plan a session, exchange IDs, confirm roles...': 'Planea una sesion, intercambia IDs, confirma roles...',
+      'Sign in to message players': 'Inicia sesion para escribir a jugadores',
+      'Tonight 21:00-00:00': 'Esta noche 21:00-00:00',
+      'No message yet.': 'Aun no hay mensajes.',
+      New: 'Nuevo',
+    },
   };
 
-  return map[value] ?? value;
+  return maps[locale]?.[value] ?? value;
 }
 
 function localizeCommunityOption(value: string, locale: Locale) {
-  if (locale !== 'es') return value;
-
-  const map: Record<string, string> = {
-    All: 'Todo',
-    Global: 'Global',
-    Crossplay: 'Crossplay',
-    Controller: 'Mando',
-    'Keyboard + mouse': 'Teclado + raton',
-    Open: 'Abierto',
-    'Mic required': 'Micro obligatorio',
-    'Mic recommended': 'Micro recomendado',
-    Optional: 'Opcional',
-    English: 'Ingles',
-    French: 'Frances',
-    Spanish: 'Espanol',
-    Portuguese: 'Portugues',
-    Discussion: 'Debate',
+  const maps: Partial<Record<Locale, Record<string, string>>> = {
+    fr: {
+      All: 'Tous',
+      Global: 'Global',
+      Crossplay: 'Multiplateforme',
+      Controller: 'Manette',
+      'Keyboard + mouse': 'Clavier + souris',
+      Open: 'Ouvert',
+      'Ranked Resurgence': 'Classe Resurgence',
+      'Mic required': 'Micro requis',
+      'Mic recommended': 'Micro recommande',
+      Optional: 'Optionnel',
+      English: 'Anglais',
+      French: 'Francais',
+      Spanish: 'Espagnol',
+      Portuguese: 'Portugais',
+      Tonight: 'Ce soir',
+      LFG: 'Recherche mates',
+      Ranked: 'Classe',
+      Resurgence: 'Resurgence',
+      Meta: 'Meta',
+      Loadout: 'Classe',
+      Loadouts: 'Classes',
+      Diamond: 'Diamant',
+      Crimson: 'Crimson',
+      Iridescent: 'Iridescent',
+      'Squad Play': 'Jeu en squad',
+      Comms: 'Comms',
+      Teamplay: 'Jeu d equipe',
+      Guide: 'Guide',
+    },
+    es: {
+      All: 'Todo',
+      Global: 'Global',
+      Crossplay: 'Juego cruzado',
+      Controller: 'Mando',
+      'Keyboard + mouse': 'Teclado + raton',
+      Open: 'Abierto',
+      'Ranked Resurgence': 'Resurgence clasificatoria',
+      'Mic required': 'Micro obligatorio',
+      'Mic recommended': 'Micro recomendado',
+      Optional: 'Opcional',
+      English: 'Ingles',
+      French: 'Frances',
+      Spanish: 'Espanol',
+      Portuguese: 'Portugues',
+      Tonight: 'Esta noche',
+      LFG: 'Busco equipo',
+      Ranked: 'Clasificatoria',
+      Resurgence: 'Resurgence',
+      Meta: 'Meta',
+      Loadout: 'Clase',
+      Loadouts: 'Clases',
+      Diamond: 'Diamante',
+      Crimson: 'Carmesi',
+      Iridescent: 'Iridiscente',
+      'Squad Play': 'Juego en squad',
+      Comms: 'Comms',
+      Teamplay: 'Juego en equipo',
+      Guide: 'Guia',
+      Discussion: 'Debate',
+    },
   };
 
-  return map[value] ?? value;
+  return maps[locale]?.[value] ?? value;
 }
 
 export default function CommunityClient({
@@ -374,9 +449,9 @@ export default function CommunityClient({
   const activeFilters = [
     activeType === 'all' ? t('allPostTypes') : typeLabels[activeType],
     sortMode === 'hot' ? t('hotFirst') : sortMode === 'new' ? t('newestFirst') : t('mostReplies'),
-    regionFilter === ALL_FILTER ? t('allRegions') : regionFilter,
-    platformFilter === ALL_FILTER ? t('allPlatforms') : platformFilter,
-    inputFilter === ALL_FILTER ? t('allInputs') : inputFilter,
+    regionFilter === ALL_FILTER ? t('allRegions') : localizeCommunityOption(regionFilter, locale),
+    platformFilter === ALL_FILTER ? t('allPlatforms') : localizeCommunityOption(platformFilter, locale),
+    inputFilter === ALL_FILTER ? t('allInputs') : localizeCommunityOption(inputFilter, locale),
     query.trim() ? `${t('searchPrefix')}: ${query.trim()}` : t('noSearch'),
   ];
 
@@ -398,7 +473,7 @@ export default function CommunityClient({
     setBusy(false);
 
     if (!res.ok) {
-      setError(data.error || 'Unable to publish right now.');
+      setError(data.error || (locale === 'fr' ? 'Publication impossible pour le moment.' : locale === 'es' ? 'No se puede publicar ahora.' : 'Unable to publish right now.'));
       return;
     }
 
@@ -423,7 +498,7 @@ export default function CommunityClient({
 
     const data = await res.json();
     if (!res.ok) {
-      setError(data.error || 'Unable to reply right now.');
+      setError(data.error || (locale === 'fr' ? 'Reponse impossible pour le moment.' : locale === 'es' ? 'No se puede responder ahora.' : 'Unable to reply right now.'));
       return;
     }
 
@@ -433,7 +508,7 @@ export default function CommunityClient({
 
   async function askToJoin(postId: string) {
     if (!user) {
-      setError(locale === 'es' ? 'Inicia sesion para pedir unirte a un squad.' : 'Sign in to ask to join a squad.');
+      setError(locale === 'fr' ? 'Connecte-toi pour demander a rejoindre un squad.' : locale === 'es' ? 'Inicia sesion para pedir unirte a un squad.' : 'Sign in to ask to join a squad.');
       return;
     }
 
@@ -445,18 +520,18 @@ export default function CommunityClient({
 
     const data = await res.json();
     if (!res.ok) {
-      setError(data.error || 'Unable to send join request right now.');
+      setError(data.error || (locale === 'fr' ? 'Demande impossible pour le moment.' : locale === 'es' ? 'No se puede enviar la solicitud ahora.' : 'Unable to send join request right now.'));
       return;
     }
 
-    setError('Join request sent.');
+    setError(locale === 'fr' ? 'Demande envoyee.' : locale === 'es' ? 'Solicitud enviada.' : 'Join request sent.');
     setPosts((current) => current.map((post) => post.id === postId ? data : post));
     setJoinDrafts((current) => ({ ...current, [postId]: '' }));
   }
 
   async function vote(postId: string, delta: 1 | -1) {
     if (!user) {
-      setError('Sign in to vote on community posts.');
+      setError(locale === 'fr' ? 'Connecte-toi pour voter sur les posts.' : locale === 'es' ? 'Inicia sesion para votar en posts de comunidad.' : 'Sign in to vote on community posts.');
       return;
     }
 
@@ -468,7 +543,7 @@ export default function CommunityClient({
 
     const data = await res.json();
     if (!res.ok) {
-      setError(data.error || 'Unable to vote right now.');
+      setError(data.error || (locale === 'fr' ? 'Vote impossible pour le moment.' : locale === 'es' ? 'No se puede votar ahora.' : 'Unable to vote right now.'));
       return;
     }
 
@@ -478,25 +553,25 @@ export default function CommunityClient({
 
   async function reportPost(postId: string) {
     if (!user) {
-      setError('Sign in to report a post.');
+      setError(locale === 'fr' ? 'Connecte-toi pour signaler un post.' : locale === 'es' ? 'Inicia sesion para denunciar un post.' : 'Sign in to report a post.');
       return;
     }
 
     const res = await fetch(`/api/community/${postId}/report`, { method: 'POST' });
     const data = await res.json();
     if (!res.ok) {
-      setError(data.error || 'Unable to report right now.');
+      setError(data.error || (locale === 'fr' ? 'Signalement impossible pour le moment.' : locale === 'es' ? 'No se puede denunciar ahora.' : 'Unable to report right now.'));
       return;
     }
 
-    setError('Report queued for moderator review.');
+    setError(locale === 'fr' ? 'Signalement envoye a la moderation.' : locale === 'es' ? 'Denuncia enviada a moderacion.' : 'Report queued for moderator review.');
     setPosts((current) => current.map((post) => post.id === postId ? data : post));
   }
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!user) {
-      setError('Sign in to send private messages.');
+      setError(locale === 'fr' ? 'Connecte-toi pour envoyer des messages prives.' : locale === 'es' ? 'Inicia sesion para enviar mensajes privados.' : 'Sign in to send private messages.');
       return;
     }
 
@@ -511,11 +586,11 @@ export default function CommunityClient({
     setMessageBusy(false);
 
     if (!res.ok) {
-      setError(data.error || 'Unable to send private message.');
+      setError(data.error || (locale === 'fr' ? 'Message prive impossible a envoyer.' : locale === 'es' ? 'No se puede enviar el mensaje privado.' : 'Unable to send private message.'));
       return;
     }
 
-    setError('Private message sent.');
+    setError(locale === 'fr' ? 'Message prive envoye.' : locale === 'es' ? 'Mensaje privado enviado.' : 'Private message sent.');
     setMessages((current) => [data, ...current.filter((conversation) => conversation.id !== data.id)]);
     setMessageForm((current) => ({ ...current, body: '' }));
   }
@@ -529,8 +604,6 @@ export default function CommunityClient({
         searchPlaceholder={locale === 'es' ? 'Mate, rango, clase' : locale === 'fr' ? 'Mate, rang, classe' : locale === 'ja' ? '味方、ランク、ロードアウト' : 'Mate, rank, loadout'}
         readout={[`${posts.length} POSTS`, `${lfgCount} LFG ACTIVE`, 'CHAT: LIVE']}
       />
-      <div className="community-auth-strip"><AuthButton initialUser={user} /></div>
-
       <main className="community-main">
         <header className="community-hero">
           <div>
@@ -644,7 +717,7 @@ export default function CommunityClient({
               </div>
               <div className="community-form-grid">
                 <label>
-                  Mode
+                  {locale === 'fr' ? 'Mode' : locale === 'es' ? 'Modo' : 'Mode'}
                   <input aria-label="Input" value={form.mode} onChange={(event) => setForm({ ...form, mode: event.target.value })} />
                 </label>
                 <label>
@@ -664,7 +737,7 @@ export default function CommunityClient({
                 </label>
                 <label>
                   {t('availability')}
-                  <input aria-label="Input" value={form.availability} onChange={(event) => setForm({ ...form, availability: event.target.value })} placeholder="Tonight 21:00-00:00" />
+                  <input aria-label="Input" value={form.availability} onChange={(event) => setForm({ ...form, availability: event.target.value })} placeholder={locale === 'fr' ? 'Ce soir 21:00-00:00' : locale === 'es' ? 'Esta noche 21:00-00:00' : 'Tonight 21:00-00:00'} />
                 </label>
               </div>
               <label>
@@ -703,7 +776,7 @@ export default function CommunityClient({
                   <textarea aria-label="Textarea"
                     value={messageForm.body}
                     onChange={(event) => setMessageForm({ ...messageForm, body: event.target.value })}
-                    placeholder={user ? 'Plan a session, exchange IDs, confirm roles...' : 'Sign in to message players'}
+                    placeholder={localizeCommunityText(user ? 'Plan a session, exchange IDs, confirm roles...' : 'Sign in to message players', locale)}
                     disabled={!user}
                   />
                 </label>
@@ -717,8 +790,8 @@ export default function CommunityClient({
                   return (
                     <article key={conversation.id}>
                       <strong>{label}</strong>
-                      <p>{last?.body || 'No message yet.'}</p>
-                      <small>{last ? formatTime(last.createdAt) : 'New'}</small>
+                      <p>{last?.body || localizeCommunityText('No message yet.', locale)}</p>
+                      <small>{last ? formatTime(last.createdAt, locale) : localizeCommunityText('New', locale)}</small>
                     </article>
                   );
                 })}
@@ -762,22 +835,22 @@ export default function CommunityClient({
                   <div className="community-post-body">
                     <div className="community-post-meta">
                       <span>{typeLabels[post.type]}</span>
-                      <small>{post.author} / {post.region} / {formatTime(post.createdAt)}</small>
+                      <small>{post.author} / {post.region} / {formatTime(post.createdAt, locale)}</small>
                     </div>
                     <h2>{localizeCommunityText(post.title, locale)}</h2>
                     <p>{localizeCommunityText(post.body, locale)}</p>
                     <div className="community-tags">
-                      <span>{post.platform}</span>
-                      <span>{post.mode}</span>
-                      <span>{post.rank}</span>
-                      <span>{post.mic}</span>
-                      {post.language && <span>{post.language}</span>}
-                      {post.availability && <span>{post.availability}</span>}
-                      {post.tags.map((tag, index) => <span key={`${post.id}-${tag}-${index}`}>{tag}</span>)}
+                      <span>{localizeCommunityOption(post.platform, locale)}</span>
+                      <span>{localizeCommunityOption(post.mode, locale)}</span>
+                      <span>{localizeCommunityOption(post.rank, locale)}</span>
+                      <span>{localizeCommunityOption(post.mic, locale)}</span>
+                      {post.language && <span>{localizeCommunityOption(post.language, locale)}</span>}
+                      {post.availability && <span>{localizeCommunityText(post.availability, locale)}</span>}
+                      {post.tags.map((tag, index) => <span key={`${post.id}-${tag}-${index}`}>{localizeCommunityOption(tag, locale)}</span>)}
                     </div>
                     <div className="community-user-card">
                       <strong>{post.authorPseudo || post.author}</strong>
-                      <span>{post.region} / {post.authorInput || post.platform} / {post.authorRole || post.rank}</span>
+                      <span>{post.region} / {localizeCommunityOption(post.authorInput || post.platform, locale)} / {localizeCommunityOption(post.authorRole || post.rank, locale)}</span>
                       {canContactAuthor && <LocalizedLink href={`/profile/${encodeURIComponent(post.authorPseudo!)}`}>{t('profileLink')}</LocalizedLink>}
                       {canContactAuthor && <LocalizedLink href={`/messages/${encodeURIComponent(post.authorPseudo!)}`}>DM</LocalizedLink>}
                       <button type="button" onClick={() => reportPost(post.id)}>{t('report')}</button>
@@ -802,7 +875,7 @@ export default function CommunityClient({
                       {post.replies.map((reply) => (
                         <div key={reply.id}>
                           <strong>{reply.author}</strong>
-                          <span>{formatTime(reply.createdAt)}</span>
+                          <span>{formatTime(reply.createdAt, locale)}</span>
                           <p>{localizeCommunityText(reply.body, locale)}</p>
                         </div>
                       ))}

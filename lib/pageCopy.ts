@@ -179,7 +179,7 @@ const englishProTools: ProToolsPageCopy = {
 
 const overrides: Partial<Record<Locale, Partial<ProToolsPageCopy>>> = {
   fr: {
-    nav: { proTools: 'Outils Pro', loadouts: 'Classes', setUp: 'Reglages', esport: 'Esport', community: 'Communaute', search: 'Recherche', searchPlaceholder: 'Arme ou classe' },
+    nav: { proTools: 'Outils Pro', loadouts: 'Classes', setUp: 'Set-up', esport: 'Esport', community: 'Communaute', search: 'Recherche', searchPlaceholder: 'Arme ou classe' },
     heroKicker: 'Renseignement operateur // protocole bleu',
     heroTitle: 'Outils Pro',
     heroLead: 'Des outils courts et actionnables pour regler ton aim, lire la meta, mieux bouger et preparer tes sessions Warzone.',
@@ -193,6 +193,20 @@ const overrides: Partial<Record<Locale, Partial<ProToolsPageCopy>>> = {
     openPreview: 'Ouvrir l apercu',
     compareAccess: 'Comparer les acces',
     accessTiers: 'Niveaux d acces',
+    proof: [
+      { label: 'Decision rapide', value: '6 modules', body: 'Aim, meta, mouvement, spawns, mental et optimisation dans un parcours concentre.' },
+      { label: 'Apercu gratuit', value: 'visible', body: 'Chaque outil montre le probleme, le resultat attendu et un apercu utile avant achat.' },
+      { label: 'Pret pour les patchs', value: 'patch-ready', body: 'La structure permet de mettre a jour les conseils apres les changements de meta.' },
+    ],
+    accessAria: 'Comparaison Gratuit et Pro',
+    free: 'Gratuit',
+    pro: 'Pro',
+    freeTitle: 'Apercu et suivi',
+    freeBody: 'Tableau meta, classes publiques, resume hebdo et apercu de chaque outil Pro avant achat.',
+    proTitle: 'S entrainer et decider',
+    proBody: 'Outils complets, analyses plus profondes, mises a jour rapides et chemin clair du patch a l action.',
+    spawnProtocols: 'Protocoles de spawn',
+    clearance: 'Niveau d acces',
   },
   es: {
     nav: { proTools: 'Herramientas Pro', loadouts: 'Clases', setUp: 'Ajustes', esport: 'Esport', community: 'Comunidad', search: 'Buscar', searchPlaceholder: 'Arma o clase' },

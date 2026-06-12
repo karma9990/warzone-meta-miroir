@@ -14,36 +14,243 @@ import { getRequestLocale } from '@/lib/requestLocale';
 
 export const dynamic = 'force-dynamic';
 
-const TOOL_LABELS: Record<ProToolId, { name: string; tag: string; desc: string }> = {
+const TOOL_LABELS: Record<ProToolId, { name: string; tag: string; desc: string; nameFr: string; tagFr: string; descFr: string }> = {
   'aim-tools': {
-    name: 'Aim Tools',
-    tag: 'PRECISION',
+    name: 'Aim Tools', tag: 'PRECISION',
     desc: 'Sensitivity, ADS, dead zone, recoil and aim training utilities.',
+    nameFr: 'Outils de visee', tagFr: 'PRECISION',
+    descFr: 'Sensibilite, ADS, zone morte, recul et exercices de visee.',
   },
   'next-meta': {
-    name: 'Next Meta',
-    tag: 'INTEL',
+    name: 'Next Meta', tag: 'INTEL',
     desc: 'Meta shift notes, perk reads and equipment direction.',
+    nameFr: 'Prochaine Meta', tagFr: 'RENSEIGNEMENT',
+    descFr: 'Notes de changement meta, lectures d atouts et direction d equipement.',
   },
   'pro-movement': {
-    name: 'Pro Movement',
-    tag: 'MECHANICS',
+    name: 'Pro Movement', tag: 'MECHANICS',
     desc: 'Slide cancel, peeking, rotation timing and high ground control.',
+    nameFr: 'Mouvement Pro', tagFr: 'MECANIQUE',
+    descFr: 'Slide cancel, peek, timing de rotation et controle des hauteurs.',
   },
   'how-to-be-a-pro': {
-    name: 'How To Be A Pro',
-    tag: 'MINDSET',
+    name: 'How To Be A Pro', tag: 'MINDSET',
     desc: 'Training structure, VOD review, habits and performance tracking.',
+    nameFr: 'Comment Devenir Pro', tagFr: 'MENTAL',
+    descFr: 'Structure d entrainement, review VOD, habitudes et suivi de performance.',
   },
   'pro-spawn': {
-    name: 'Pro Spawn',
-    tag: 'MAP CONTROL',
+    name: 'Pro Spawn', tag: 'MAP CONTROL',
     desc: 'Spawn control, hot drop plans and resurgence map routes.',
+    nameFr: 'Spawn Pro', tagFr: 'CONTROLE CARTE',
+    descFr: 'Controle des spawns, plans de drop et routes de carte Resurgence.',
   },
   'pro-opti': {
-    name: 'Pro Opti',
-    tag: 'PERFORMANCE',
+    name: 'Pro Opti', tag: 'PERFORMANCE',
     desc: 'PC, Windows, graphics, audio, network and latency optimisation.',
+    nameFr: 'Opti Pro', tagFr: 'PERFORMANCE',
+    descFr: 'Optimisation PC, Windows, graphismes, audio, reseau et latence.',
+  },
+};
+
+const copy = {
+  en: {
+    back: 'WZPRO Meta',
+    kicker: 'ACCOUNT ACCESS',
+    title: 'YOUR ACCOUNT',
+    sub: 'Manage your profile, purchased Pro tools and performance tracker from one place.',
+    profile: 'PROFILE',
+    email: 'Email',
+    noEmail: 'No email provided',
+    provider: 'Provider',
+    access: 'Access',
+    fullPro: 'Full Pro subscription',
+    toolUnlocked: 'tool(s) unlocked',
+    freeAccount: 'Free account',
+    lastUpdate: 'Last update',
+    noPurchase: 'No purchase recorded yet',
+    purchases: 'PURCHASES',
+    everyTool: 'Every Pro tool is available while the subscription is active.',
+    monthlyTools: 'Your purchased monthly tools are available from this account.',
+    noPaidTools: 'No paid Pro tool is linked to this account yet.',
+    browseTools: 'Browse tools',
+    profileStrength: 'Profile strength',
+    publicActive: 'Public profile active',
+    publicPrivate: 'Public profile private',
+    mainLoadout: 'Main loadout',
+    notSelected: 'Not selected',
+    chooseOne: 'Choose one from the loadout section.',
+    publicCard: 'Public card',
+    noPseudo: 'No pseudo',
+    viewProfile: 'View public profile',
+    setUpProfile: 'Set up profile',
+    security: 'SECURITY',
+    accountSecurity: 'Account security',
+    securityDesc: 'Keep sign-in and password recovery simple from one place.',
+    loginEmail: 'Login email',
+    noEmailAttached: 'No email attached',
+    password: 'Password',
+    resetByEmail: 'Reset by email',
+    changePassword: 'Change password',
+    billing: 'BILLING',
+    accessHistory: 'Access history',
+    billingDesc: 'Current account entitlements linked to your user ID and email.',
+    status: 'Status',
+    individualTools: 'Individual tools',
+    unlockedTools: 'Unlocked tools',
+    noToolsLinked: 'No paid tools linked yet',
+    loadouts: 'LOADOUTS',
+    favAndNotes: 'Favorites and private notes',
+    favDesc: 'Favorite builds for quick access and keep account-synced notes only you can see.',
+    library: 'LIBRARY',
+    yourProTools: 'Your Pro Tools',
+    activeAccount: 'Active on this account',
+    locked: 'Locked',
+    openTool: 'Open tool',
+    unlock: 'Unlock',
+    tracker: 'TRACKER',
+    perfLog: 'Performance Log',
+    perfDesc: 'Saved to your account, with a local browser copy as fallback.',
+    openShare: 'Open share card',
+    setPseudo: 'Set pseudo to share',
+    googleOAuth: 'Google OAuth',
+    bnOAuth: 'Battle.net OAuth',
+    appleOAuth: 'Apple OAuth',
+    emailAccount: 'Email account',
+    emailLogin: 'Email password login',
+    oauthLogin: 'OAuth login',
+  },
+  fr: {
+    back: 'WZPRO Meta',
+    kicker: 'ACCES COMPTE',
+    title: 'VOTRE COMPTE',
+    sub: 'Gerer votre profil, vos outils Pro achetes et votre suivi de performance depuis un seul endroit.',
+    profile: 'PROFIL',
+    email: 'Email',
+    noEmail: 'Aucun email fourni',
+    provider: 'Fournisseur',
+    access: 'Acces',
+    fullPro: 'Abonnement Pro complet',
+    toolUnlocked: 'outil(s) debloque(s)',
+    freeAccount: 'Compte gratuit',
+    lastUpdate: 'Derniere mise a jour',
+    noPurchase: 'Aucun achat enregistre',
+    purchases: 'ACHATS',
+    everyTool: 'Tous les outils Pro sont disponibles tant que l abonnement est actif.',
+    monthlyTools: 'Vos outils mensuels achetes sont disponibles depuis ce compte.',
+    noPaidTools: 'Aucun outil Pro payant n est lie a ce compte.',
+    browseTools: 'Explorer les outils',
+    profileStrength: 'Force du profil',
+    publicActive: 'Profil public actif',
+    publicPrivate: 'Profil public prive',
+    mainLoadout: 'Classe principale',
+    notSelected: 'Non selectionne',
+    chooseOne: 'Choisissez-en une dans la section classes.',
+    publicCard: 'Carte publique',
+    noPseudo: 'Pas de pseudo',
+    viewProfile: 'Voir le profil public',
+    setUpProfile: 'Configurer le profil',
+    security: 'SECURITE',
+    accountSecurity: 'Securite du compte',
+    securityDesc: 'Gardez la connexion et la recuperation de mot de passe simples depuis un seul endroit.',
+    loginEmail: 'Email de connexion',
+    noEmailAttached: 'Aucun email attache',
+    password: 'Mot de passe',
+    resetByEmail: 'Reinitialiser par email',
+    changePassword: 'Changer le mot de passe',
+    billing: 'FACTURATION',
+    accessHistory: 'Historique d acces',
+    billingDesc: 'Droits actuels du compte lies a votre ID utilisateur et email.',
+    status: 'Statut',
+    individualTools: 'Outils individuels',
+    unlockedTools: 'Outils debloques',
+    noToolsLinked: 'Aucun outil payant lie',
+    loadouts: 'CLASSES',
+    favAndNotes: 'Favoris et notes privees',
+    favDesc: 'Builds favoris pour un acces rapide et notes synchronisees visibles uniquement par vous.',
+    library: 'BIBLIOTHEQUE',
+    yourProTools: 'Vos Outils Pro',
+    activeAccount: 'Actif sur ce compte',
+    locked: 'Verrouille',
+    openTool: 'Ouvrir l outil',
+    unlock: 'Debloquer',
+    tracker: 'SUIVI',
+    perfLog: 'Journal de performance',
+    perfDesc: 'Sauvegarde sur votre compte, avec une copie locale en secours.',
+    openShare: 'Ouvrir la carte de partage',
+    setPseudo: 'Definir un pseudo pour partager',
+    googleOAuth: 'Google OAuth',
+    bnOAuth: 'Battle.net OAuth',
+    appleOAuth: 'Apple OAuth',
+    emailAccount: 'Compte email',
+    emailLogin: 'Connexion par mot de passe email',
+    oauthLogin: 'Connexion OAuth',
+  },
+  es: {
+    back: 'WZPRO Meta',
+    kicker: 'ACCESO A LA CUENTA',
+    title: 'TU CUENTA',
+    sub: 'Gestiona tu perfil, herramientas Pro compradas y seguimiento de rendimiento desde un solo lugar.',
+    profile: 'PERFIL',
+    email: 'Email',
+    noEmail: 'No se proporciono email',
+    provider: 'Proveedor',
+    access: 'Acceso',
+    fullPro: 'Suscripcion Pro completa',
+    toolUnlocked: 'herramienta(s) desbloqueada(s)',
+    freeAccount: 'Cuenta gratuita',
+    lastUpdate: 'Ultima actualizacion',
+    noPurchase: 'Sin compras registradas',
+    purchases: 'COMPRAS',
+    everyTool: 'Todas las herramientas Pro estan disponibles mientras la suscripcion este activa.',
+    monthlyTools: 'Tus herramientas mensuales compradas estan disponibles desde esta cuenta.',
+    noPaidTools: 'Ninguna herramienta Pro de pago esta vinculada a esta cuenta.',
+    browseTools: 'Explorar herramientas',
+    profileStrength: 'Fortaleza del perfil',
+    publicActive: 'Perfil publico activo',
+    publicPrivate: 'Perfil publico privado',
+    mainLoadout: 'Loadout principal',
+    notSelected: 'No seleccionado',
+    chooseOne: 'Elige uno en la seccion de loadouts.',
+    publicCard: 'Tarjeta publica',
+    noPseudo: 'Sin pseudo',
+    viewProfile: 'Ver perfil publico',
+    setUpProfile: 'Configurar perfil',
+    security: 'SEGURIDAD',
+    accountSecurity: 'Seguridad de la cuenta',
+    securityDesc: 'Manten el inicio de sesion y la recuperacion de contrasena simples desde un solo lugar.',
+    loginEmail: 'Email de inicio de sesion',
+    noEmailAttached: 'Sin email vinculado',
+    password: 'Contrasena',
+    resetByEmail: 'Restablecer por email',
+    changePassword: 'Cambiar contrasena',
+    billing: 'FACTURACION',
+    accessHistory: 'Historial de acceso',
+    billingDesc: 'Derechos actuales de la cuenta vinculados a tu ID de usuario y email.',
+    status: 'Estado',
+    individualTools: 'Herramientas individuales',
+    unlockedTools: 'Herramientas desbloqueadas',
+    noToolsLinked: 'Sin herramientas de pago vinculadas',
+    loadouts: 'LOADOUTS',
+    favAndNotes: 'Favoritos y notas privadas',
+    favDesc: 'Builds favoritos para acceso rapido y notas sincronizadas visibles solo para ti.',
+    library: 'BIBLIOTECA',
+    yourProTools: 'Tus Herramientas Pro',
+    activeAccount: 'Activo en esta cuenta',
+    locked: 'Bloqueado',
+    openTool: 'Abrir herramienta',
+    unlock: 'Desbloquear',
+    tracker: 'SEGUIMIENTO',
+    perfLog: 'Registro de rendimiento',
+    perfDesc: 'Guardado en tu cuenta, con una copia local como respaldo.',
+    openShare: 'Abrir tarjeta de compartir',
+    setPseudo: 'Define un pseudo para compartir',
+    googleOAuth: 'Google OAuth',
+    bnOAuth: 'Battle.net OAuth',
+    appleOAuth: 'Apple OAuth',
+    emailAccount: 'Cuenta de email',
+    emailLogin: 'Inicio de sesion con contrasena de email',
+    oauthLogin: 'Inicio de sesion OAuth',
   },
 };
 
@@ -66,13 +273,28 @@ function mergeEntitlements(records: Array<EntitlementRecord | null>) {
   };
 }
 
-function formatDate(value: string) {
-  if (!value) return 'No purchase recorded yet';
-  return new Intl.DateTimeFormat('en', {
+function formatDate(value: string, locale: string) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat(locale === 'fr' ? 'fr' : 'en', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
   }).format(new Date(value));
+}
+
+function getProviderLabel(provider: string | undefined, t: typeof copy.en) {
+  switch (provider) {
+    case 'google': return t.googleOAuth;
+    case 'battlenet': return t.bnOAuth;
+    case 'apple': return t.appleOAuth;
+    default: return t.emailAccount;
+  }
+}
+
+function getProviderLoginLabel(provider: string | undefined, t: typeof copy.en) {
+  if (provider === 'email') return t.emailLogin;
+  if (provider) return `${provider} ${t.oauthLogin}`;
+  return t.emailLogin;
 }
 
 export default async function AccountPage() {
@@ -80,6 +302,8 @@ export default async function AccountPage() {
   const href = (path: string) => withLocalePath(path, locale);
   const user = await getUserSession();
   if (!user) redirect(href('/sign-in?next=/account'));
+
+  const t = (copy as Record<string, typeof copy.en>)[locale] || copy.en;
 
   const userEntitlements = await getEntitlements(user.sub);
   const emailEntitlements = user.email ? await getEntitlements(user.email.toLowerCase()) : null;
@@ -106,121 +330,121 @@ export default async function AccountPage() {
   const mainLoadout = loadouts.find((loadout) => loadout.id === profile.featuredLoadoutId)
     || loadouts.find((loadout) => profile.favoriteLoadouts.includes(loadout.id));
 
+  const purchaseDate = entitlements.updatedAt ? formatDate(entitlements.updatedAt, locale) : t.noPurchase;
+
   return (
     <>
       <main className="account-main">
         <div className="account-back">
-          <Link href={href('/')}>WZPRO Meta</Link>
+          <Link href={href('/')}>{t.back}</Link>
         </div>
 
         <header className="account-header">
           <div>
-            <p className="account-kicker">ACCOUNT ACCESS</p>
-            <h1>YOUR ACCOUNT</h1>
-            <p className="account-sub">
-              Manage your profile, purchased Pro tools and performance tracker from one place.
-            </p>
+            <p className="account-kicker">{t.kicker}</p>
+            <h1>{t.title}</h1>
+            <p className="account-sub">{t.sub}</p>
           </div>
           <AccountActions />
         </header>
 
         <section className="account-grid">
           <article className="account-panel account-profile">
-            <span className="account-panel-tag">PROFILE</span>
+            <span className="account-panel-tag">{t.profile}</span>
             <h2>{user.name}</h2>
             <dl>
               <div>
-                <dt>Email</dt>
-                <dd>{user.email || 'No email provided'}</dd>
+                <dt>{t.email}</dt>
+                <dd>{user.email || t.noEmail}</dd>
               </div>
               <div>
-                <dt>Provider</dt>
-                <dd>{user.provider === 'google' ? 'Google OAuth' : user.provider === 'battlenet' ? 'Battle.net OAuth' : user.provider === 'apple' ? 'Apple OAuth' : 'Email account'}</dd>
+                <dt>{t.provider}</dt>
+                <dd>{getProviderLabel(user.provider, t)}</dd>
               </div>
               <div>
-                <dt>Access</dt>
-                <dd>{entitlements.pro ? 'Full Pro subscription' : unlockedCount > 0 ? `${unlockedCount} tool${unlockedCount > 1 ? 's' : ''} unlocked` : 'Free account'}</dd>
+                <dt>{t.access}</dt>
+                <dd>{entitlements.pro ? t.fullPro : unlockedCount > 0 ? `${unlockedCount} ${t.toolUnlocked}` : t.freeAccount}</dd>
               </div>
               <div>
-                <dt>Last update</dt>
-                <dd>{formatDate(entitlements.updatedAt)}</dd>
+                <dt>{t.lastUpdate}</dt>
+                <dd>{purchaseDate}</dd>
               </div>
             </dl>
           </article>
 
           <article className="account-panel account-summary">
-            <span className="account-panel-tag">PURCHASES</span>
+            <span className="account-panel-tag">{t.purchases}</span>
             <strong>{unlockedCount}/6</strong>
             <p>
               {entitlements.pro
-                ? 'Every Pro tool is available while the subscription is active.'
+                ? t.everyTool
                 : unlockedCount > 0
-                  ? 'Your purchased monthly tools are available from this account.'
-                  : 'No paid Pro tool is linked to this account yet.'}
+                  ? t.monthlyTools
+                  : t.noPaidTools}
             </p>
-            <Link href={href('/tools-individual')}>Browse tools</Link>
+            <Link href={href('/tools-individual')}>{t.browseTools}</Link>
           </article>
         </section>
 
         <section className="account-dashboard">
           <article>
-            <span>Profile strength</span>
+            <span>{t.profileStrength}</span>
             <strong>{profileCompletion}%</strong>
-            <p>{profile.privacy.publicProfile ? 'Public profile active' : 'Public profile private'}</p>
+            <p>{profile.privacy.publicProfile ? t.publicActive : t.publicPrivate}</p>
             <i style={{ ['--account-progress' as string]: `${profileCompletion}%` }} />
           </article>
           <article>
-            <span>Main loadout</span>
-            <strong>{mainLoadout?.weapon || 'Not selected'}</strong>
-            <p>{mainLoadout ? `${mainLoadout.category} / Tier ${mainLoadout.tier}` : 'Choose one from the loadout section.'}</p>
+            <span>{t.mainLoadout}</span>
+            <strong>{mainLoadout?.weapon || t.notSelected}</strong>
+            <p>{mainLoadout ? `${mainLoadout.category} / Tier ${mainLoadout.tier}` : t.chooseOne}</p>
           </article>
           <article>
-            <span>Public card</span>
-            <strong>{profile.pseudo || 'No pseudo'}</strong>
+            <span>{t.publicCard}</span>
+            <strong>{profile.pseudo || t.noPseudo}</strong>
             {profile.pseudo && profile.privacy.publicProfile ? (
-              <Link href={href(`/profile/${profile.pseudo}`)}>View public profile</Link>
+              <Link href={href(`/profile/${profile.pseudo}`)}>{t.viewProfile}</Link>
             ) : (
-              <Link href="#public-profile-settings">Set up profile</Link>
+              <Link href="#public-profile-settings">{t.setUpProfile}</Link>
             )}
           </article>
         </section>
 
         <section className="account-section">
           <div className="account-section-head">
-            <span>SECURITY</span>
-            <h2>Account security</h2>
-            <p>Keep sign-in and password recovery simple from one place.</p>
+            <span>{t.security}</span>
+            <h2>{t.accountSecurity}</h2>
+            <p>{t.securityDesc}</p>
           </div>
           <div className="account-security-grid">
             <article>
-              <span>Login email</span>
-              <strong>{user.email || 'No email attached'}</strong>
-              <small>{user.provider === 'email' ? 'Email password login' : `${user.provider} OAuth login`}</small>
+              <span>{t.loginEmail}</span>
+              <strong>{user.email || t.noEmailAttached}</strong>
+              <small>{getProviderLoginLabel(user.provider, t)}</small>
             </article>
             <article>
-              <span>Password</span>
-              <strong>Reset by email</strong>
-              <Link href={href('/forgot-password')}>Change password</Link>
+              <span>{t.password}</span>
+              <strong>{t.resetByEmail}</strong>
+              <Link href={href('/forgot-password')}>{t.changePassword}</Link>
             </article>
           </div>
         </section>
 
         <section className="account-section">
           <div className="account-section-head">
-            <span>BILLING</span>
-            <h2>Access history</h2>
-            <p>Current account entitlements linked to your user ID and email.</p>
+            <span>{t.billing}</span>
+            <h2>{t.accessHistory}</h2>
+            <p>{t.billingDesc}</p>
           </div>
           <div className="account-history">
             <article>
-              <span>Status</span>
-              <strong>{entitlements.pro ? 'Full Pro subscription' : unlockedCount > 0 ? 'Individual tools' : 'Free account'}</strong>
-              <small>{formatDate(entitlements.updatedAt)}</small>
+              <span>{t.status}</span>
+              <strong>{entitlements.pro ? t.fullPro : unlockedCount > 0 ? t.individualTools : t.freeAccount}</strong>
+              <small>{purchaseDate}</small>
             </article>
             <article>
-              <span>Unlocked tools</span>
+              <span>{t.unlockedTools}</span>
               <strong>{unlockedCount}/6</strong>
-              <small>{unlockedTools.length ? unlockedTools.map((toolId) => TOOL_LABELS[toolId].name).join(', ') : 'No paid tools linked yet'}</small>
+              <small>{unlockedTools.length ? unlockedTools.map((toolId) => locale === 'fr' ? TOOL_LABELS[toolId].nameFr : TOOL_LABELS[toolId].name).join(', ') : t.noToolsLinked}</small>
             </article>
           </div>
         </section>
@@ -231,9 +455,9 @@ export default async function AccountPage() {
 
         <section className="account-section">
           <div className="account-section-head">
-            <span>LOADOUTS</span>
-            <h2>Favorites and private notes</h2>
-            <p>Favorite builds for quick access and keep account-synced notes only you can see.</p>
+            <span>{t.loadouts}</span>
+            <h2>{t.favAndNotes}</h2>
+            <p>{t.favDesc}</p>
           </div>
           <AccountLoadoutPrefs
             loadouts={loadouts}
@@ -245,25 +469,28 @@ export default async function AccountPage() {
 
         <section className="account-section">
           <div className="account-section-head">
-            <span>LIBRARY</span>
-            <h2>Your Pro Tools</h2>
+            <span>{t.library}</span>
+            <h2>{t.yourProTools}</h2>
           </div>
           <div className="account-tools">
             {PRO_TOOL_IDS.map((toolId) => {
               const tool = TOOL_LABELS[toolId];
               const unlocked = entitlements.pro || entitlements.tools.includes(toolId);
+              const name = locale === 'fr' ? tool.nameFr : tool.name;
+              const tag = locale === 'fr' ? tool.tagFr : tool.tag;
+              const desc = locale === 'fr' ? tool.descFr : tool.desc;
               return (
                 <article key={toolId} className={`account-tool ${unlocked ? 'is-unlocked' : 'is-locked'}`}>
                   <div>
-                    <span>{tool.tag}</span>
-                    <h3>{tool.name}</h3>
-                    <p>{tool.desc}</p>
-                    <small>{unlocked ? 'Active on this account' : 'Locked'}</small>
+                    <span>{tag}</span>
+                    <h3>{name}</h3>
+                    <p>{desc}</p>
+                    <small>{unlocked ? t.activeAccount : t.locked}</small>
                   </div>
                   {unlocked ? (
-                    <Link href={href(`/tools/${toolId}`)}>Open tool</Link>
+                    <Link href={href(`/tools/${toolId}`)}>{t.openTool}</Link>
                   ) : (
-                    <Link href={href('/tools-individual')}>Unlock</Link>
+                    <Link href={href('/tools-individual')}>{t.unlock}</Link>
                   )}
                 </article>
               );
@@ -273,16 +500,16 @@ export default async function AccountPage() {
 
         <section className="account-section">
           <div className="account-section-head">
-            <span>TRACKER</span>
-            <h2>Performance Log</h2>
-            <p>Saved to your account, with a local browser copy as fallback.</p>
+            <span>{t.tracker}</span>
+            <h2>{t.perfLog}</h2>
+            <p>{t.perfDesc}</p>
             {profile.pseudo && profile.privacy.publicProfile && profile.privacy.stats ? (
               <Link className="account-share-stats" href={href(`/profile/${profile.pseudo}/stats`)}>
-                Open share card
+                {t.openShare}
               </Link>
             ) : (
               <Link className="account-share-stats account-share-stats--setup" href="#public-profile-settings">
-                Set pseudo to share
+                {t.setPseudo}
               </Link>
             )}
           </div>

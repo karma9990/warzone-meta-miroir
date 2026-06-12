@@ -229,7 +229,7 @@ export default function CalloutGenerator() {
       </div>
 
       <div>
-        {filtered.map((c, i) => (
+        {filtered.map((c) => (
           <div key={c.zone} className="border-b border-black/6 last:border-none">
             <div role="button" tabIndex={0}
               onClick={() => setExpanded(expanded === c.zone ? null : c.zone)}

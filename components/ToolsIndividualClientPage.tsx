@@ -77,33 +77,27 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
   const sessionChecked = true;
   const [digitalConsent, setDigitalConsent] = useState(false);
 
-  function handleBuy(toolId: string) {
+  async function handleBuy(toolId: string) {
     if (!sessionChecked) return;
     if (!user) {
       setEmailError('Sign in before buying a tool.');
       return;
     }
 
-    setEmailFor(toolId);
-    setEmail(user.email || '');
-    setEmailError('');
-    setDigitalConsent(false);
-  }
+    const userEmail = user.email || email;
+    if (!userEmail.includes('@')) {
+      setEmailFor(toolId);
+      return;
+    }
 
-  async function handleEmailSubmit(e: React.FormEvent, tool: typeof TOOLS[0]) {
-    e.preventDefault();
-    if (!user) { setEmailError('Sign in before buying a tool.'); return; }
-    if (!email.includes('@')) { setEmailError('Invalid email address.'); return; }
-    if (!digitalConsent) { setEmailError('Confirm immediate digital access and withdrawal acknowledgement.'); return; }
-    setEmailFor(null);
-    setBuying(tool.id);
+    setBuying(toolId);
     setEmailError('');
 
     try {
       const res = await fetch('/api/polar-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productKey: tool.id, email }),
+        body: JSON.stringify({ productKey: toolId, email: userEmail }),
       });
       const result = await res.json() as { url?: string; error?: string };
       if (!res.ok || !result.url) {
@@ -141,7 +135,7 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
               <h2 className="ti-card-name">{tool.name}</h2>
               <p className="ti-card-desc">{tool.desc}</p>
               {emailFor === tool.id ? (
-                <form onSubmit={(e) => handleEmailSubmit(e, tool)} className="ti-email-form">
+                <form onSubmit={(e) => { e.preventDefault(); handleBuy(tool.id); }} className="ti-email-form">
                   <span className="ti-account-note">
                     {locale === 'es' ? `Comprando como ${user?.name || 'tu cuenta'}` : locale === 'fr' ? `Achat avec ${user?.name || 'ton compte'}` : `Buying as ${user?.name || 'your account'}`}
                   </span>
@@ -168,15 +162,12 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
                   <button type="button" className="ti-cancel-btn" onClick={() => setEmailFor(null)}>{locale === 'es' ? 'Cancelar' : locale === 'fr' ? 'Annuler' : 'Cancel'}</button>
                 </form>
               ) : (
-                <button type="button"
+                <Link
+                  href={href('/pro-access')}
                   className="ti-card-btn"
-                  onClick={() => handleBuy(tool.id)}
-                  disabled={buying === tool.id || !sessionChecked}
                 >
-                  {buying === tool.id
-                    ? (locale === 'es' ? 'ABRIENDO...' : locale === 'fr' ? 'OUVERTURE...' : pack?.opening ?? 'OPENING...')
-                    : `${locale === 'es' ? 'OBTENER' : locale === 'fr' ? 'OBTENIR' : pack?.get ?? 'GET'} ${tool.name.toUpperCase()} - ${tool.price}`}
-                </button>
+                  {`${locale === 'es' ? 'OBTENER' : locale === 'fr' ? 'OBTENIR' : 'GET'} ${tool.name.toUpperCase()} - ${tool.price}`}
+                </Link>
               )}
             </div>
           ))}

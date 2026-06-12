@@ -1,4 +1,13 @@
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
+function getSiteUrl() {
+  const value = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL;
+  if (value) return value.replace(/\/$/, '');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_SITE_URL or SITE_URL must be configured in production.');
+  }
+  return 'http://localhost:3000';
+}
+
+export const SITE_URL = getSiteUrl();
 
 export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@wzpro-meta.com';
 

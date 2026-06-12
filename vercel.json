@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/patch-notes",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/news",
+      "schedule": "15 12 * * *"
+    },
+    {
+      "path": "/api/cron/meta-classes",
+      "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/codmunity",
+      "schedule": "45 12 * * *"
+    }
+  ]
+}

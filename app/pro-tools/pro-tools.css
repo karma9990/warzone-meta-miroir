@@ -43,6 +43,7 @@
   width: min(1180px, calc(100% - 2rem));
   margin: 0 auto;
   padding: 3.75rem 0 5rem;
+  overflow: visible !important;
 }
 
 /* Arrière-plan tactique avec lueur bleutée subtile */
@@ -403,6 +404,14 @@
 }
 
 /* ── En-tête fixe & Navigation (Safari Bar) ── */
+.pro-tools-page .safari-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--wt-paper);
+  backdrop-filter: blur(12px);
+}
+
 .pro-tools-page .safari-bar nav a[aria-current="page"] {
   color: var(--tm-blue, #163cff) !important;
   font-weight: 900 !important;
@@ -412,6 +421,7 @@
 .ptv2-shell {
   display: grid;
   gap: 1.5rem;
+  overflow: visible !important;
 }
 
 @media (min-width: 900px) {
@@ -426,6 +436,14 @@
     top: clamp(5.5rem, 12vh, 7.5rem);
     align-self: start;
     z-index: 5;
+    min-height: 1px;
+  }
+
+  .ptv2-rail-panel.is-fixed {
+    position: fixed;
+    top: clamp(5.5rem, 12vh, 7.5rem);
+    width: 180px;
+    z-index: 10;
   }
 }
 
@@ -529,6 +547,10 @@
   border-radius: 8px;
   overflow: hidden;
   scrollbar-width: none;
+  position: sticky;
+  top: 56px;
+  z-index: 10;
+  background: var(--wt-paper);
 }
 
 .ptv2-jump::-webkit-scrollbar {
@@ -1498,4 +1520,72 @@
   .pt-preview-pros-cons {
     grid-template-columns: 1fr;
   }
+}
+
+/* Final no-grey Pro Tools pass: black surfaces in dark mode only, blue structure, 3D weapon visible above the background. */
+:root[data-theme="dark"] .pro-tools-page,
+:root[data-theme="dark"] .pro-tools-page::before,
+:root[data-theme="dark"] .pro-tools-page::after,
+:root[data-theme="dark"] .pt-wt::before,
+:root[data-theme="dark"] .pt-wt::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pro-tools-weapon-scene {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 40 !important;
+  opacity: 0.72 !important;
+  pointer-events: none !important;
+  mix-blend-mode: normal !important;
+  filter: contrast(1.22) brightness(1.08) saturate(1.08) drop-shadow(0 28px 42px rgba(0, 0, 0, 0.32)) !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pro-tools-weapon-scene canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page :is(
+  .pt-wt,
+  .pt-wt-hero,
+  .pt-wt-proof-grid,
+  .pt-wt-proof-grid article,
+  .pt-wt-module,
+  .pt-wt-product-preview,
+  .pt-wt-product-preview div,
+  .pt-wt-hero-stats,
+  .pt-wt-hero-stats div,
+  .pt-wt-spawn-row,
+  .pt-wt-spawn,
+  .pt-wt-plans,
+  .pt-wt-plan,
+  .ptv2-rail-panel,
+  .ptv2-jump,
+  .pt-preview-card,
+  .pt-preview-unlock,
+  .safari-bar,
+  .nav-readout
+) {
+  background: #050506 !important;
+  background-color: #050506 !important;
+  background-image: none !important;
+  border-color: rgba(22, 60, 255, 0.62) !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page :is(p, small, span, li, dd, dt, label) {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page :is(h1, h2, h3, strong, b, .pt-wt-hero-title) {
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page :is(.pt-wt-module-tag, .pt-wt-entry-idx, .pt-wt-hero-kicker, .pt-wt-map-title) {
+  color: #4d6bff !important;
 }

@@ -1,4 +1,5 @@
 import type { TeamRow } from '@/components/CompetitivePageShell';
+import { getCachedTeamRows } from './codmunityScraper.ts';
 
 const API_BASE = 'https://api.codmunity.gg/website/pages';
 
@@ -328,6 +329,40 @@ function normalizeWrsQuery(query: WrsQuery) {
 }
 
 export async function getTop250Rows(): Promise<TeamRow[]> {
+  // Source primaire : scraping LLM de codmunity.gg ; fallback : API officielle.
+  try {
+    const scraped = await getCachedTeamRows('top-250');
+    if (scraped?.length) {
+      const byRank = new Map(scraped.map((row) => [row.rank, row]));
+      return Array.from({ length: 250 }, (_, index) => {
+        const rank = index + 1;
+        const row = byRank.get(rank);
+        if (!row) {
+          return {
+            rank,
+            team: 'Rank slot not exposed',
+            players: 'Not present in scraped CODMunity page',
+            unavailable: true,
+          };
+        }
+        return {
+          rank,
+          team: row.team,
+          players: row.players || 'CODMunity (scraped)',
+          kills: row.kills || 0,
+          points: row.points || 0,
+          tone: podiumTone(rank),
+        };
+      });
+    }
+  } catch (error) {
+    console.error('Top 250 scrape failed, falling back to API:', error);
+  }
+
+  return getTop250RowsViaApi();
+}
+
+async function getTop250RowsViaApi(): Promise<TeamRow[]> {
   const data = await fetch(`${API_BASE}/top-250`, { next: { revalidate: 1800 } }).then((response) => response.json());
   const players = new Map<number, RankedPlayer>(
     (data.rankedPlayers || []).map((player: RankedPlayer) => [player.rank + 1, player]),
@@ -358,6 +393,30 @@ export async function getTop250Rows(): Promise<TeamRow[]> {
 }
 
 export async function getCompetitionRows(slug: 'wsow' | 'wrs' | 'ewc' | 'pcl'): Promise<TeamRow[]> {
+  // Source primaire : scraping LLM de codmunity.gg ; fallback : API officielle.
+  try {
+    const scraped = await getCachedTeamRows(slug);
+    if (scraped?.length) {
+      return scraped
+        .slice()
+        .sort((a, b) => a.rank - b.rank)
+        .map((row) => ({
+          rank: row.rank,
+          team: slug === 'pcl' ? pclTeamNames[row.team] || row.team : row.team,
+          players: row.players,
+          kills: row.kills || 0,
+          points: row.points || 0,
+          tone: podiumTone(row.rank),
+        }));
+    }
+  } catch (error) {
+    console.error(`Competition ${slug} scrape failed, falling back to API:`, error);
+  }
+
+  return getCompetitionRowsViaApi(slug);
+}
+
+async function getCompetitionRowsViaApi(slug: 'wsow' | 'wrs' | 'ewc' | 'pcl'): Promise<TeamRow[]> {
   const data: CompetitionPage = await fetch(`${API_BASE}/competition/${slug}/params/null/null/null/null`, {
     next: { revalidate: 1800 },
   }).then((response) => response.json());
@@ -377,6 +436,37 @@ export async function getCompetitionRows(slug: 'wsow' | 'wrs' | 'ewc' | 'pcl'): 
 
 export async function getWrsPageData(query: WrsQuery = {}): Promise<WrsPageData> {
   const normalizedQuery = normalizeWrsQuery(query);
+
+  // Classement principal scrape par LLM (fallback : stats de l'API ci-dessous).
+  let scrapedWrsTeams: WrsTeam[] | null = null;
+  try {
+    const scraped = await getCachedTeamRows('wrs');
+    if (scraped?.length) {
+      scrapedWrsTeams = scraped
+        .slice()
+        .sort((a, b) => a.rank - b.rank)
+        .map((row, index) => ({
+          rank: index + 1,
+          name: row.team,
+          players: row.players,
+          points: row.points || 0,
+          kills: row.kills || 0,
+          deaths: 0,
+          kd: 0,
+          avgKills: 0,
+          avgPlacement: 0,
+          placementRank: 0,
+          mapPlacement: 0,
+          mapKills: 0,
+          mapPoints: 0,
+          mapStatus: 'Dead',
+          isWinner: index === 0,
+        }));
+    }
+  } catch (error) {
+    console.error('WRS scrape failed, falling back to API teams:', error);
+  }
+
   const data: CompetitionPage = await fetch(`${API_BASE}/competition/wrs/params/${apiParam(normalizedQuery.year)}/${apiParam(normalizedQuery.stage)}/${apiParam(normalizedQuery.phase)}/${apiParam(normalizedQuery.event)}`, {
     next: { revalidate: 1800 },
   }).then((response) => response.json());
@@ -469,7 +559,7 @@ export async function getWrsPageData(query: WrsQuery = {}): Promise<WrsPageData>
     .map((team, index) => ({ ...team, rank: index + 1 }));
 
   return {
-    teams,
+    teams: scrapedWrsTeams ?? teams,
     playerStats,
     mapStats,
     weaponStats,

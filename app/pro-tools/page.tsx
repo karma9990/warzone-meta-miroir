@@ -240,8 +240,12 @@ export default async function ProToolsPage() {
         <nav>
           <Link href={href('/pro-tools')} aria-current="page">{copy.nav.proTools}</Link>
           <Link href={href('/#all-loadouts')}>{copy.nav.loadouts}</Link>
+          <Link href={href('/ai-classes')}>IA WZPRO</Link>
+          <Link href={href('/pro-classe')}>{locale === 'fr' ? 'Classes Pro' : locale === 'es' ? 'Clases Pro' : 'Pro Classes'}</Link>
           <Link href={href('/set-up')}>{copy.nav.setUp}</Link>
           <Link href={href('/esport')}>{copy.nav.esport}</Link>
+          <Link href={href('/tournois')}>{locale === 'fr' ? 'Tournois' : locale === 'es' ? 'Torneos' : 'Tournaments'}</Link>
+          <Link href={href('/actualites')}>{locale === 'fr' ? 'Actualites' : locale === 'es' ? 'Noticias' : 'News'}</Link>
           <Link href={href('/community')}>{copy.nav.community}</Link>
         </nav>
         <label>
@@ -257,11 +261,6 @@ export default async function ProToolsPage() {
 
       <main className="ptv2-main pt-wt" data-layout="zigzag">
         <header className="pt-wt-hero">
-          <div className="pt-wt-hero-meta" aria-hidden="true">
-            <span>DOC / WZ-PT-01</span>
-            <span>REV 26.05</span>
-            <span>TRACKING ACTIVE</span>
-          </div>
           <div className="pt-wt-hero-grid">
             <div>
               <p className="pt-wt-hero-kicker">{copy.heroKicker}</p>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 560" width="760" height="560">
+  <rect width="760" height="560" fill="#efeee8"/>
+  <path d="M28 28h704v504H28z" fill="none" stroke="#10100e" stroke-opacity=".18" stroke-width="2"/>
+  <path d="M70 112h560M70 448h560" stroke="#163cff" stroke-opacity=".28" stroke-width="2"/>
+  <g fill="#10100e" stroke="#10100e" stroke-width="10" stroke-linejoin="round" stroke-linecap="square" transform="translate(0 0)"><path d="M146 246h250v82H146z"/><path d="M396 224h150l92 112H396z"/><path d="M546 196h92l66 168h-88z"/></g>
+  <text x="54" y="500" font-family="Consolas, monospace" font-size="32" font-weight="900" fill="#163cff">Stock</text>
+</svg>

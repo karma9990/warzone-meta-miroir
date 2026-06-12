@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getLoadouts } from "@/lib/data";
+import { getLoadoutPath } from "@/lib/seo";
 import { SITE_URL } from "@/lib/siteConfig";
 
 const staticRoutes = [
@@ -9,6 +10,13 @@ const staticRoutes = [
   "/pro-access",
   "/free-preview",
   "/community",
+  "/ai-classes",
+  "/pro-classe",
+  "/actualites",
+  "/actualites/meta",
+  "/actualites/patch-notes",
+  "/actualites/esport",
+  "/actualites/evenements",
   "/set-up",
   "/esport",
   "/esport/calendar",
@@ -19,9 +27,6 @@ const staticRoutes = [
   "/esport/top-250",
   "/esport/wsow",
   "/subscribe",
-  "/sign-in",
-  "/sign-up",
-  "/forgot-password",
   "/contact",
   "/legal",
   "/privacy",
@@ -46,10 +51,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: route === "" ? 1 : 0.7,
     })),
     ...loadouts.map((loadout) => ({
-      url: `${SITE_URL}/loadouts/${loadout.id}`,
+      url: `${SITE_URL}${getLoadoutPath(loadout)}`,
       lastModified: loadout.updatedAt ? new Date(loadout.updatedAt) : now,
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
+      changeFrequency: loadout.tier === "S" || loadout.tier === "A" ? "daily" as const : "weekly" as const,
+      priority: loadout.tier === "S" ? 0.95 : loadout.tier === "A" ? 0.9 : 0.8,
     })),
   ];
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ADMIN_COOKIE, ADMIN_PASSWORD, createToken } from '@/lib/auth';
-import { deleteCookie, readJsonBody, safeCompare, secureCookieOptions } from '@/lib/security';
+import { deleteCookie, readJsonBody, safeCompare, secureCookieOptions, sameOriginGuard } from '@/lib/security';
 import { rateLimit } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
@@ -23,7 +23,10 @@ export async function POST(req: NextRequest) {
   return res;
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  const csrfError = sameOriginGuard(req);
+  if (csrfError) return csrfError;
+
   const res = NextResponse.json({ ok: true });
   deleteCookie(res, ADMIN_COOKIE);
   return res;

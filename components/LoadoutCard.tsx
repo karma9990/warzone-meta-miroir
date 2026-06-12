@@ -4,10 +4,12 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import StatBar from './StatBar';
+import StatRadar from './StatRadar';
 import type { Loadout } from '@/lib/data';
 import type { Locale } from '@/lib/i18n';
-import { DEFAULT_LOCALE, localizeLoadoutNote, translateTerm, withLocalePath } from '@/lib/i18n';
+import { DEFAULT_LOCALE, localizeLoadoutNote, localizeLoadoutText, translateTerm, withLocalePath } from '@/lib/i18n';
 import { getLoadoutSlug } from '@/lib/loadoutUtils';
+import { getLoadoutPath } from '@/lib/seo';
 
 const IMAGE_SOURCES = [
   (slug: string) => `/assets/weapons/wzstats/${slug}.avif`,
@@ -30,6 +32,7 @@ const CARD_COPY = {
     mobility: 'Mobility',
     control: 'Control',
     pairWith: 'Pair with',
+    shareCta: 'Share your build',
     shareableBuild: 'Shareable build',
     attachments: 'Attachments',
     performance: 'Performance',
@@ -59,6 +62,7 @@ const CARD_COPY = {
     mobility: 'Mobilite',
     control: 'Controle',
     pairWith: 'A jouer avec',
+    shareCta: 'Partage ta classe',
     shareableBuild: 'Classe partageable',
     attachments: 'Accessoires',
     performance: 'Performance',
@@ -88,6 +92,7 @@ const CARD_COPY = {
     mobility: 'Movilidad',
     control: 'Control',
     pairWith: 'Combinar con',
+    shareCta: 'Comparte tu clase',
     shareableBuild: 'Clase compartible',
     attachments: 'Accesorios',
     performance: 'Rendimiento',
@@ -117,6 +122,7 @@ const CARD_COPY = {
     mobility: 'Mobilität',
     control: 'Kontrolle',
     pairWith: 'Kombinieren mit',
+    shareCta: 'Teile deinen Build',
     shareableBuild: 'Teilbarer Build',
     attachments: 'Aufsätze',
     performance: 'Leistung',
@@ -146,6 +152,7 @@ const CARD_COPY = {
     mobility: 'Mobilità',
     control: 'Controllo',
     pairWith: 'Abbina con',
+    shareCta: 'Condividi il tuo build',
     shareableBuild: 'Build condivisibile',
     attachments: 'Accessori',
     performance: 'Prestazioni',
@@ -175,6 +182,7 @@ const CARD_COPY = {
     mobility: 'Mobilidade',
     control: 'Controle',
     pairWith: 'Combinar com',
+    shareCta: 'Compartilhe seu build',
     shareableBuild: 'Build compartilhável',
     attachments: 'Acessórios',
     performance: 'Desempenho',
@@ -204,6 +212,7 @@ const CARD_COPY = {
     mobility: 'Mobiliteit',
     control: 'Controle',
     pairWith: 'Combineer met',
+    shareCta: 'Deel je build',
     shareableBuild: 'Deelbare build',
     attachments: 'Attachments',
     performance: 'Prestatie',
@@ -233,6 +242,7 @@ const CARD_COPY = {
     mobility: 'Mobilność',
     control: 'Kontrola',
     pairWith: 'Połącz z',
+    shareCta: 'Udostępnij swój build',
     shareableBuild: 'Build do udostępnienia',
     attachments: 'Dodatki',
     performance: 'Wydajność',
@@ -262,6 +272,7 @@ const CARD_COPY = {
     mobility: '機動性',
     control: '制御',
     pairWith: '組み合わせ',
+    shareCta: 'ビルドを共有',
     shareableBuild: '共有ビルド',
     attachments: 'アタッチメント',
     performance: '性能',
@@ -299,10 +310,21 @@ export default function LoadoutCard({ loadout, metaScore, confidence, isFavorite
   const [copied, setCopied] = useState(false);
   const slug = getLoadoutSlug(loadout);
   const imageSrc = IMAGE_SOURCES[imageIndex](slug);
-  const detailHref = withLocalePath(`/loadouts/${loadout.id}`, locale);
-  const pairLabel = loadout.pairWith?.slice(0, 2).join(' / ');
+  const detailHref = withLocalePath(getLoadoutPath(loadout), locale);
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://wzprometa.com').replace(/\/$/, '');
+  const shareUrl = `${siteUrl}${detailHref}`;
   const copy = getCardCopy(locale);
   const displayNote = localizeLoadoutNote(loadout.weapon, loadout.playstyle, loadout.notes, locale);
+  const shareText = `${loadout.weapon} Warzone - ${translateTerm(loadout.category, locale)} - ${metaScore} ${copy.meta}`;
+  const encodedShareText = encodeURIComponent(shareText);
+  const encodedShareUrl = encodeURIComponent(shareUrl);
+  const shareLinkLabel = locale === 'fr' ? 'Lien' : locale === 'es' ? 'Enlace' : 'Link';
+  const shareLinks = [
+    { label: 'X', href: `https://twitter.com/intent/tweet?text=${encodedShareText}&url=${encodedShareUrl}` },
+    { label: 'WA', href: `https://wa.me/?text=${encodedShareText}%20${encodedShareUrl}` },
+    { label: 'TG', href: `https://t.me/share/url?url=${encodedShareUrl}&text=${encodedShareText}` },
+    { label: 'RD', href: `https://www.reddit.com/submit?url=${encodedShareUrl}&title=${encodedShareText}` },
+  ];
   const topStats = useMemo(() => {
     return [
       [copy.damage, loadout.stats.damage],
@@ -329,17 +351,26 @@ export default function LoadoutCard({ loadout, metaScore, confidence, isFavorite
     }
   }
 
+  async function copyShareUrl() {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   return (
-    <article className="loadout-card" id={`loadout-${loadout.id}`}>
+    <article className="loadout-card" data-tier={loadout.tier} id={`loadout-${loadout.id}`}>
       <button type="button" className="loadout-summary" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded}>
-        <span className="tier-chip">{loadout.tier}</span>
+        <span className="tier-chip" data-tier={loadout.tier}>{loadout.tier}</span>
         <span className="weapon-art">
           <Image
             src={imageSrc}
             alt=""
             width={160}
             height={80}
-            unoptimized
             onError={() => setImageIndex((current) => current < IMAGE_SOURCES.length - 1 ? current + 1 : current)}
           />
         </span>
@@ -375,8 +406,14 @@ export default function LoadoutCard({ loadout, metaScore, confidence, isFavorite
       </div>
 
       <div className="loadout-share-strip">
-        {pairLabel && <span>{copy.pairWith} {pairLabel}</span>}
-        <Link href={detailHref}>{copy.shareableBuild}</Link>
+        <span>{copy.shareCta}</span>
+        <div className="loadout-share-actions" aria-label={copy.shareableBuild}>
+          {shareLinks.map((link) => (
+            <a key={link.label} href={link.href} target="_blank" rel="noreferrer">{link.label}</a>
+          ))}
+          <button type="button" onClick={copyShareUrl}>{copied ? copy.copied : shareLinkLabel}</button>
+          <Link href={detailHref}>{copy.open}</Link>
+        </div>
       </div>
 
       {expanded && (
@@ -386,7 +423,7 @@ export default function LoadoutCard({ loadout, metaScore, confidence, isFavorite
             <div className="attachment-list">
               {loadout.attachments.map((attachment) => (
                 <div key={`${attachment.slot}-${attachment.name}`}>
-                  <span>{attachment.slot}</span>
+                  <span>{translateTerm(attachment.slot, locale)}</span>
                   <strong>{attachment.name}</strong>
                 </div>
               ))}
@@ -395,6 +432,16 @@ export default function LoadoutCard({ loadout, metaScore, confidence, isFavorite
 
           <div className="stat-panel">
             <div className="mini-heading">{copy.performance}</div>
+            <StatRadar
+              tier={loadout.tier}
+              axes={[
+                { label: copy.damage, value: loadout.stats.damage },
+                { label: copy.range, value: loadout.stats.range },
+                { label: copy.meta, value: Math.min(metaScore, 100) },
+                { label: copy.control, value: loadout.stats.control },
+                { label: copy.mobility, value: loadout.stats.mobility },
+              ]}
+            />
             <StatBar label={copy.damage} value={loadout.stats.damage} />
             <StatBar label={copy.range} value={loadout.stats.range} />
             <StatBar label={copy.mobility} value={loadout.stats.mobility} />
@@ -416,13 +463,13 @@ export default function LoadoutCard({ loadout, metaScore, confidence, isFavorite
               {loadout.strengths?.length ? (
                 <div>
                   <div className="mini-heading">{copy.strengths}</div>
-                  {loadout.strengths.slice(0, 3).map((item) => <span key={item}>{item}</span>)}
+                  {loadout.strengths.slice(0, 3).map((item) => <span key={item}>{localizeLoadoutText(item, locale, loadout.playstyle)}</span>)}
                 </div>
               ) : null}
               {loadout.weaknesses?.length ? (
                 <div>
                   <div className="mini-heading">{copy.weaknesses}</div>
-                  {loadout.weaknesses.slice(0, 3).map((item) => <span key={item}>{item}</span>)}
+                  {loadout.weaknesses.slice(0, 3).map((item) => <span key={item}>{localizeLoadoutText(item, locale, loadout.playstyle)}</span>)}
                 </div>
               ) : null}
             </div>

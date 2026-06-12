@@ -6,13 +6,21 @@ import { getSiteContent } from '@/lib/siteContent';
 import { getSiteControls } from '@/lib/siteControls';
 import { getStatsSummary } from '@/lib/statsSummary';
 import { getUserSession } from '@/lib/userAuth';
+import { CURRENT_WARZONE_SEASON } from '@/lib/seo';
 import { headers } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'WZPRO Meta - Warzone loadouts, meta weapons and pro tools',
-  description: 'Find the best Warzone loadouts, compare meta weapons, track patch changes and use Pro Tools for aim, movement, spawns and PC optimization.',
+  title: `Meta Warzone ${CURRENT_WARZONE_SEASON} - meilleures classes et loadouts | WZPRO Meta`,
+  description: `Toutes les meilleures classes Warzone ${CURRENT_WARZONE_SEASON}: armes meta, accessoires, TTK, mises a jour de patch, comparateur et outils pro.`,
+  keywords: [
+    `Warzone ${CURRENT_WARZONE_SEASON} meta loadout`,
+    'meilleure classe Warzone',
+    'meilleures classes Warzone',
+    'accessoires Warzone meta',
+    'Warzone pro tools',
+  ],
 };
 
 export default async function HomePage({

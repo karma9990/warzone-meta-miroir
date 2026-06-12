@@ -3,17 +3,96 @@
 import { useState } from 'react';
 import LocalizedLink from '@/components/LocalizedLink';
 
-export default function SubscribePage() {
+const copy = {
+  en: {
+    back: 'BACK',
+    tag: 'FREE TIER',
+    title: 'SUBSCRIBE FREE',
+    desc: 'Get meta alerts, patch digests and map updates delivered straight to your inbox. No credit card required.',
+    emailLabel: 'EMAIL ADDRESS',
+    emailPlaceholder: 'operator@example.com',
+    invalidEmail: 'Invalid email address.',
+    subscribeError: 'Unable to subscribe right now.',
+    perk1: 'Weekly meta newsletter',
+    perk2: 'Patch notes digest',
+    perk3: 'Resurgence map updates',
+    perk4: 'New weapon tier alerts',
+    perk5: 'Community tips & tricks',
+    joining: 'JOINING...',
+    joinBtn: 'JOIN FOR FREE',
+    legal: 'By subscribing you agree to receive emails from WZPRO Meta. You can unsubscribe at any time.',
+    confirmed: 'SUBSCRIPTION CONFIRMED',
+    alreadySub: 'You were already subscribed to the WZPRO Meta free newsletter.',
+    nowSub: 'You are now subscribed to the WZPRO Meta free newsletter.',
+    checkInbox: 'Check your inbox for the free newsletter summary.',
+    openPreview: 'OPEN FREE PREVIEW',
+    wantMore: 'Want more?',
+    upgrade: 'Upgrade to Pro →',
+  },
+  fr: {
+    back: 'RETOUR',
+    tag: 'GRATUIT',
+    title: 'S ABONNER GRATUITEMENT',
+    desc: 'Recevez les alertes meta, les resumes de patch et les mises a jour de carte directement dans votre boite mail. Aucune carte bancaire requise.',
+    emailLabel: 'ADRESSE EMAIL',
+    emailPlaceholder: 'operateur@exemple.com',
+    invalidEmail: 'Adresse email invalide.',
+    subscribeError: 'Impossible de s abonner pour le moment.',
+    perk1: 'Newsletter meta hebdomadaire',
+    perk2: 'Resume des patch notes',
+    perk3: 'Mises a jour des cartes Resurgence',
+    perk4: 'Alertes nouvelles armes',
+    perk5: 'Astuces communaute',
+    joining: 'INSCRIPTION...',
+    joinBtn: 'S INSCRIRE GRATUITEMENT',
+    legal: 'En vous abonnant, vous acceptez de recevoir des emails de WZPRO Meta. Vous pouvez vous desabonner a tout moment.',
+    confirmed: 'ABONNEMENT CONFIRME',
+    alreadySub: 'Vous etiez deja abonne a la newsletter gratuite WZPRO Meta.',
+    nowSub: 'Vous etes maintenant abonne a la newsletter gratuite WZPRO Meta.',
+    checkInbox: 'Verifiez votre boite mail pour le resume de la newsletter.',
+    openPreview: 'OUVRIR L APERCU GRATUIT',
+    wantMore: 'Vous en voulez plus ?',
+    upgrade: 'Passer a Pro →',
+  },
+  es: {
+    back: 'VOLVER',
+    tag: 'GRATUITO',
+    title: 'SUSCRIBIRSE GRATIS',
+    desc: 'Recibe alertas meta, resumenes de parches y actualizaciones de mapas directamente en tu bandeja de entrada. Sin tarjeta de credito.',
+    emailLabel: 'DIRECCION DE EMAIL',
+    emailPlaceholder: 'operador@ejemplo.com',
+    invalidEmail: 'Direccion de email no valida.',
+    subscribeError: 'No se pudo suscribir en este momento.',
+    perk1: 'Boletin meta semanal',
+    perk2: 'Resumen de notas de parche',
+    perk3: 'Actualizaciones de mapas Resurgence',
+    perk4: 'Alertas de nuevas armas',
+    perk5: 'Consejos de la comunidad',
+    joining: 'REGISTRANDO...',
+    joinBtn: 'REGISTRARSE GRATIS',
+    legal: 'Al suscribirte, aceptas recibir correos de WZPRO Meta. Puedes cancelar en cualquier momento.',
+    confirmed: 'SUSCRIPCION CONFIRMADA',
+    alreadySub: 'Ya estabas suscrito al boletin gratuito de WZPRO Meta.',
+    nowSub: 'Ahora estas suscrito al boletin gratuito de WZPRO Meta.',
+    checkInbox: 'Revisa tu bandeja de entrada para el resumen del boletin.',
+    openPreview: 'ABRIR VISTA PREVIA GRATUITA',
+    wantMore: '¿Quieres mas?',
+    upgrade: 'Actualizar a Pro →',
+  },
+};
+
+export default function SubscribePage({ locale = 'en' }: { locale?: string }) {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [alreadySubscribed, setAlreadySubscribed] = useState(false);
+  const t = (copy as Record<string, typeof copy.en>)[locale] || copy.en;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.includes('@')) {
-      setError('Invalid email address.');
+      setError(t.invalidEmail);
       return;
     }
     setError('');
@@ -28,12 +107,12 @@ export default function SubscribePage() {
       });
       const result = await res.json() as { alreadySubscribed?: boolean; error?: string };
       if (!res.ok && res.status !== 202) {
-        throw new Error(result.error || 'Unable to subscribe right now.');
+        throw new Error(result.error || t.subscribeError);
       }
       setAlreadySubscribed(Boolean(result.alreadySubscribed));
       setSubmitted(true);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Unable to subscribe right now.');
+      setError(error instanceof Error ? error.message : t.subscribeError);
     } finally {
       setSubmitting(false);
     }
@@ -43,13 +122,13 @@ export default function SubscribePage() {
     <>
       <main className="sub-main">
         <div className="sub-back">
-          <LocalizedLink href="/pro-tools">BACK</LocalizedLink>
+          <LocalizedLink href="/pro-tools">{t.back}</LocalizedLink>
         </div>
 
-        <div className="sub-tag">FREE TIER</div>
-        <h1 className="sub-title">SUBSCRIBE FREE</h1>
+        <div className="sub-tag">{t.tag}</div>
+        <h1 className="sub-title">{t.title}</h1>
         <p className="sub-desc">
-          Get meta alerts, patch digests and map updates delivered straight to your inbox. No credit card required.
+          {t.desc}
         </p>
 
         <div className="sub-divider" />
@@ -57,26 +136,24 @@ export default function SubscribePage() {
         {submitted ? (
           <div className="sub-success">
             <div className="sub-success-icon">✓</div>
-            <div className="sub-success-title">SUBSCRIPTION CONFIRMED</div>
+            <div className="sub-success-title">{t.confirmed}</div>
             <p className="sub-success-desc">
-              {alreadySubscribed
-                ? 'You were already subscribed to the WZPRO Meta free newsletter.'
-                : 'You are now subscribed to the WZPRO Meta free newsletter.'}<br />
-              Check your inbox for the free newsletter summary.
+              {alreadySubscribed ? t.alreadySub : t.nowSub}<br />
+              {t.checkInbox}
             </p>
             <LocalizedLink href="/free-preview" className="sub-cta sub-cta--back">
-              OPEN FREE PREVIEW
+              {t.openPreview}
             </LocalizedLink>
           </div>
         ) : (
           <form className="sub-form" onSubmit={handleSubmit} noValidate>
             <div className="sub-field">
-              <label className="sub-label" htmlFor="email">EMAIL ADDRESS</label>
+              <label className="sub-label" htmlFor="email">{t.emailLabel}</label>
               <input
                 id="email"
                 type="email"
                 className="sub-input"
-                placeholder="operator@example.com"
+                placeholder={t.emailPlaceholder}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
@@ -86,28 +163,27 @@ export default function SubscribePage() {
             </div>
 
             <ul className="sub-perks">
-              <li>Weekly meta newsletter</li>
-              <li>Patch notes digest</li>
-              <li>Resurgence map updates</li>
-              <li>New weapon tier alerts</li>
-              <li>Community tips & tricks</li>
+              <li>{t.perk1}</li>
+              <li>{t.perk2}</li>
+              <li>{t.perk3}</li>
+              <li>{t.perk4}</li>
+              <li>{t.perk5}</li>
             </ul>
 
             <button type="submit" className="sub-cta sub-cta--free" disabled={submitting}>
-              {submitting ? 'JOINING...' : 'JOIN FOR FREE'}
+              {submitting ? t.joining : t.joinBtn}
             </button>
 
             <p className="sub-legal">
-              By subscribing you agree to receive emails from WZPRO Meta.
-              You can unsubscribe at any time.
+              {t.legal}
             </p>
           </form>
         )}
 
         <div className="sub-upgrade">
-          <span className="sub-upgrade-label">Want more?</span>
+          <span className="sub-upgrade-label">{t.wantMore}</span>
           <LocalizedLink href="/pro-access" className="sub-upgrade-link">
-            Upgrade to Pro →
+            {t.upgrade}
           </LocalizedLink>
         </div>
       </main>

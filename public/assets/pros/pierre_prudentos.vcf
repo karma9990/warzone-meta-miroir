@@ -1,0 +1,11 @@
+BEGIN:VCARD
+VERSION:4.0
+N:PRUDENTOS;Pierre;;;
+FN:Pierre PRUDENTOS
+EMAIL;PREF=1:pierre.prudentos@univ-antilles.fr
+URL:https://iut-guadeloupe.univ-antilles.fr/
+ADR:;;166 rue des Officiers;SAINT-CLAUDE;GUADELOUPE;97120;FRANCE
+TEL;VALUE=TEXT:0590.483491
+NOTE:IUT DE LA GUADELOUPE - UNIVERSITE DES ANTILLES\nService de la Scolarit
+ é
+END:VCARD

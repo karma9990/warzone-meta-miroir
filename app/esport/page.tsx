@@ -123,6 +123,52 @@ const esEcosystemReality = [
   'Warzone es dificil como esport: loot, zonas, servidores, meta, crossplay y trampas hacen mas fragil la capa amateur.',
 ];
 
+const frStarterSteps = [
+  'Stabilise ton setup : FPS, audio, sensibilite, connexion et zero crash.',
+  'Grind la ranked pour apprendre les rotations, timings et fights sous pression.',
+  'Commence par des kill races gratuites ou peu cheres et des classements.',
+  'Trouve un duo ou trio regulier au lieu de jouer chaque tournoi avec des randoms.',
+  'Rejoins des Discords de scrims, lis les regles et sois present aux check-ins.',
+  'Revois tes morts, note tes erreurs, puis relance. La constance compte plus qu une seule bonne soiree.',
+];
+
+const frRoadmap = [
+  ['01', 'Parties publiques', 'bases mecaniques, aim, mouvement, confiance'],
+  ['02', 'Ranked serieuse', 'rotations, pression, vrais fights, coequipiers'],
+  ['03', 'Petits tournois', 'regles, check-in, scoring, preuves'],
+  ['04', 'Petits cash prizes', 'jouer proprement avec de l enjeu'],
+  ['05', 'Customs prives', 'lobbies plus disciplines, equipes preparees'],
+  ['06', 'Scrims reguliers', 'reseau, reputation, roster stable'],
+  ['07', 'Qualifiers officiels', 'WSOW, EWC, qualifiers ouverts regionaux'],
+  ['08', 'LAN / grands events', 'niveau showcase, audience, resultats constants'],
+];
+
+const frFormats = [
+  { name: 'Kill Race', note: 'Le format le plus accessible : tu as une fenetre de temps ou un nombre de games pour faire le plus de kills possible.' },
+  { name: 'Classement', note: 'La plateforme garde tes meilleures parties. Ideal pour commencer solo et comprendre le scoring.' },
+  { name: 'Customs', note: 'Lobby prive avec joueurs inscrits. Plus proche de la competition serieuse car tout le monde joue le meme lobby.' },
+  { name: 'Scrims', note: 'Sessions d entrainement organisees via Discord. C est la que les equipes recrutent et que les joueurs se font remarquer.' },
+];
+
+const frPlatformAdvice = [
+  { name: 'Tournex', route: 'Tournoi -> equipe -> lobby/custom', note: 'Interessant pour les teams, les rankings live et une structure de hub competitif.' },
+  { name: 'Discords', route: 'Regles -> annonce -> ticket support', note: 'Essentiel pour scrims, LFG, customs et reseau competitif.' },
+];
+
+const frMoneyReality = [
+  'Au debut, ne poursuis pas l argent. Poursuis l experience de tournoi.',
+  'Les premiers gains sont souvent petits : 20, 50, 100, et parfois rien pendant longtemps.',
+  'Les joueurs qui durent combinent competition, stream, clips, coaching, sponsors ou org.',
+  'Ton premier vrai objectif : devenir assez fiable pour etre invite dans des customs serieux.',
+];
+
+const frEcosystemReality = [
+  'GameBattles a ferme en janvier 2024, donc une partie de l ancien centre COD a disparu.',
+  'La scene est devenue plus dependante de Discord, plus basee sur le reseau, les customs et le contenu.',
+  'Activision controle davantage les grands events officiels, droits, image, sponsors et regles.',
+  'Warzone est difficile a transformer en esport : loot, zones, serveurs, meta, crossplay et triche fragilisent la couche amateur.',
+];
+
 function PlayerBubble({ children }: { children: React.ReactNode }) {
   return (
     <article className="chat-row chat-row--player">
@@ -153,12 +199,12 @@ export default async function EsportPage() {
   const starterSteps = esport.starterSteps.length ? esport.starterSteps : defaultStarterSteps;
   const tournamentSources = esport.tournamentSources.length ? esport.tournamentSources : defaultTournamentSources;
   const discordSources = esport.discordSources.length ? esport.discordSources : defaultDiscordSources;
-  const localizedStarterSteps = locale === 'es' ? esStarterSteps : starterSteps;
-  const localizedRoadmap = locale === 'es' ? esRoadmap : roadmap;
-  const localizedFormats = locale === 'es' ? esFormats : formats;
-  const localizedPlatformAdvice = locale === 'es' ? esPlatformAdvice : platformAdvice;
-  const localizedMoneyReality = locale === 'es' ? esMoneyReality : moneyReality;
-  const localizedEcosystemReality = locale === 'es' ? esEcosystemReality : ecosystemReality;
+  const localizedStarterSteps = locale === 'fr' ? frStarterSteps : locale === 'es' ? esStarterSteps : starterSteps;
+  const localizedRoadmap = locale === 'fr' ? frRoadmap : locale === 'es' ? esRoadmap : roadmap;
+  const localizedFormats = locale === 'fr' ? frFormats : locale === 'es' ? esFormats : formats;
+  const localizedPlatformAdvice = locale === 'fr' ? frPlatformAdvice : locale === 'es' ? esPlatformAdvice : platformAdvice;
+  const localizedMoneyReality = locale === 'fr' ? frMoneyReality : locale === 'es' ? esMoneyReality : moneyReality;
+  const localizedEcosystemReality = locale === 'fr' ? frEcosystemReality : locale === 'es' ? esEcosystemReality : ecosystemReality;
 
   return (
     <>
@@ -204,9 +250,9 @@ export default async function EsportPage() {
             </div>
           </WzBubble>
 
-          <PlayerBubble>{locale === 'es' ? 'Que formatos deberia jugar al principio?' : 'Which formats should I target at the beginning?'}</PlayerBubble>
+          <PlayerBubble>{locale === 'es' ? 'Que formatos deberia jugar al principio?' : locale === 'fr' ? 'Quels formats viser au debut ?' : 'Which formats should I target at the beginning?'}</PlayerBubble>
           <WzBubble>
-            <p>{locale === 'es' ? 'Los mejores formatos para empezar te ensenan las reglas sin lanzarte directo a lobbies privados grandes.' : 'The best beginner formats teach you the rules without throwing you straight into major private lobbies.'}</p>
+            <p>{locale === 'es' ? 'Los mejores formatos para empezar te ensenan las reglas sin lanzarte directo a lobbies privados grandes.' : locale === 'fr' ? 'Les meilleurs formats pour commencer t apprennent les regles sans t envoyer directement dans de gros lobbies prives.' : 'The best beginner formats teach you the rules without throwing you straight into major private lobbies.'}</p>
             <div className="mini-card-grid">
               {localizedFormats.map((format) => (
                 <div key={format.name}>
@@ -217,9 +263,9 @@ export default async function EsportPage() {
             </div>
           </WzBubble>
 
-          <PlayerBubble>{locale === 'es' ? 'Dame los sitios que listan competiciones de Warzone.' : 'Give me the sites that list Warzone competitions.'}</PlayerBubble>
+          <PlayerBubble>{locale === 'es' ? 'Dame los sitios que listan competiciones de Warzone.' : locale === 'fr' ? 'Donne-moi les sites qui listent les competitions Warzone.' : 'Give me the sites that list Warzone competitions.'}</PlayerBubble>
           <WzBubble>
-            <p>{locale === 'es' ? 'Estas son las plataformas a vigilar. Los torneos cambian a menudo, asi que verifica siempre fecha, region, reglas, pago, anti-cheat y reembolsos.' : 'Here are the platforms to monitor. Tournaments change often, so always verify date, region, rules, payment, anti-cheat, and refunds.'}</p>
+            <p>{locale === 'es' ? 'Estas son las plataformas a vigilar. Los torneos cambian a menudo, asi que verifica siempre fecha, region, reglas, pago, anti-cheat y reembolsos.' : locale === 'fr' ? 'Voici les plateformes a surveiller. Les tournois changent souvent, donc verifie toujours date, region, regles, paiement, anti-cheat et remboursements.' : 'Here are the platforms to monitor. Tournaments change often, so always verify date, region, rules, payment, anti-cheat, and refunds.'}</p>
             <div className="source-grid">
               {tournamentSources.map((source) => (
                 <a key={source.name} href={source.url} target="_blank" rel="noreferrer">
@@ -231,9 +277,9 @@ export default async function EsportPage() {
             </div>
           </WzBubble>
 
-          <PlayerBubble>{locale === 'es' ? 'Lista Discords utiles para grindear, sobre todo en NA.' : 'List useful Discords for grinding, especially in NA.'}</PlayerBubble>
+          <PlayerBubble>{locale === 'es' ? 'Lista Discords utiles para grindear, sobre todo en NA.' : locale === 'fr' ? 'Liste des Discords utiles pour grind, surtout en NA.' : 'List useful Discords for grinding, especially in NA.'}</PlayerBubble>
           <WzBubble>
-            <p>{locale === 'es' ? 'Para el grind NA, Discord es esencial: LFG, squads ranked, scrims, customs, anuncios, check-ins y soporte suelen pasar por ahi.' : 'For the NA grind, Discord is essential: LFG, ranked stacks, scrims, customs, announcements, check-ins, and support tickets often go through there.'}</p>
+            <p>{locale === 'es' ? 'Para el grind NA, Discord es esencial: LFG, squads ranked, scrims, customs, anuncios, check-ins y soporte suelen pasar por ahi.' : locale === 'fr' ? 'Pour le grind NA, Discord est essentiel : LFG, squads ranked, scrims, customs, annonces, check-ins et support passent souvent par la.' : 'For the NA grind, Discord is essential: LFG, ranked stacks, scrims, customs, announcements, check-ins, and support tickets often go through there.'}</p>
             <div className="source-grid source-grid--discord">
               {discordSources.map((source) => (
                 <a key={source.name} href={source.url} target="_blank" rel="noreferrer">
@@ -245,9 +291,9 @@ export default async function EsportPage() {
             </div>
           </WzBubble>
 
-          <PlayerBubble>{locale === 'es' ? 'Que plataforma deberia elegir primero?' : 'Which platform should I choose first?'}</PlayerBubble>
+          <PlayerBubble>{locale === 'es' ? 'Que plataforma deberia elegir primero?' : locale === 'fr' ? 'Quelle plateforme choisir en premier ?' : 'Which platform should I choose first?'}</PlayerBubble>
           <WzBubble>
-            <p>{locale === 'es' ? 'Elige segun tu objetivo. Si quieres aprender sin presion, apunta a leaderboards o kill races. Si quieres el ritmo competitivo real, busca scrims y customs.' : 'Choose based on your goal. If you want to learn without pressure, target leaderboards or kill races. If you want the real competitive rhythm, look for scrims and customs.'}</p>
+            <p>{locale === 'es' ? 'Elige segun tu objetivo. Si quieres aprender sin presion, apunta a leaderboards o kill races. Si quieres el ritmo competitivo real, busca scrims y customs.' : locale === 'fr' ? 'Choisis selon ton objectif. Si tu veux apprendre sans pression, vise les classements ou kill races. Si tu veux le vrai rythme competitif, cherche scrims et customs.' : 'Choose based on your goal. If you want to learn without pressure, target leaderboards or kill races. If you want the real competitive rhythm, look for scrims and customs.'}</p>
             <div className="platform-grid">
               {localizedPlatformAdvice.map((item) => (
                 <div key={item.name}>
@@ -259,25 +305,25 @@ export default async function EsportPage() {
             </div>
           </WzBubble>
 
-          <PlayerBubble>{locale === 'es' ? 'Por que la escena parece cerrada desde GameBattles?' : 'Why does the scene feel closed since GameBattles?'}</PlayerBubble>
+          <PlayerBubble>{locale === 'es' ? 'Por que la escena parece cerrada desde GameBattles?' : locale === 'fr' ? 'Pourquoi la scene semble fermee depuis GameBattles ?' : 'Why does the scene feel closed since GameBattles?'}</PlayerBubble>
           <WzBubble>
-            <p>{locale === 'es' ? 'Porque el ecosistema cambio. La habilidad importa, pero tambien necesitas ser visible, estar presente y ser conocido en los servidores correctos.' : 'Because the ecosystem changed. Skill still matters, but you also need to be visible, present, and known in the right servers.'}</p>
+            <p>{locale === 'es' ? 'Porque el ecosistema cambio. La habilidad importa, pero tambien necesitas ser visible, estar presente y ser conocido en los servidores correctos.' : locale === 'fr' ? 'Parce que l ecosysteme a change. Le niveau compte toujours, mais il faut aussi etre visible, present et connu sur les bons serveurs.' : 'Because the ecosystem changed. Skill still matters, but you also need to be visible, present, and known in the right servers.'}</p>
             <ul className="chat-bullets">
               {localizedEcosystemReality.map((item) => <li key={item}>{item}</li>)}
             </ul>
           </WzBubble>
 
-          <PlayerBubble>{locale === 'es' ? 'Se puede ganar dinero rapido?' : 'Can you make money quickly?'}</PlayerBubble>
+          <PlayerBubble>{locale === 'es' ? 'Se puede ganar dinero rapido?' : locale === 'fr' ? 'Est-ce qu on peut gagner de l argent rapidement ?' : 'Can you make money quickly?'}</PlayerBubble>
           <WzBubble>
-            <p>{locale === 'es' ? 'Es posible, pero no es el objetivo correcto al principio. El primer objetivo es entrar en buenos customs y ser un jugador fiable.' : 'Possible, but it is not the right goal at the beginning. The first goal is to get invited into good customs and become a reliable player.'}</p>
+            <p>{locale === 'es' ? 'Es posible, pero no es el objetivo correcto al principio. El primer objetivo es entrar en buenos customs y ser un jugador fiable.' : locale === 'fr' ? 'C est possible, mais ce n est pas le bon objectif au debut. Le premier objectif est d entrer dans de bons customs et devenir un joueur fiable.' : 'Possible, but it is not the right goal at the beginning. The first goal is to get invited into good customs and become a reliable player.'}</p>
             <ul className="chat-bullets">
               {localizedMoneyReality.map((item) => <li key={item}>{item}</li>)}
             </ul>
           </WzBubble>
 
-          <PlayerBubble>{locale === 'es' ? 'Entonces cual es mi primer objetivo real?' : 'So what is my first real goal?'}</PlayerBubble>
+          <PlayerBubble>{locale === 'es' ? 'Entonces cual es mi primer objetivo real?' : locale === 'fr' ? 'Donc quel est mon premier vrai objectif ?' : 'So what is my first real goal?'}</PlayerBubble>
           <WzBubble>
-            <p className="final-answer">{locale === 'es' ? 'Vuelvete lo bastante fuerte, constante y fiable para que te inviten a customs serios. Desde ahi conoces la escena competitiva real: scrims, buenos rosters, pequenos premios y luego clasificatorios oficiales.' : 'Become strong, consistent, and reliable enough that people invite you into serious customs. From there, you meet the real competitive scene: scrims, good rosters, small cash prizes, then official qualifiers.'}</p>
+            <p className="final-answer">{locale === 'es' ? 'Vuelvete lo bastante fuerte, constante y fiable para que te inviten a customs serios. Desde ahi conoces la escena competitiva real: scrims, buenos rosters, pequenos premios y luego clasificatorios oficiales.' : locale === 'fr' ? 'Deviens assez fort, constant et fiable pour que les gens t invitent dans des customs serieux. A partir de la, tu rencontres la vraie scene competitive : scrims, bons rosters, petits cash prizes, puis qualifiers officiels.' : 'Become strong, consistent, and reliable enough that people invite you into serious customs. From there, you meet the real competitive scene: scrims, good rosters, small cash prizes, then official qualifiers.'}</p>
             <Link className="chat-cta" href={href('/pro-tools')}>{locale === 'es' ? 'Ver Herramientas Pro' : locale === 'fr' ? 'Voir les Outils Pro' : 'View Pro Tools'}</Link>
           </WzBubble>
         </section>
@@ -597,6 +643,100 @@ export default async function EsportPage() {
         .chat-cta--refs {
           border-color: #7f96ff;
           color: #7f96ff;
+        }
+
+        .esport-main,
+        .competitive-nav,
+        .competitive-nav a,
+        .chat-avatar,
+        .chat-bubble,
+        .chat-bubble--wz,
+        .chat-list,
+        .roadmap-grid,
+        .mini-card-grid,
+        .source-grid,
+        .platform-grid,
+        .chat-list div,
+        .roadmap-grid div,
+        .mini-card-grid div,
+        .platform-grid div,
+        .source-grid a,
+        .references-callout {
+          background: #000 !important;
+          background-image: none !important;
+          color: #fff !important;
+        }
+
+        .competitive-nav a.is-active {
+          background: #163cff !important;
+          background-image: none !important;
+          color: #fff !important;
+        }
+
+        .competitive-nav a:hover {
+          background: rgba(22, 60, 255, 0.24) !important;
+          background-image: none !important;
+        }
+
+        .competitive-nav .competitive-kicker,
+        .competitive-nav a span {
+          color: inherit !important;
+        }
+
+        .competitive-nav .competitive-icon svg {
+          stroke: currentColor !important;
+        }
+
+        .competitive-nav,
+        .competitive-nav a,
+        .chat-avatar,
+        .chat-bubble,
+        .chat-list,
+        .roadmap-grid,
+        .mini-card-grid,
+        .source-grid,
+        .platform-grid,
+        .chat-list div,
+        .roadmap-grid div,
+        .mini-card-grid div,
+        .platform-grid div,
+        .source-grid a,
+        .references-callout,
+        .chat-cta {
+          border-color: rgba(22, 60, 255, 0.72) !important;
+        }
+
+        .esport-hero h1,
+        .chat-bubble--player p,
+        .chat-list strong,
+        .roadmap-grid strong,
+        .mini-card-grid strong,
+        .platform-grid strong,
+        .source-grid strong,
+        .references-callout h2 {
+          color: #fff !important;
+        }
+
+        .esport-hero p,
+        .chat-bubble p,
+        .chat-bullets,
+        .source-grid p,
+        .mini-card-grid p,
+        .platform-grid p,
+        .references-callout p,
+        .roadmap-grid small {
+          color: rgba(255, 255, 255, 0.68) !important;
+        }
+
+        .references-callout a {
+          background: #163cff !important;
+          color: #fff !important;
+        }
+
+        .chat-avatar span,
+        .chat-avatar span::before,
+        .chat-avatar span::after {
+          border-color: #163cff !important;
         }
 
         @media (max-width: 900px) {

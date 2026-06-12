@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { Loadout } from '@/lib/data';
+import { getLoadoutPath } from '@/lib/seo';
 
 export default function AccountLoadoutPrefs({
   loadouts,
@@ -88,7 +89,7 @@ export default function AccountLoadoutPrefs({
     <div className="account-loadout-prefs">
       <div className="account-favorites">
         {favoriteLoadouts.length > 0 ? favoriteLoadouts.map((loadout) => (
-          <Link key={loadout.id} href={`/loadouts/${loadout.id}`}>
+          <Link key={loadout.id} href={getLoadoutPath(loadout)}>
             <span>{loadout.tier}</span>
             <strong>{loadout.weapon}</strong>
           </Link>
@@ -99,7 +100,7 @@ export default function AccountLoadoutPrefs({
         <div className="account-loadout-featured-head">
           <div>
             <span>Featured weapon</span>
-            <Link href={`/loadouts/${selectedLoadout.id}`}>{selectedLoadout.weapon}</Link>
+            <Link href={getLoadoutPath(selectedLoadout)}>{selectedLoadout.weapon}</Link>
             <small>{selectedLoadout.category} / Tier {selectedLoadout.tier}</small>
           </div>
           <button type="button" onClick={() => toggleFavorite(selectedLoadout.id)}>

@@ -5,14 +5,91 @@ import LocalizedLink from '@/components/LocalizedLink';
 
 type Mode = 'signup' | 'signin';
 
+const copy = {
+  en: {
+    emailLabel: 'Your email *',
+    emailPlaceholder: 'Enter your email',
+    usernameLabel: 'Your username *',
+    usernamePlaceholder: 'Enter your username',
+    displayNameLabel: 'Your display name *',
+    displayNamePlaceholder: 'Enter your display name',
+    passwordLabel: 'Your password *',
+    passwordPlaceholder: 'Enter your password',
+    confirmLabel: 'Confirm your password *',
+    confirmPlaceholder: 'Confirm your password',
+    sending: 'Sending...',
+    signUpBtn: 'Sign up with email',
+    signInBtn: 'Sign in with email',
+    forgot: 'Forgot password?',
+    haveAccount: 'You already have an account?',
+    noAccount: 'No account yet?',
+    signIn: 'Sign in',
+    signUp: 'Sign up',
+    passwordsMismatch: 'Passwords do not match.',
+    creationFailed: 'Account creation failed.',
+    created: 'Account created. Check your inbox to verify your email.',
+    authFailed: 'Authentication failed.',
+  },
+  fr: {
+    emailLabel: 'Votre email *',
+    emailPlaceholder: 'Entrez votre email',
+    usernameLabel: 'Votre pseudo *',
+    usernamePlaceholder: 'Entrez votre pseudo',
+    displayNameLabel: 'Votre nom affiche *',
+    displayNamePlaceholder: 'Entrez votre nom affiche',
+    passwordLabel: 'Votre mot de passe *',
+    passwordPlaceholder: 'Entrez votre mot de passe',
+    confirmLabel: 'Confirmez votre mot de passe *',
+    confirmPlaceholder: 'Confirmez votre mot de passe',
+    sending: 'Envoi...',
+    signUpBtn: 'S inscrire avec email',
+    signInBtn: 'Se connecter avec email',
+    forgot: 'Mot de passe oublie ?',
+    haveAccount: 'Vous avez deja un compte ?',
+    noAccount: 'Pas encore de compte ?',
+    signIn: 'Se connecter',
+    signUp: 'S inscrire',
+    passwordsMismatch: 'Les mots de passe ne correspondent pas.',
+    creationFailed: 'Echec de creation du compte.',
+    created: 'Compte cree. Verifiez votre boite mail pour confirmer votre email.',
+    authFailed: 'Echec d authentification.',
+  },
+  es: {
+    emailLabel: 'Tu email *',
+    emailPlaceholder: 'Introduce tu email',
+    usernameLabel: 'Tu nombre de usuario *',
+    usernamePlaceholder: 'Introduce tu nombre de usuario',
+    displayNameLabel: 'Tu nombre publico *',
+    displayNamePlaceholder: 'Introduce tu nombre publico',
+    passwordLabel: 'Tu contrasena *',
+    passwordPlaceholder: 'Introduce tu contrasena',
+    confirmLabel: 'Confirma tu contrasena *',
+    confirmPlaceholder: 'Confirma tu contrasena',
+    sending: 'Enviando...',
+    signUpBtn: 'Registrarse con email',
+    signInBtn: 'Iniciar sesion con email',
+    forgot: '¿Olvidaste tu contrasena?',
+    haveAccount: '¿Ya tienes una cuenta?',
+    noAccount: '¿No tienes cuenta?',
+    signIn: 'Iniciar sesion',
+    signUp: 'Registrarse',
+    passwordsMismatch: 'Las contrasenas no coinciden.',
+    creationFailed: 'Error al crear la cuenta.',
+    created: 'Cuenta creada. Revisa tu bandeja de entrada para verificar tu email.',
+    authFailed: 'Error de autenticacion.',
+  },
+};
+
 export default function EmailSignInForm({
   initialMode = 'signup',
   allowSwitch = true,
   redirectTo = '/',
+  locale = 'en',
 }: {
   initialMode?: Mode;
   allowSwitch?: boolean;
   redirectTo?: string;
+  locale?: string;
 }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState('');
@@ -22,6 +99,7 @@ export default function EmailSignInForm({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const t = (copy as Record<string, typeof copy.en>)[locale] || copy.en;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,7 +113,7 @@ export default function EmailSignInForm({
       if (mode === 'signup') {
         if (password !== confirmPassword) {
           setStatus('error');
-          setMessage('Passwords do not match.');
+          setMessage(t.passwordsMismatch);
           return;
         }
 
@@ -53,11 +131,11 @@ export default function EmailSignInForm({
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          throw new Error(typeof data.error === 'string' ? data.error : 'Account creation failed.');
+          throw new Error(typeof data.error === 'string' ? data.error : t.creationFailed);
         }
 
         setStatus('sent');
-        setMessage('Account created. Check your inbox to verify your email.');
+        setMessage(t.created);
         return;
       }
 
@@ -69,14 +147,14 @@ export default function EmailSignInForm({
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : 'Authentication failed.');
+        throw new Error(typeof data.error === 'string' ? data.error : t.authFailed);
       }
 
       const separator = redirectTo.includes('?') ? '&' : '?';
       window.location.href = `${redirectTo}${separator}signed_in=1`;
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Authentication failed.');
+      setMessage(error instanceof Error ? error.message : t.authFailed);
     }
   }
 
@@ -88,7 +166,7 @@ export default function EmailSignInForm({
 
   return (
     <form className="email-auth-form" onSubmit={submit}>
-      <label htmlFor="email-auth">Your email *</label>
+      <label htmlFor="email-auth">{t.emailLabel}</label>
       <input
         id="email-auth"
         type="email"
@@ -96,53 +174,53 @@ export default function EmailSignInForm({
         autoComplete="email"
         value={email}
         onChange={(event) => setEmail(event.target.value)}
-        placeholder="Enter your email"
+        placeholder={t.emailPlaceholder}
         required
       />
 
       {mode === 'signup' && (
         <>
-          <label htmlFor="username-auth">Your username *</label>
+          <label htmlFor="username-auth">{t.usernameLabel}</label>
           <input
             id="username-auth"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
-            placeholder="Enter your username"
+            placeholder={t.usernamePlaceholder}
             autoComplete="username"
             required
           />
 
-          <label htmlFor="display-auth">Your display name *</label>
+          <label htmlFor="display-auth">{t.displayNameLabel}</label>
           <input
             id="display-auth"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
-            placeholder="Enter your display name"
+            placeholder={t.displayNamePlaceholder}
             required
           />
         </>
       )}
 
-      <label htmlFor="password-auth">Your password *</label>
+      <label htmlFor="password-auth">{t.passwordLabel}</label>
       <input
         id="password-auth"
         type="password"
         value={password}
         onChange={(event) => setPassword(event.target.value)}
-        placeholder="Enter your password"
+        placeholder={t.passwordPlaceholder}
         autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
         required
       />
 
       {mode === 'signup' && (
         <>
-          <label htmlFor="confirm-password-auth">Confirm your password *</label>
+          <label htmlFor="confirm-password-auth">{t.confirmLabel}</label>
           <input
             id="confirm-password-auth"
             type="password"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="Confirm your password"
+            placeholder={t.confirmPlaceholder}
             autoComplete="new-password"
             required
           />
@@ -150,21 +228,21 @@ export default function EmailSignInForm({
       )}
 
       <button type="submit" disabled={status === 'sending'}>
-        {status === 'sending' ? 'Sending...' : mode === 'signup' ? 'Sign up with email' : 'Sign in with email'}
+        {status === 'sending' ? t.sending : mode === 'signup' ? t.signUpBtn : t.signInBtn}
       </button>
 
       {mode === 'signin' && (
         <LocalizedLink className="email-auth-forgot" href="/forgot-password">
-          Forgot password?
+          {t.forgot}
         </LocalizedLink>
       )}
 
       {allowSwitch && (
         <p className="email-auth-switch">
-          {mode === 'signup' ? 'You already have an account?' : 'No account yet?'}
+          {mode === 'signup' ? t.haveAccount : t.noAccount}
           {' '}
           <button type="button" onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}>
-            {mode === 'signup' ? 'Sign in' : 'Sign up'}
+            {mode === 'signup' ? t.signIn : t.signUp}
           </button>
         </p>
       )}

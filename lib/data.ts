@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { hasUpstash, upstashCommand } from './upstash';
+import { hasUpstash, upstashCommand } from './upstash.ts';
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'loadouts.json');
 const LOADOUTS_KEY = 'wz:loadouts';

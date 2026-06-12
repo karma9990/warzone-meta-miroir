@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { DEFAULT_LOCALE, LOCALE_COOKIE, LOCALE_HEADER, normalizeLocale, stripLocale } from '@/lib/i18n';
+import { DEFAULT_LOCALE, LOCALE_COOKIE, LOCALE_HEADER, detectVisitorLocale, isLocale, stripLocale } from '@/lib/i18n';
 import { rateLimit } from '@/lib/rateLimit';
 import { createSupabaseProxyClient } from '@/lib/supabase/server';
 
@@ -15,8 +15,15 @@ export async function proxy(request: NextRequest) {
   const adminPath = normalizeAdminPath(process.env.ADMIN_ACCESS_PATH);
   const { locale: localeFromPath, pathname: pathnameWithoutLocale } = stripLocale(pathname);
   const effectivePathname = localeFromPath ? pathnameWithoutLocale : pathname;
-  const cookieLocale = normalizeLocale(request.cookies.get(LOCALE_COOKIE)?.value);
-  const activeLocale = localeFromPath ?? cookieLocale ?? DEFAULT_LOCALE;
+  const rawCookieLocale = request.cookies.get(LOCALE_COOKIE)?.value;
+  const cookieLocale = isLocale(rawCookieLocale) ? rawCookieLocale : null;
+  const detectedLocale = !localeFromPath && !cookieLocale && effectivePathname === '/free-preview'
+    ? detectVisitorLocale(
+        request.headers.get('x-vercel-ip-country'),
+        request.headers.get('accept-language'),
+      )
+    : null;
+  const activeLocale = localeFromPath ?? cookieLocale ?? detectedLocale ?? DEFAULT_LOCALE;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set(LOCALE_HEADER, activeLocale);
 
@@ -27,6 +34,12 @@ export async function proxy(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 365,
     });
     return response;
+  }
+
+  if (detectedLocale) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = `/${detectedLocale}${effectivePathname}`;
+    return withLocale(NextResponse.redirect(redirectUrl));
   }
 
   if (pathname === '/' && request.nextUrl.searchParams.has('code')) {

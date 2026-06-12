@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { reportCommunityPost } from '@/lib/communityStore';
 import { getUserSession } from '@/lib/userAuth';
 import { rateLimit } from '@/lib/rateLimit';
+import { sameOriginGuard } from '@/lib/security';
 import type { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -10,6 +11,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ postId: string }> }
 ) {
+  const csrfError = sameOriginGuard(req);
+  if (csrfError) return csrfError;
+
   const limited = await rateLimit(req, 'community-report', 12, 10 * 60_000);
   if (limited) return limited;
 

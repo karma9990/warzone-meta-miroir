@@ -44,6 +44,12 @@ yarn-error.log*
 .deepsec/
 .codex-*.png
 codex-*.png
+symgg_*.png
+tmp-*.png
+tmp*.png
+tmp*.webp
+tmp_crop_verif/
+verif_*.webp
 app.zip
 gemini-code-*
 uploads_files_*.glb

@@ -92,14 +92,35 @@ export default function GlassScene({ backgroundSrc }: Props) {
     normalMap.wrapT = THREE.RepeatWrapping;
     normalMap.repeat.set(1, 1);
     let envTexture: THREE.Texture = neutralEnv;
+    let envReady = true;
+    let idleHandle: ReturnType<typeof setTimeout> | number | null = null;
 
-    new HDRLoader().load('/assets/liquid/photo_studio_broadway_hall_4k.hdr', (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      envTexture = texture;
-      glassMeshMap.forEach(mesh => {
-        mesh.material.uniforms.tEnv.value = envTexture;
-      });
-    });
+    const nav = window.navigator as Navigator & { connection?: { saveData?: boolean } };
+    const shouldLoadEnvMap = !nav.connection?.saveData && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (shouldLoadEnvMap) {
+      envReady = false;
+      const loadEnvMap = () => {
+        if (envReady) return;
+        new HDRLoader().load('/assets/liquid/photo_studio_broadway_hall_4k.hdr', (texture) => {
+          if (envReady) {
+            texture.dispose();
+            return;
+          }
+          texture.mapping = THREE.EquirectangularReflectionMapping;
+          envTexture = texture;
+          envReady = true;
+          glassMeshMap.forEach(mesh => {
+            mesh.material.uniforms.tEnv.value = envTexture;
+          });
+        });
+      };
+
+      if ('requestIdleCallback' in window) {
+        idleHandle = window.requestIdleCallback(loadEnvMap, { timeout: 2500 });
+      } else {
+        idleHandle = globalThis.setTimeout(loadEnvMap, 1200);
+      }
+    }
 
     function makeMaterial(borderRadius: number) {
       return new THREE.ShaderMaterial({
@@ -226,6 +247,14 @@ export default function GlassScene({ backgroundSrc }: Props) {
 
     return () => {
       cancelAnimationFrame(raf);
+      envReady = true;
+      if (idleHandle !== null) {
+        if ('cancelIdleCallback' in window) {
+          window.cancelIdleCallback(Number(idleHandle));
+        } else {
+          globalThis.clearTimeout(idleHandle);
+        }
+      }
       unsubscribe();
       window.removeEventListener('resize', onResizeWrapped);
       window.removeEventListener('scroll', onScroll);

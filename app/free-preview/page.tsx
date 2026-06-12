@@ -6,101 +6,76 @@ export const metadata: Metadata = {
 };
 import LocalizedLink from '@/components/LocalizedLink';
 import { getSiteContent } from '@/lib/siteContent';
-
-const freeItems = [
-  {
-    title: 'Weekly meta newsletter',
-    eyebrow: 'Every week',
-    body: 'A compact read on what changed, what matters, and what to test first before you waste sessions on stale setups.',
-  },
-  {
-    title: 'Patch notes digest',
-    eyebrow: 'After updates',
-    body: 'Patch changes translated into practical loadout, perk, movement, map-control and settings decisions.',
-  },
-  {
-    title: 'Resurgence map updates',
-    eyebrow: 'Map flow',
-    body: 'Rotation, spawn, power-position and regain notes when the playable flow changes across Resurgence maps.',
-  },
-  {
-    title: 'New weapon tier alerts',
-    eyebrow: 'Meta shifts',
-    body: 'Early signals when a weapon climbs, falls, or needs a fresh attachment pass after tuning changes.',
-  },
-  {
-    title: 'Community tips & tricks',
-    eyebrow: 'Player notes',
-    body: 'Useful setups, routines and small improvements collected for regular players who want cleaner games.',
-  },
-];
-
-const patchHighlights = [
-  {
-    title: 'Black Ops Royale refresh',
-    body: 'Black Ops Royale returned to playlist rotation with Hot Pursuit-style updates: stronger Last Stand health and Attachment Kits from Finishers or Target Uplink Terminal activity.',
-  },
-  {
-    title: 'Endgame pressure increased',
-    body: 'Final gas now clears Stims, Self-Revives and PDS from ground loot, which makes late circles less about gas stalling and more about position, trade timing and clean pushes.',
-  },
-  {
-    title: 'Resurgence loot changed',
-    body: 'Rebirth Island and Havens Hollow now share base/reusable box loot tables, with lower perk and Armor Satchel drop rates plus duplicate equipment prevention in normal boxes.',
-  },
-  {
-    title: 'Cash is easier to read',
-    body: 'Common cash piles moved from $250 to $300 and death cash now rounds to the nearest $100, making quick buy-station calls cleaner during fights.',
-  },
-];
-
-const metaSignals = [
-  ['MPC-25', 'Buff watch', 'More damage and range in the first two damage bands. Treat it as a stronger close-range test pick.'],
-  ['Razor 9mm', 'Control nerf', 'ADS is slower and recoil increased in BR/Resurgence, so it is less automatic as a comfort SMG.'],
-  ['Sturmwolf 45', 'Rising SMG', 'ADS improved from 190ms to 170ms, with a small range gain. Worth testing for aggressive Resurgence.'],
-  ['MK.78', 'Long-range buff', 'Max range improved to 58m, ADS improved, and key recoil/barrel attachments got stronger.'],
-  ['Sokol 545', 'Long-range buff', 'Range bands stretched hard and bullet velocity improved, making it a serious control/range candidate.'],
-  ['XM325', 'Control buff', 'Range improved and horizontal recoil/deviation dropped by 12%, so it should feel steadier at mid-long range.'],
-];
-
-const mapNotes = [
-  'Prematch Rejoin is now enabled in standard playlists and rejoin support extends through the end of the match, excluding Ranked Play.',
-  'Avalon final-circle logic was adjusted toward more consistent competitive endgame areas.',
-  'Avalon free Loadout Drop locations were adjusted so public-event drops should be less likely to land in awkward or unreachable spots.',
-  'Weapon drops from eliminated players now have a 5-minute cleanup protection window unless the owner disconnects or is fully eliminated.',
-];
-
-const weeklyChecklist = [
-  'Re-test your close-range slot: MPC-25 and Sturmwolf 45 are the first two SMGs to try after this tuning pass.',
-  'Keep one stable long-range build ready: Sokol 545, MK.78 and XM325 all received changes that reward control-focused players.',
-  'Play final circles earlier: with gas-stall items removed from final gas, rotate before you need the bailout.',
-  'In Resurgence, do not assume perk/satchel comfort from boxes. Secure loadout, buy station and regain routes sooner.',
-];
+import { getRequestLocale } from '@/lib/requestLocale';
 
 export default async function FreePreviewPage() {
-  const { freePreview } = await getSiteContent();
+  const [locale, { freePreview }] = await Promise.all([getRequestLocale(), getSiteContent()]);
+  const isFr = locale === 'fr';
+  const isEs = locale === 'es';
+
+  const fp = isFr ? {
+    ...freePreview,
+    backLabel: freePreview.backLabel || '<- RETOUR',
+    kicker: 'APERCU GRATUIT',
+    title: 'Newsletter Meta Gratuite',
+    lead: 'Recevez les signaux meta, les resumes de patch et les notes de carte chaque semaine. Pas de paiement necessaire.',
+    primaryCta: 'S ABONNER GRATUITEMENT',
+    secondaryCta: 'Voir l Acces Pro',
+    currentKicker: 'BRIEFING ACTUEL',
+    currentTitle: 'Etat de la Meta Live',
+    patchChecked: 'PATCH VERIFIE',
+    patchLinkLabel: 'Notes de patch completes',
+    metaKicker: 'SIGNAUX META',
+    metaTitle: 'Armes a Surveiller',
+    mapKicker: 'NOTES DE CARTE',
+    mapTitle: 'Mises a Jour Resurgence',
+    checklistKicker: 'CHECKLIST HEBDOMADAIRE',
+    checklistTitle: 'Avant de Lancer',
+    sampleKicker: 'EXTRAIT DE BRIEFING',
+    sampleTitle: 'Dernier Briefing Meta',
+  } : isEs ? {
+    ...freePreview,
+    backLabel: freePreview.backLabel || '<- VOLVER',
+    kicker: 'VISTA PREVIA GRATUITA',
+    title: 'Boletin Meta Gratuito',
+    lead: 'Recibe senales meta, resumenes de parches y notas de mapa cada semana. Sin necesidad de pago.',
+    primaryCta: 'SUSCRIBIRSE GRATIS',
+    secondaryCta: 'Ver Acceso Pro',
+    currentKicker: 'INFORME ACTUAL',
+    currentTitle: 'Estado de la Meta en Vivo',
+    patchChecked: 'PARCHE VERIFICADO',
+    patchLinkLabel: 'Notas completas del parche',
+    metaKicker: 'SENALES META',
+    metaTitle: 'Armas a Vigilar',
+    mapKicker: 'NOTAS DE MAPA',
+    mapTitle: 'Actualizaciones Resurgence',
+    checklistKicker: 'CHECKLIST SEMANAL',
+    checklistTitle: 'Antes de Jugar',
+    sampleKicker: 'EXTRACTO DEL INFORME',
+    sampleTitle: 'Ultimo Informe Meta',
+  } : freePreview;
 
   return (
     <>
       <main className="fp-main">
         <div className="fp-back">
-          <LocalizedLink href="/pro-tools">{freePreview.backLabel}</LocalizedLink>
+          <LocalizedLink href="/pro-tools">{fp.backLabel}</LocalizedLink>
         </div>
 
         <section className="fp-hero" aria-labelledby="free-preview-title">
-          <p className="fp-kicker">{freePreview.kicker}</p>
-          <h1 id="free-preview-title">{freePreview.title}</h1>
+          <p className="fp-kicker">{fp.kicker}</p>
+          <h1 id="free-preview-title">{fp.title}</h1>
           <p className="fp-lead">
-            {freePreview.lead}
+            {fp.lead}
           </p>
           <div className="fp-actions">
-            <LocalizedLink href="/subscribe" className="fp-btn fp-btn--primary">{freePreview.primaryCta}</LocalizedLink>
-            <LocalizedLink href="/pro-access" className="fp-btn">{freePreview.secondaryCta}</LocalizedLink>
+            <LocalizedLink href="/subscribe" className="fp-btn fp-btn--primary">{fp.primaryCta}</LocalizedLink>
+            <LocalizedLink href="/pro-access" className="fp-btn">{fp.secondaryCta}</LocalizedLink>
           </div>
         </section>
 
-        <section className="fp-grid" aria-label="Free newsletter contents">
-          {freeItems.map(item => (
+        <section className="fp-grid" aria-label={isFr ? 'Contenu de la newsletter gratuite' : isEs ? 'Contenido del boletin gratuito' : 'Free newsletter contents'}>
+          {freePreview.features.map(item => (
             <article key={item.title} className="fp-card">
               <span>{item.eyebrow}</span>
               <h2>{item.title}</h2>
@@ -112,19 +87,19 @@ export default async function FreePreviewPage() {
         <section className="fp-current" aria-labelledby="current-briefing-title">
           <div className="fp-current-head">
             <div>
-              <p className="fp-kicker">Current free briefing</p>
-              <h2 id="current-briefing-title">Warzone Season 03 Reloaded</h2>
+              <p className="fp-kicker">{fp.currentKicker}</p>
+              <h2 id="current-briefing-title">{fp.currentTitle}</h2>
             </div>
             <div className="fp-current-meta">
-              <span>Patch checked: May 21, 2026</span>
-              <a href="https://www.callofduty.com/patchnotes/2026/04/call-of-duty-bo7-warzone-season-03-reloaded-patch-notes" target="_blank" rel="noreferrer">
-                Official patch notes
+              <span>{fp.patchChecked}</span>
+              <a href={freePreview.patchUrl} target="_blank" rel="noreferrer">
+                {fp.patchLinkLabel}
               </a>
             </div>
           </div>
 
           <div className="fp-patch-grid">
-            {patchHighlights.map(item => (
+            {freePreview.patchHighlights.map(item => (
               <article key={item.title} className="fp-patch-card">
                 <h3>{item.title}</h3>
                 <p>{item.body}</p>
@@ -133,12 +108,12 @@ export default async function FreePreviewPage() {
           </div>
         </section>
 
-        <section className="fp-two-col" aria-label="Meta and map notes">
+        <section className="fp-two-col" aria-label={isFr ? 'Notes meta et carte' : isEs ? 'Notas meta y mapa' : 'Meta and map notes'}>
           <div className="fp-panel">
-            <p className="fp-kicker">New weapon tier alerts</p>
-            <h2>Meta signals to test</h2>
+            <p className="fp-kicker">{fp.metaKicker}</p>
+            <h2>{fp.metaTitle}</h2>
             <div className="fp-table">
-              {metaSignals.map(([weapon, status, note]) => (
+              {freePreview.metaSignals.map(({ weapon, status, note }) => (
                 <div key={weapon} className="fp-row">
                   <strong>{weapon}</strong>
                   <span>{status}</span>
@@ -149,33 +124,33 @@ export default async function FreePreviewPage() {
           </div>
 
           <div className="fp-panel">
-            <p className="fp-kicker">Resurgence map updates</p>
-            <h2>Map and regain notes</h2>
+            <p className="fp-kicker">{fp.mapKicker}</p>
+            <h2>{fp.mapTitle}</h2>
             <ul className="fp-list">
-              {mapNotes.map(note => <li key={note}>{note}</li>)}
+              {freePreview.mapNotes.map(note => <li key={note}>{note}</li>)}
             </ul>
           </div>
         </section>
 
         <section className="fp-checklist" aria-labelledby="weekly-checklist-title">
           <div>
-            <p className="fp-kicker">Community tips & tricks</p>
-            <h2 id="weekly-checklist-title">This week&apos;s quick checklist</h2>
+            <p className="fp-kicker">{fp.checklistKicker}</p>
+            <h2 id="weekly-checklist-title">{fp.checklistTitle}</h2>
           </div>
           <ol>
-            {weeklyChecklist.map(item => <li key={item}>{item}</li>)}
+            {freePreview.weeklyChecklist.map(item => <li key={item}>{item}</li>)}
           </ol>
         </section>
 
         <section className="fp-sample" aria-labelledby="sample-briefing-title">
           <div>
-            <p className="fp-kicker">Sample briefing</p>
-            <h2 id="sample-briefing-title">What a free email looks like</h2>
+            <p className="fp-kicker">{fp.sampleKicker}</p>
+            <h2 id="sample-briefing-title">{fp.sampleTitle}</h2>
           </div>
           <div className="fp-briefing">
-            <p><strong>Meta signal:</strong> check weapon tiers after every balancing patch before locking a ranked loadout.</p>
-            <p><strong>Map note:</strong> track regain routes and squad spacing when Resurgence zones pull away from safe rooftops.</p>
-            <p><strong>Player tip:</strong> keep one low-recoil build and one mobility build ready so you can adapt without rebuilding mid-session.</p>
+            {freePreview.sampleBriefing.map(item => (
+              <p key={item.title}><strong>{item.title}:</strong> {item.body}</p>
+            ))}
           </div>
         </section>
       </main>

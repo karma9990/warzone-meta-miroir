@@ -1,18 +1,26 @@
 import fs from 'fs';
 import path from 'path';
+import { getLoadouts, type Loadout } from './data';
+import { calculateMetaScore } from './loadoutUtils';
 import { hasUpstash, upstashCommand } from './upstash';
 
 const CONTROLS_FILE = path.join(process.cwd(), 'data', 'site-controls.json');
 const CONTROLS_KEY = 'wz:site:controls';
 const BACKUP_DIR = path.join(process.cwd(), 'data', 'migration-backups');
+const TOP_WEAPON_SLOTS = 8;
 
 export type HomeControls = {
   rankingWeaponIds: string[];
-  loadoutPairIds: string[][];
+  loadoutPairIds: LoadoutPairControl[];
   compareWeaponIds: string[];
   currentLongRangeId: string;
   closeMetaId: string;
   dailyDuoIds: string[];
+};
+
+export type LoadoutPairControl = {
+  weaponIds: string[];
+  perks: string[];
 };
 
 export type SetupSpec = {
@@ -75,7 +83,11 @@ const amazonSearch = (query: string) => `https://www.amazon.fr/s?k=${encodeURICo
 export const DEFAULT_SITE_CONTROLS: SiteControls = {
   home: {
     rankingWeaponIds: ['mk-78', 'kogot-7', 'meta-voyak-kt3', 'carbon-57', 'strider-300', '1777660094808'],
-    loadoutPairIds: [['mk-78', 'kogot-7'], ['1777660094808', 'vst'], ['m15-mod-0', 'carbon-57']],
+    loadoutPairIds: [
+      { weaponIds: ['mk-78', 'kogot-7'], perks: ['Scavenger', 'Sprinter', 'Hunter'] },
+      { weaponIds: ['1777660094808', 'vst'], perks: ['Scavenger', 'Sprinter', 'Hunter'] },
+      { weaponIds: ['m15-mod-0', 'carbon-57'], perks: ['Scavenger', 'Sprinter', 'Hunter'] },
+    ],
     compareWeaponIds: ['kogot-7', '1777660094808'],
     currentLongRangeId: 'mk-78',
     closeMetaId: 'kogot-7',
@@ -177,6 +189,83 @@ function normalizeStringArray(value: unknown, fallback: string[], maxItems: numb
   return source.map((item, index) => text(item, fallback[index] ?? '', maxLength)).filter(Boolean).slice(0, maxItems);
 }
 
+function loadoutKey(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function buildLoadoutIdLookup(loadouts: Loadout[]) {
+  const lookup = new Map<string, string>();
+
+  for (const loadout of loadouts) {
+    const aliases = [
+      loadout.id,
+      loadout.weaponId,
+      loadout.weapon,
+      loadout.weapon.replace(/\s+/g, '-'),
+    ].filter((alias): alias is string => Boolean(alias));
+
+    for (const alias of aliases) {
+      const looseKey = loadoutKey(alias);
+      if (looseKey && !lookup.has(looseKey)) lookup.set(looseKey, loadout.id);
+
+      const exactKey = alias.trim().toLowerCase();
+      if (exactKey && !lookup.has(exactKey)) lookup.set(exactKey, loadout.id);
+    }
+  }
+
+  return lookup;
+}
+
+function resolveLoadoutId(value: string, lookup: Map<string, string>) {
+  const trimmed = value.trim();
+  return lookup.get(trimmed.toLowerCase()) ?? lookup.get(loadoutKey(trimmed)) ?? trimmed;
+}
+
+function normalizeHomeControlIds(home: HomeControls, loadouts: Loadout[]): HomeControls {
+  const lookup = buildLoadoutIdLookup(loadouts);
+  const normalizeIds = (ids: string[], maxItems: number) => (
+    ids
+      .map((id) => resolveLoadoutId(id, lookup))
+      .filter(Boolean)
+      .slice(0, maxItems)
+  );
+  const completeTopWeapons = (ids: string[]) => {
+    const knownIds = new Set(loadouts.flatMap((loadout) => [loadout.id, loadout.weaponId].filter(Boolean) as string[]));
+    const validIds = ids.filter((id) => knownIds.has(id));
+    const used = new Set(validIds);
+    const backfill = [...loadouts]
+      .sort((a, b) => calculateMetaScore(b) - calculateMetaScore(a))
+      .map((loadout) => loadout.id)
+      .filter((id) => !used.has(id));
+
+    return [...validIds, ...backfill].slice(0, TOP_WEAPON_SLOTS);
+  };
+
+  return {
+    rankingWeaponIds: completeTopWeapons(normalizeIds(home.rankingWeaponIds, TOP_WEAPON_SLOTS)),
+    loadoutPairIds: home.loadoutPairIds
+      .map((pair) => ({
+        ...pair,
+        weaponIds: normalizeIds(pair.weaponIds, 2),
+      }))
+      .filter((pair) => pair.weaponIds.length > 0)
+      .slice(0, 6),
+    compareWeaponIds: normalizeIds(home.compareWeaponIds, 2),
+    currentLongRangeId: home.currentLongRangeId ? resolveLoadoutId(home.currentLongRangeId, lookup) : '',
+    closeMetaId: home.closeMetaId ? resolveLoadoutId(home.closeMetaId, lookup) : '',
+    dailyDuoIds: normalizeIds(home.dailyDuoIds, 2),
+  };
+}
+
+function normalizeLoadoutPair(value: unknown, fallback: LoadoutPairControl): LoadoutPairControl {
+  const legacyWeaponIds = Array.isArray(value) ? value : null;
+  const item = (value && typeof value === 'object' && !Array.isArray(value) ? value : {}) as Partial<LoadoutPairControl>;
+  return {
+    weaponIds: normalizeStringArray(legacyWeaponIds ?? item.weaponIds, fallback.weaponIds, 2, 80),
+    perks: normalizeStringArray(item.perks, fallback.perks.length ? fallback.perks : ['Scavenger', 'Sprinter', 'Hunter'], 3, 80),
+  };
+}
+
 function normalizeSource(value: unknown, fallback: EsportSource, index: number): EsportSource {
   const item = (value && typeof value === 'object' ? value : {}) as Partial<EsportSource>;
   return {
@@ -218,10 +307,10 @@ export function normalizeSiteControls(input: unknown): SiteControls {
 
   return {
     home: {
-      rankingWeaponIds: normalizeStringArray(home.rankingWeaponIds, DEFAULT_SITE_CONTROLS.home.rankingWeaponIds, 16, 80),
+      rankingWeaponIds: normalizeStringArray(home.rankingWeaponIds, DEFAULT_SITE_CONTROLS.home.rankingWeaponIds, TOP_WEAPON_SLOTS, 80),
       loadoutPairIds: (Array.isArray(home.loadoutPairIds) ? home.loadoutPairIds : DEFAULT_SITE_CONTROLS.home.loadoutPairIds)
-        .map((pair) => normalizeStringArray(pair, [], 2, 80))
-        .filter((pair) => pair.length > 0)
+        .map((pair, index) => normalizeLoadoutPair(pair, DEFAULT_SITE_CONTROLS.home.loadoutPairIds[index] ?? { weaponIds: [], perks: ['Scavenger', 'Sprinter', 'Hunter'] }))
+        .filter((pair) => pair.weaponIds.length > 0)
         .slice(0, 6),
       compareWeaponIds: normalizeStringArray(home.compareWeaponIds, DEFAULT_SITE_CONTROLS.home.compareWeaponIds, 2, 80),
       currentLongRangeId: text(home.currentLongRangeId, DEFAULT_SITE_CONTROLS.home.currentLongRangeId, 80),
@@ -247,6 +336,14 @@ export function normalizeSiteControls(input: unknown): SiteControls {
   };
 }
 
+export function normalizeSiteControlsForLoadouts(input: unknown, loadouts: Loadout[]): SiteControls {
+  const controls = normalizeSiteControls(input);
+  return {
+    ...controls,
+    home: normalizeHomeControlIds(controls.home, loadouts),
+  };
+}
+
 function backupLocalControls() {
   if (!fs.existsSync(CONTROLS_FILE)) return;
   fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -269,20 +366,23 @@ function writeLocalControls(controls: SiteControls) {
 }
 
 export async function getSiteControls(): Promise<SiteControls> {
+  const loadouts = await getLoadouts();
+
   if (hasUpstash()) {
     const value = await upstashCommand(['GET', CONTROLS_KEY]);
-    if (typeof value === 'string') return normalizeSiteControls(JSON.parse(value));
+    if (typeof value === 'string') return normalizeSiteControlsForLoadouts(JSON.parse(value), loadouts);
     const seed = readLocalControls();
     await saveSiteControls(seed);
     return seed;
   }
 
-  return readLocalControls();
+  return normalizeSiteControlsForLoadouts(readLocalControls(), loadouts);
 }
 
 export async function saveSiteControls(input: unknown): Promise<SiteControls> {
+  const loadouts = await getLoadouts();
   const controls = {
-    ...normalizeSiteControls(input),
+    ...normalizeSiteControlsForLoadouts(input, loadouts),
     updatedAt: new Date().toISOString(),
   };
 

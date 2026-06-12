@@ -1,0 +1,719 @@
+{
+  "sources": 178,
+  "extracted": 743,
+  "failures": [],
+  "files": [
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\ak27.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\DS20.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\egrt.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\M15.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\maddox.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\MK35.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\mxr17.png",
+      "count": 8
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\PEACEKEEPER.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\voyak.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\fusil d'assaut\\x9 MAVERICK.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\CARBON.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\KOGOT.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\MPC.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\RAZOR.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\REV '-.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\RK.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\ryden.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\STURMWOLF.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailettes\\VST.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailleuse\\MK78.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailleuse\\SOKOL.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\mitrailleuse\\XM325.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\sniper\\HAWKER.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\sniper\\STRIDER.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\sniper\\VS RECON.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\accesoir canon\\sniper\\XRON.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\ak27.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\DS20.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\egrt.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\M15.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\maddox.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\mk35.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\MXR17.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\peacekeeper.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\voyak.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\fusil d'assaut\\X9 MAVERICK.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\carbon.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\dravec.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\kogot.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\mpc.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\razor.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\rev 46.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\RK.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\ryden 45.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\sturmwolf.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitraillettes\\vst.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitrailleuse\\mk78.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitrailleuse\\sokol.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\mitrailleuse\\XM325.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\pistolet\\coda.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\pistolet\\jager 45.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\pistolet\\velox.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\sniper\\hawker.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\sniper\\shadow.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\sniper\\strider.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\canon\\sniper\\vs recon.png",
+      "count": 1
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\ak27.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\ds20mirage.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\EGRT-17.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\M15 MOD 0.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\MADDOX RFB.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\MK35.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\MXR 17.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\PEACEKEEPER MK1.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\VOYAK KT-3.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\fusil d'assaut\\X9 MAVERICK-URSINE.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\mitraillettes\\carbon.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\mitraillettes\\kogot.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\mitraillettes\\mpc.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\mitraillettes\\razor.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\mitraillettes\\rev 46.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\mitrailleuse\\MK78.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\mitrailleuse\\sokol.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\mitrailleuse\\XM325.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\pistolet\\coda .png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\pistolet\\jager 45.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\pistolet\\velox .png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\sniper\\hawker hx.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\sniper\\shadow sk.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\sniper\\strider3000.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\sniper\\vs recon.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\bouche\\sniper\\xron.png",
+      "count": 6
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\AK27.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\DS20.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\EGRT.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\M15.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\maddox.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\MK35.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\MXR17.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\PEACEKEEPER.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\FUSIL D'ASSAUT\\VOYAK.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\CARBON.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\DRAVEC.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\KOGOT.png",
+      "count": 1
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\MPC.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\RAZOR.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\REV 46.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\RK9.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\RYDEN 45.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\STURMWOLF.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLETTES\\VST.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLEUSE\\MK78.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLEUSE\\SOKOL.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\MITRAILLEUSE\\XM325.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\PISTOLET\\CODA 9.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\PISTOLET\\JAGER 45.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\PISTOLET\\VELOX.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\SNIPER\\HAWKER.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\SNIPER\\SHADOW.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\SNIPER\\STRIDER 300.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\SNIPER\\VS  RECON.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\CHARGEUR\\SNIPER\\XRON.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\AK27.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\DS20.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\EGRT.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\M15.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\MADDOX.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\MK35.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\MXR17.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\PEACEKEEPER.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\VOYAK.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\fusil d'assaut\\X9 MAVERICK.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\CARBON.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\DRAVEC 45.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\KOGOT.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\MPC.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\RAZOR.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\REV 46.png",
+      "count": 1
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\RK 9.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\RYDEN 45.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\STURMWOLF.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitraillettes\\VST.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitrailleuse\\MK78.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitrailleuse\\SOKOL.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\mitrailleuse\\XM325.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\pistolet\\CODA.png",
+      "count": 1
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\pistolet\\JAGER.png",
+      "count": 1
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\sniper\\HAWKER.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\sniper\\SHADOW.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\sniper\\STRIDER 300.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\sniper\\VS RECON.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\crosse\\sniper\\XRON.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\mods de tir\\fusil d'assaut\\tir.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\mods de tir\\mitrailettes\\Capture d’écran 2026-06-05 173805.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\mods de tir\\mitrailleuse\\Capture d’écran 2026-06-05 173908.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\mods de tir\\pistolet\\Capture d’écran 2026-06-05 174004.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\mods de tir\\sniper\\Capture d’écran 2026-06-05 173929.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\AK27.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\DS20.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\EGRT.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\M15.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\MADDOX.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\MK35.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\MXR17.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\PEACEKEEPER.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\VOYAK.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\fusil d'assaut\\X9 MAVERICK.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\CARBON.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\DRAVEC.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\KOGOT.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\MPC.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\RAZOR.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\REV 46.png",
+      "count": 3
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\RK 9.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\RYDEN 45.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\STURMWOLF.png",
+      "count": 2
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitraillettes\\VST.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitrailleuse\\MK78.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitrailleuse\\SOKOL.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\mitrailleuse\\XM325.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\pistolet\\CODA 9.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\pistolet\\JAGER 45.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\pistolet\\VELOX.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\sniper\\HAWKER HX.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\sniper\\SHADOW.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\sniper\\STRIDER 300.png",
+      "count": 5
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\sniper\\VS RECON.png",
+      "count": 4
+    },
+    {
+      "source": "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\assets\\attachments\\poignée arrière\\sniper\\XRON.png",
+      "count": 5
+    }
+  ]
+}

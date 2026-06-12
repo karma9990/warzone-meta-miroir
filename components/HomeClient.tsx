@@ -10,6 +10,7 @@ import type { Loadout } from '@/lib/data';
 import type { HomeUiCopy, Locale } from '@/lib/i18n';
 import { DEFAULT_LOCALE, HOME_UI_COPY, localizeLoadoutNote, translateTerm, withLocalePath } from '@/lib/i18n';
 import { calculateMetaScore, formatMetaDate, getLoadoutSlug } from '@/lib/loadoutUtils';
+import { getLoadoutPath } from '@/lib/seo';
 import type { SiteContent } from '@/lib/siteContent';
 import type { SiteControls } from '@/lib/siteControls';
 import type { UserSession } from '@/lib/userAuth';
@@ -38,20 +39,12 @@ function score(loadout: Loadout) {
   return calculateMetaScore(loadout);
 }
 
-const ALL_FILTER = 'All';
-const ROLE_FILTERS = [ALL_FILTER, 'Long-Range', 'Close-Range', 'Sniper Support', 'One-shot Sniper', 'Mid-Range'];
-const MODE_FILTERS = [ALL_FILTER, 'Resurgence', 'Ranked', 'Battle Royale', 'Solo'];
 const IMAGE_SOURCES = [
   (slug: string) => `/assets/weapons/wzstats/${slug}.avif`,
   (slug: string) => `/assets/weapons/${slug}.avif`,
   (slug: string) => `/assets/weapons/${slug}.webp`,
   (slug: string) => `/assets/weapons/${slug}.png`,
 ];
-
-function rankScore(loadout: Loadout, rankingWeaponIds: string[]) {
-  const metaIndex = rankingWeaponIds.findIndex((id) => id === loadout.id || id === loadout.weaponId);
-  return score(loadout) + (metaIndex === -1 ? 0 : 300 - metaIndex);
-}
 
 const CONFIDENCE_COPY = {
   en: ['Patch verified', 'High confidence', 'Watchlist', 'Re-check after patch'],
@@ -110,7 +103,6 @@ function RankingWeaponImage({ loadout }: { loadout: Loadout }) {
         alt=""
         width={260}
         height={104}
-        unoptimized
         onError={() => {
           setImageIndex((current) => {
             if (current < IMAGE_SOURCES.length - 1) return current + 1;
@@ -156,6 +148,13 @@ function PerkIcon({ type }: { type: 'scavenger' | 'sprinter' | 'hunter' }) {
   );
 }
 
+function perkIconType(name: string): 'scavenger' | 'sprinter' | 'hunter' {
+  const normalized = name.trim().toLowerCase();
+  if (normalized.includes('sprint')) return 'sprinter';
+  if (normalized.includes('scavenger') || normalized.includes('pill') || normalized.includes('field medic') || normalized.includes('quick fix')) return 'scavenger';
+  return 'hunter';
+}
+
 export default function HomeClient({
   loadouts,
   profiles,
@@ -178,8 +177,6 @@ export default function HomeClient({
   initialUser?: UserSession | null;
 }) {
   const [query, setQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState(ALL_FILTER);
-  const [modeFilter, setModeFilter] = useState(ALL_FILTER);
   const [favorites, setFavorites] = useState<string[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
@@ -206,10 +203,17 @@ export default function HomeClient({
     });
   }
 
+  function clearSavedLoadouts() {
+    setFavorites([]);
+    try {
+      window.localStorage.removeItem('wzpro-favorite-loadouts');
+    } catch {
+      // Local favorites are an enhancement only.
+    }
+  }
+
   const filteredLoadouts = useMemo(() => {
     const filtered = loadouts.filter((loadout) => {
-      if (roleFilter !== ALL_FILTER && loadout.playstyle !== roleFilter && loadout.category !== roleFilter) return false;
-      if (modeFilter !== ALL_FILTER && !(loadout.modes ?? []).includes(modeFilter)) return false;
       if (!normalizedQuery) return true;
 
       const haystack = [
@@ -229,8 +233,11 @@ export default function HomeClient({
       return haystack.includes(normalizedQuery);
     });
 
-    return [...filtered].sort((a, b) => rankScore(b, rankingOrder) - rankScore(a, rankingOrder));
-  }, [loadouts, modeFilter, normalizedQuery, rankingOrder, roleFilter]);
+    return orderedByIds(
+      [...filtered].sort((a, b) => score(b) - score(a)),
+      rankingOrder
+    );
+  }, [loadouts, normalizedQuery, rankingOrder]);
 
   const topLoadouts = filteredLoadouts.slice(0, 8);
   const matchingProfiles = useMemo(() => {
@@ -258,15 +265,18 @@ export default function HomeClient({
   const bestMeta = pickLoadout(loadouts, controls.home.dailyDuoIds[0]) ?? filteredLoadouts[0] ?? loadouts[0];
   const dailyPartner = pickLoadout(loadouts, controls.home.dailyDuoIds[1]) ?? (bestMeta ? bestPairFor(bestMeta, loadouts) : undefined);
   const favoriteLoadouts = favorites
-    .map((id) => loadouts.find((loadout) => loadout.id === id))
+    .map((id) => pickLoadout(loadouts, id))
     .filter((loadout): loadout is Loadout => Boolean(loadout));
 
   const visibleLoadoutsByAdminOrder = orderedByIds(filteredLoadouts, rankingOrder);
   const loadoutPairs = controls.home.loadoutPairIds
-    .map((pair) => pair
-      .map((id) => pickLoadout(loadouts, id))
-      .filter((loadout): loadout is Loadout => Boolean(loadout)))
-    .filter((pair) => pair.length === 2);
+    .map((pair) => ({
+      loadouts: pair.weaponIds
+        .map((id) => pickLoadout(loadouts, id))
+        .filter((loadout): loadout is Loadout => Boolean(loadout)),
+      perks: pair.perks.length ? pair.perks : ['Scavenger', 'Sprinter', 'Hunter'],
+    }))
+    .filter((pair) => pair.loadouts.length === 2);
 
   const lastUpdated = loadouts
     .map((l) => l.updatedAt)
@@ -287,6 +297,7 @@ export default function HomeClient({
 
   const buildCount = loadouts.length;
   const href = (pathname: string) => withLocalePath(pathname, locale);
+  const clearSavedLabel = locale === 'fr' ? 'Nettoyer' : locale === 'es' ? 'Limpiar' : 'Clear';
 
   function syncCompareUrl(event: ChangeEvent<HTMLFormElement>) {
     if (!(event.target instanceof HTMLSelectElement)) return;
@@ -299,22 +310,10 @@ export default function HomeClient({
     window.location.assign(url.toString());
   }
 
-  const perks = [
-    { name: 'Scavenger', type: 'scavenger' as const },
-    { name: 'Sprinter', type: 'sprinter' as const },
-    { name: 'Hunter', type: 'hunter' as const },
-  ];
-
   return (
     <main className="glass-demo">
       <section className="liquid-viewport" id="meta">
         <div className="war-overlay" aria-hidden="true">
-          <div className="geo-frame">
-            <span>AO-17 / VERDANSK NORTH</span>
-            <span>LAT 45.4241 N</span>
-            <span>LON 31.6128 E</span>
-            <span>GRID 08T KT 421 773</span>
-          </div>
           <div className="map-contours">
             <i />
             <i />
@@ -323,13 +322,6 @@ export default function HomeClient({
           <div className="target-reticle">
             <span />
           </div>
-          <div className="telemetry-stack">
-            <span>SIGNAL 92%</span>
-            <span>WIND 14 KTS NE</span>
-            <span>ELEV 142 M</span>
-            <span>THERMAL PASSIVE</span>
-          </div>
-          <div className="scanline">META DATABASE / LOADOUTS / LIVE SORT</div>
         </div>
 
         <aside className="side-dock glass-lens" aria-label={uiCopy.ariaQuickActions}>
@@ -337,12 +329,7 @@ export default function HomeClient({
           <a href="#all-loadouts">L</a>
         </aside>
 
-        <div className="hero-meta">
-          <span>{copy.metaLeft}</span>
-          <span>{copy.metaCenter}</span>
-          <span>{copy.metaRight}</span>
-        </div>
-        <h1 className="hero-title" aria-label="Warzone Meta System">
+        <h1 className="hero-title" aria-label="Warzone Pro Meta">
           <span className="hero-title-line">{copy.titleTop}<b className="hero-r-badge" aria-hidden="true">R</b></span>
           <strong>
             {copy.titleMiddle} <br className="hero-mobile-break" />
@@ -368,8 +355,13 @@ export default function HomeClient({
         <nav>
           <Link href={href('/pro-tools')}>{uiCopy.proTools}</Link>
           <a href="#all-loadouts" aria-current="page">{uiCopy.loadouts}</a>
+          <Link href={href('/ai-classes')}>IA WZPRO</Link>
+          <Link href={href('/pro-classe')}>{locale === 'fr' ? 'Classes Pro' : locale === 'es' ? 'Clases Pro' : 'Pro Classes'}</Link>
           <Link href={href('/set-up')}>{uiCopy.setUp}</Link>
           <Link href={href('/esport')}>{uiCopy.esport}</Link>
+          <Link href={href('/tournois')}>{locale === 'fr' ? 'Tournois' : locale === 'es' ? 'Torneos' : 'Tournaments'}</Link>
+          <Link href={href('/actualites')}>{locale === 'fr' ? 'Actualites' : locale === 'es' ? 'Noticias' : 'News'}</Link>
+          <Link href={href('/createur')}>{locale === 'fr' ? 'Createur' : locale === 'es' ? 'Creador' : 'Creator'}</Link>
           <Link href={href('/community')}>{uiCopy.community}</Link>
         </nav>
         <div className="global-search-panel">
@@ -468,44 +460,15 @@ export default function HomeClient({
               <p>{uiCopy.dailyDuoText}</p>
             </div>
           </div>
-          <div className="loadout-filter-panel" aria-label="Loadout filters">
-            <div>
-              <span>{uiCopy.role}</span>
-              <div>
-                {ROLE_FILTERS.map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    className={roleFilter === filter ? 'is-active' : undefined}
-                    onClick={() => setRoleFilter(filter)}
-                  >
-                    {translateTerm(filter, locale)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <span>{uiCopy.mode}</span>
-              <div>
-                {MODE_FILTERS.map((filter) => (
-                  <button
-                    key={filter}
-                    type="button"
-                    className={modeFilter === filter ? 'is-active' : undefined}
-                    onClick={() => setModeFilter(filter)}
-                  >
-                    {translateTerm(filter, locale)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
           {favoriteLoadouts.length > 0 && (
             <div className="favorite-loadouts" aria-label="Saved loadouts">
-              <span>{uiCopy.savedBuilds}</span>
+              <div className="favorite-loadouts-head">
+                <span>{uiCopy.savedBuilds}</span>
+                <button type="button" onClick={clearSavedLoadouts}>{clearSavedLabel}</button>
+              </div>
               <div>
                 {favoriteLoadouts.slice(0, 6).map((loadout) => (
-                  <Link key={loadout.id} href={href(`/loadouts/${loadout.id}`)}>{loadout.weapon}</Link>
+                  <Link key={loadout.id} href={href(getLoadoutPath(loadout))}>{loadout.weapon}</Link>
                 ))}
               </div>
             </div>
@@ -521,18 +484,18 @@ export default function HomeClient({
             <a href="#compare">{uiCopy.compareTwoWeapons}</a>
           </div>
           <div className="loadout-grid full-loadout-grid" style={{ marginBottom: '34px' }}>
-            {(loadoutPairs.length ? loadoutPairs : visibleLoadoutsByAdminOrder.slice(0, 6).reduce<Loadout[][]>((pairs, loadout, index) => {
-              if (index % 2 === 0) pairs.push([loadout]);
-              else pairs[pairs.length - 1].push(loadout);
+            {(loadoutPairs.length ? loadoutPairs : visibleLoadoutsByAdminOrder.slice(0, 6).reduce<Array<{ loadouts: Loadout[]; perks: string[] }>>((pairs, loadout, index) => {
+              if (index % 2 === 0) pairs.push({ loadouts: [loadout], perks: ['Scavenger', 'Sprinter', 'Hunter'] });
+              else pairs[pairs.length - 1].loadouts.push(loadout);
               return pairs;
             }, [])).map((pair) => (
-              <div key={pair.map((loadout) => loadout.id).join('-')} className="loadout-pair embedded-loadout-pair">
+              <div key={pair.loadouts.map((loadout) => loadout.id).join('-')} className="loadout-pair embedded-loadout-pair">
                 <div className="pair-header">
                   <span>{uiCopy.duo}</span>
-                  <strong>{pair.map((loadout) => loadout.weapon).join(' - ')}</strong>
+                  <strong>{pair.loadouts.map((loadout) => loadout.weapon).join(' - ')}</strong>
                 </div>
                 <div className="pair-cards">
-                  {pair.map((loadout) => (
+                  {pair.loadouts.map((loadout) => (
                     <LoadoutCard
                       key={loadout.id}
                       loadout={loadout}
@@ -545,14 +508,17 @@ export default function HomeClient({
                   ))}
                 </div>
                 <div className="perk-panel" aria-label={uiCopy.recommendedPerks}>
-                  {perks.map((perk) => (
-                    <div key={perk.name} className={`perk-item perk-${perk.type}`}>
+                  {pair.perks.slice(0, 3).map((perk) => {
+                    const type = perkIconType(perk);
+                    return (
+                    <div key={perk} className={`perk-item perk-${type}`}>
                       <span className="perk-mark">
-                        <PerkIcon type={perk.type} />
+                        <PerkIcon type={type} />
                       </span>
-                      <strong>{translateTerm(perk.name, locale)}</strong>
+                      <strong>{translateTerm(perk, locale)}</strong>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -565,6 +531,7 @@ export default function HomeClient({
           <span>{uiCopy.rankingFromFilters}</span>
           <h2>{uiCopy.topWeapons}</h2>
         </div>
+        <p className="ranking-score-note">{uiCopy.scoreNote}</p>
         <div className="ranking-list">
           {topLoadouts.map((loadout, index) => (
             <div key={loadout.id} className="content-row" style={{ textDecoration: 'none' }}>

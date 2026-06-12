@@ -1,0 +1,5 @@
+
+Utilise des composants fonctionnels et propres.
+Ne réécris pas tout un fichier si tu peux juste modifier une fonction.
+Avant de créer une nouvelle dépendance (npm package), demande-moi d'abord.
+Explique brièvement ce que tu fais, concentre-toi sur le code fonctionnel.

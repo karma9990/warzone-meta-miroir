@@ -1,0 +1,23 @@
+name: CODMunity sync
+
+on:
+  schedule:
+    - cron: '0 */3 * * *' # toutes les 3 h
+  workflow_dispatch: {} # déclenchement manuel
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Scrape CODMunity → Upstash
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_CODMUNITY_MODEL: ${{ secrets.OPENROUTER_CODMUNITY_MODEL }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: node scripts/sync-codmunity.mjs

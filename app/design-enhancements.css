@@ -1,0 +1,173 @@
+/* =========================================================
+   Design enhancements — tiers, radar, micro-interactions,
+   grain, skeletons tactiques, hiérarchie typo.
+   Chargé après globals.css : gagne la cascade.
+   ========================================================= */
+
+:root {
+  --tier-s: #f5c542;
+  --tier-a: #163cff;
+  --tier-b: #2ec5b6;
+  --tier-c: #9a9a90;
+  --accent: #163cff;
+}
+
+/* ── 2. Tiers : liseré discret sur la carte (pas de badge coloré) ── */
+/* liseré de tier sur la carte */
+.loadout-card[data-tier] {
+  border-left-width: 3px !important;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+.loadout-card[data-tier='S'] { border-left-color: var(--tier-s) !important; }
+.loadout-card[data-tier='A'] { border-left-color: var(--tier-a) !important; }
+.loadout-card[data-tier='B'] { border-left-color: var(--tier-b) !important; }
+.loadout-card[data-tier='C'] { border-left-color: var(--tier-c) !important; }
+
+/* ── 3. Micro-interactions sur les cartes ───────────────── */
+.loadout-card[data-tier]:hover {
+  transform: translateY(-2px) !important;
+}
+.loadout-card[data-tier='S']:hover { box-shadow: -3px 0 0 0 var(--tier-s), 0 16px 30px rgba(0, 0, 0, 0.28) !important; }
+.loadout-card[data-tier='A']:hover { box-shadow: -3px 0 0 0 var(--tier-a), 0 16px 30px rgba(0, 0, 0, 0.28) !important; }
+.loadout-card[data-tier='B']:hover { box-shadow: -3px 0 0 0 var(--tier-b), 0 16px 30px rgba(0, 0, 0, 0.28) !important; }
+.loadout-card[data-tier='C']:hover { box-shadow: -3px 0 0 0 var(--tier-c), 0 16px 30px rgba(0, 0, 0, 0.28) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .loadout-card[data-tier]:hover { transform: none !important; }
+}
+
+/* ── 5. Radar de stats ──────────────────────────────────── */
+.stat-radar {
+  display: block;
+  width: 100%;
+  max-width: 196px;
+  margin: 4px auto 14px;
+  overflow: visible;
+}
+.stat-radar-ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.6;
+  opacity: 0.22;
+}
+.stat-radar-axis {
+  stroke: currentColor;
+  stroke-width: 0.6;
+  opacity: 0.16;
+}
+.stat-radar-area {
+  fill: var(--radar-accent, var(--accent));
+  fill-opacity: 0.28;
+  stroke: var(--radar-accent, var(--accent));
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.stat-radar-dot {
+  fill: var(--radar-accent, var(--accent));
+}
+.stat-radar-label {
+  fill: currentColor;
+  font-family: var(--tm-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+/* ── 6. Skeletons tactiques (utilitaire) ────────────────── */
+.skeleton-tactical {
+  position: relative;
+  overflow: hidden;
+  background: rgba(16, 16, 14, 0.08);
+  border: 1px solid var(--tm-line, rgba(22, 60, 255, 0.3));
+}
+.skeleton-tactical::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(22, 60, 255, 0.18) 45%,
+    rgba(22, 60, 255, 0.32) 50%,
+    rgba(22, 60, 255, 0.18) 55%,
+    transparent 80%
+  );
+  transform: translateX(-100%);
+  animation: skeleton-scan 1.5s ease-in-out infinite;
+}
+@keyframes skeleton-scan {
+  to { transform: translateX(100%); }
+}
+:root[data-theme='dark'] .skeleton-tactical {
+  background: rgba(243, 246, 239, 0.06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-tactical::after { animation: none; }
+}
+
+/* ── 7. Hiérarchie typo (raffinement léger) ─────────────── */
+.mini-heading {
+  letter-spacing: 0.16em !important;
+}
+
+/* ── Overlay mono-tech : lisibilité selon le thème ──────── */
+/* En sombre : texte clair, faible opacité suffit. */
+:root[data-theme='dark'] .mono-tech-overlay {
+  opacity: 0.1 !important;
+}
+/* En clair : encre sombre sur fond clair, il faut plus d'opacité. */
+:root[data-theme='light'] .mono-tech-overlay,
+:root:not([data-theme='dark']) .mono-tech-overlay {
+  opacity: 0.22 !important;
+}
+
+/* ── Safari-bar : filtre givré (anti-noir) + contours bleus ── */
+/* Les cellules n'ont pas de fond propre → le noir de la page
+   transparaît. On pose un filtre givré translucide pour casser le
+   noir, et on restaure les contours bleus. */
+:root[data-theme='dark'] .safari-bar,
+:root[data-theme='dark'] .safari-bar nav,
+:root[data-theme='dark'] .safari-bar nav a + a,
+:root[data-theme='dark'] .nav-readout,
+:root[data-theme='dark'] .nav-readout span + span {
+  border-color: rgba(22, 60, 255, 0.55) !important;
+}
+
+/* Spécificité élevée (.glass-demo .safari-bar) pour battre les
+   règles var(--theme-panel). Cases transparentes = exactement la
+   couleur du fond de page, encadrées par les contours bleus. */
+:root[data-theme='dark'] .glass-demo .safari-bar .brand-pill,
+:root[data-theme='dark'] .glass-demo .safari-bar nav a,
+:root[data-theme='dark'] .glass-demo .safari-bar label,
+:root[data-theme='dark'] .glass-demo .safari-bar .global-search-panel,
+:root[data-theme='dark'] .glass-demo .safari-bar .auth-chip:not(.is-primary),
+:root[data-theme='dark'] .glass-demo .safari-bar .auth-chip-group,
+:root[data-theme='dark'] .glass-demo .safari-bar .nav-readout span {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: rgba(22, 60, 255, 0.55) !important;
+}
+
+/* Label "RECHERCHE" en blanc (sinon bleu illisible sur fond sombre) */
+:root[data-theme='dark'] .glass-demo .safari-bar label span {
+  color: #ffffff !important;
+}
+
+/* ── Grain / texture militaire globale ──────────────────── */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+:root[data-theme='dark'] .grain-overlay {
+  mix-blend-mode: screen;
+  opacity: 0.05;
+}

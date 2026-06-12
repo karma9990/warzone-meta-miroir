@@ -1,6 +1,40 @@
 import { timingSafeEqual, randomBytes } from 'crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 
+function requestOrigin(req: NextRequest) {
+  const origin = req.headers.get('origin');
+  if (origin) return origin;
+
+  const referer = req.headers.get('referer');
+  if (!referer) return '';
+
+  try {
+    return new URL(referer).origin;
+  } catch {
+    return '';
+  }
+}
+
+function isSameOrigin(req: NextRequest) {
+  const origin = requestOrigin(req);
+  if (!origin) return true;
+
+  try {
+    return origin === req.nextUrl.origin;
+  } catch {
+    return false;
+  }
+}
+
+export function sameOriginGuard(req: NextRequest) {
+  const fetchSite = req.headers.get('sec-fetch-site');
+  if (fetchSite === 'cross-site' || !isSameOrigin(req)) {
+    return NextResponse.json({ error: 'Cross-site requests are not allowed.' }, { status: 403 });
+  }
+
+  return null;
+}
+
 function requireEnvVar(name: string, devFallback?: string): string {
   const value = process.env[name];
   if (value) return value;
@@ -40,6 +74,9 @@ export async function readJsonBody<T = Record<string, unknown>>(
   req: NextRequest,
   maxBytes = 16_384
 ): Promise<{ data: T } | { error: NextResponse }> {
+  const csrfError = sameOriginGuard(req);
+  if (csrfError) return { error: csrfError };
+
   const contentType = req.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
     return { error: NextResponse.json({ error: 'Unsupported content type.' }, { status: 415 }) };

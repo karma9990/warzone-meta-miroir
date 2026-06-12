@@ -18,7 +18,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const parsed = await readJsonBody(req, 24_000);
+  const parsed = await readJsonBody(req, 96_000);
   if ('error' in parsed) return parsed.error;
 
   return NextResponse.json(await saveSiteContent(parsed.data));

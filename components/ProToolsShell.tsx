@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 export type ProToolsNavItem = {
   id: string;
@@ -37,6 +37,26 @@ const DEFAULT_COPY = {
 
 export default function ProToolsShell({ sections, children, copy = DEFAULT_COPY, toolsHref = '/tools-individual' }: ProToolsShellProps) {
   const [activeId, setActiveId] = useState(sections[0]?.id ?? '');
+  const [railFixed, setRailFixed] = useState(false);
+  const railRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+
+    const rect = rail.getBoundingClientRect();
+    const originalTop = rect.top + window.scrollY;
+
+    function onScroll() {
+      const scrollY = window.scrollY;
+      const threshold = originalTop - 88;
+      setRailFixed(scrollY > threshold);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const ids = [...sections.map((s) => s.id), ACCESS_ID];
@@ -64,20 +84,9 @@ export default function ProToolsShell({ sections, children, copy = DEFAULT_COPY,
 
   return (
     <>
-      <nav className="ptv2-jump" aria-label={copy.ariaJump}>
-        {sections.map((s) => (
-          <a key={s.id} href={`#${s.id}`} className={activeId === s.id ? 'is-active' : ''}>
-            {s.num} {s.tag}
-          </a>
-        ))}
-        <a href={`#${ACCESS_ID}`} className={activeId === ACCESS_ID ? 'is-active' : ''}>
-          {copy.access}
-        </a>
-      </nav>
-
       <div className="ptv2-shell">
-        <aside className="ptv2-rail" aria-label={copy.ariaToc}>
-          <div className="ptv2-rail-panel">
+        <aside className="ptv2-rail" aria-label={copy.ariaToc} ref={railRef}>
+          <div className={`ptv2-rail-panel${railFixed ? ' is-fixed' : ''}`} ref={panelRef}>
             <p className="ptv2-rail-kicker">{copy.index}</p>
             <ul className="ptv2-rail-list">
               {sections.map((s) => (

@@ -9,6 +9,8 @@ import { getProfileByPseudo, type UserProfile } from '@/lib/profileStore';
 import { calculateMetaScore, formatMetaDate, getLoadoutSlug } from '@/lib/loadoutUtils';
 import { getStatsSummary } from '@/lib/statsSummary';
 import { getUserSession } from '@/lib/userAuth';
+import { getRequestLocale } from '@/lib/requestLocale';
+import { getLoadoutPath } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,12 +91,14 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   const profile = await getProfileByPseudo(decodeURIComponent(pseudo));
   if (!profile || !profile.pseudo || !profile.privacy.publicProfile) notFound();
 
-  const [viewer, entitlements, emailEntitlements, loadouts] = await Promise.all([
+  const [viewer, entitlements, emailEntitlements, loadouts, locale] = await Promise.all([
     getUserSession(),
     getEntitlements(profile.userId),
     profile.email ? getEntitlements(profile.email.toLowerCase()) : Promise.resolve(null),
     getLoadouts(),
+    getRequestLocale(),
   ]);
+  const isFr = locale === 'fr';
   const pro = Boolean(entitlements?.pro || emailEntitlements?.pro);
   const toolCount = new Set([...(entitlements?.tools || []), ...(emailEntitlements?.tools || [])]).size;
   const favoriteLoadouts = loadouts.filter((loadout) => profile.favoriteLoadouts.includes(loadout.id));
@@ -119,19 +123,19 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
     ['OT', 'Other', profile.otherLink],
   ].filter(([, , url]) => Boolean(url));
   const lfgDetails = [
-    ['Region', profile.mainPlatform ? 'Crossplay ready' : 'Not set'],
-    ['Platform', profile.mainPlatform ? platformLabel(profile.mainPlatform) : 'Not set'],
+    ['Region', profile.mainPlatform ? (isFr ? 'Crossplay pret' : 'Crossplay ready') : (isFr ? 'Non defini' : 'Not set')],
+    ['Platform', profile.mainPlatform ? platformLabel(profile.mainPlatform) : (isFr ? 'Non defini' : 'Not set')],
     ['Input', inputLabel(profile.inputDevice)],
     ['Role', favoriteRole(favoriteLoadouts)],
   ];
-  const updatedLabel = profile.updatedAt ? formatMetaDate(profile.updatedAt) : 'Not synced yet';
+  const updatedLabel = profile.updatedAt ? formatMetaDate(profile.updatedAt) : (isFr ? 'Pas encore synchronise' : 'Not synced yet');
 
   return (
     <main className="public-profile-main">
-      <nav className="public-profile-topbar" aria-label="Profile navigation">
+      <nav className="public-profile-topbar" aria-label={isFr ? 'Navigation du profil' : 'Profile navigation'}>
         <Link className="public-profile-back" href="/">WZPRO Meta</Link>
-        <Link href="/community">Community</Link>
-        <Link href="/#all-loadouts">Loadouts</Link>
+        <Link href="/community">{isFr ? 'Communaute' : 'Community'}</Link>
+        <Link href="/#all-loadouts">{isFr ? 'Classes' : 'Loadouts'}</Link>
       </nav>
 
       <header className="public-profile-hero">
@@ -140,7 +144,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           style={profile.profileBanner ? { backgroundImage: `url(${profile.profileBanner})` } : undefined}
           aria-hidden="true"
         >
-          <span>PLAYER CARD</span>
+          <span>{isFr ? 'CARTE JOUEUR' : 'PLAYER CARD'}</span>
           <b>{profile.pseudo.slice(0, 3).toUpperCase()}</b>
         </div>
 
@@ -159,9 +163,9 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         </div>
 
         <div className="public-profile-identity">
-          <span>PLAYER PROFILE</span>
+          <span>{isFr ? 'PROFIL JOUEUR' : 'PLAYER PROFILE'}</span>
           <h1>{name}</h1>
-          <p>{profile.description || 'No public description yet. Add playstyle, goals and availability from the account page.'}</p>
+          <p>{profile.description || (isFr ? 'Pas encore de description publique. Ajoutez votre style de jeu, objectifs et disponibilites depuis la page compte.' : 'No public description yet. Add playstyle, goals and availability from the account page.')}</p>
           <div className="public-profile-badges">
             {pro && <b>PRO</b>}
             {toolCount > 0 && <b>{toolCount} TOOL{toolCount > 1 ? 'S' : ''}</b>}
@@ -173,26 +177,26 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         </div>
       </header>
 
-      <section className="public-profile-snapshot" aria-label="Profile snapshot">
+      <section className="public-profile-snapshot" aria-label={isFr ? 'Apercu du profil' : 'Profile snapshot'}>
         <article>
           <span>K/D</span>
           <strong>{summary.games > 0 ? summary.kd.toFixed(2) : '--'}</strong>
-          <small>{summary.games} tracked games</small>
+          <small>{summary.games} {isFr ? 'parties suivies' : 'tracked games'}</small>
         </article>
         <article>
-          <span>Kills/game</span>
+          <span>{isFr ? 'Elim/partie' : 'Kills/game'}</span>
           <strong>{summary.games > 0 ? summary.kills.toFixed(1) : '--'}</strong>
-          <small>{summary.totalKills} total kills</small>
+          <small>{summary.totalKills} {isFr ? 'total elim' : 'total kills'}</small>
         </article>
         <article>
-          <span>Win rate</span>
+          <span>{isFr ? 'Ratio victoire' : 'Win rate'}</span>
           <strong>{summary.games > 0 ? `${summary.winRate.toFixed(0)}%` : '--'}</strong>
-          <small>{summary.games > 0 ? `${summary.topTenRate.toFixed(0)}% top 10` : 'No stats yet'}</small>
+          <small>{summary.games > 0 ? `${summary.topTenRate.toFixed(0)}% top 10` : (isFr ? 'Pas encore de stats' : 'No stats yet')}</small>
         </article>
         <article>
-          <span>Main role</span>
+          <span>{isFr ? 'Role principal' : 'Main role'}</span>
           <strong>{favoriteRole(favoriteLoadouts)}</strong>
-          <small>From saved loadouts</small>
+          <small>{isFr ? 'Depuis les classes' : 'From saved loadouts'}</small>
         </article>
       </section>
 
@@ -200,15 +204,15 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         <div className="public-profile-stack">
           <article className="public-profile-panel public-profile-panel--wide">
             <div className="public-profile-panel-head">
-              <span>Favorite loadouts</span>
-              <Link href="/#all-loadouts">Browse meta</Link>
+              <span>{isFr ? 'Classes favorites' : 'Favorite loadouts'}</span>
+              <Link href="/#all-loadouts">{isFr ? 'Explorer la meta' : 'Browse meta'}</Link>
             </div>
             <div className="public-profile-loadouts">
               {displayedLoadouts.length > 0 ? displayedLoadouts.map((loadout) => {
                 const slug = getLoadoutSlug(loadout);
                 const note = profile.loadoutNotes[loadout.id];
                 return (
-                  <Link key={loadout.id} href={`/loadouts/${loadout.id}`} className={`public-profile-loadout-card ${featuredLoadout?.id === loadout.id ? 'is-featured' : ''}`}>
+                  <Link key={loadout.id} href={getLoadoutPath(loadout)} className={`public-profile-loadout-card ${featuredLoadout?.id === loadout.id ? 'is-featured' : ''}`}>
                     <span className="public-profile-loadout-tier">{loadout.tier}</span>
                     <span className="public-profile-loadout-art">
                       <Image
@@ -216,7 +220,6 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                         alt=""
                         width={210}
                         height={90}
-                        unoptimized
                       />
                     </span>
                     <span className="public-profile-loadout-body">
@@ -226,15 +229,15 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
                     </span>
                     <span className="public-profile-loadout-score">
                       {calculateMetaScore(loadout)}
-                      <small>Meta</small>
+                      <small>{isFr ? 'Meta' : 'Meta'}</small>
                     </span>
                   </Link>
                 );
               }) : (
                 <div className="public-profile-empty">
-                  <strong>No favorite loadouts yet</strong>
-                  <p>Saved builds will appear here with weapon art, meta score and personal notes.</p>
-                  <Link href="/#all-loadouts">Find loadouts</Link>
+                  <strong>{isFr ? 'Pas encore de classes favorites' : 'No favorite loadouts yet'}</strong>
+                  <p>{isFr ? 'Les builds sauvegardes apparaitront ici avec l art de l arme, le score meta et les notes personnelles.' : 'Saved builds will appear here with weapon art, meta score and personal notes.'}</p>
+                  <Link href="/#all-loadouts">{isFr ? 'Trouver des classes' : 'Find loadouts'}</Link>
                 </div>
               )}
             </div>
@@ -242,34 +245,34 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
 
           <article className="public-profile-panel">
             <div className="public-profile-panel-head">
-              <span>Performance</span>
+              <span>{isFr ? 'Performance' : 'Performance'}</span>
               {profile.privacy.stats && summary.games > 0 && (
-                <Link href={`/profile/${encodeURIComponent(profile.pseudo)}/stats`}>Share stats card</Link>
+                <Link href={`/profile/${encodeURIComponent(profile.pseudo)}/stats`}>{isFr ? 'Partager les stats' : 'Share stats card'}</Link>
               )}
             </div>
             {profile.privacy.stats && summary.games > 0 ? (
               <>
                 <div className="public-profile-performance-grid">
-                  <div><span>Average damage</span><strong>{Math.round(summary.damage).toLocaleString()}</strong></div>
-                  <div><span>Top 10 rate</span><strong>{summary.topTenRate.toFixed(0)}%</strong></div>
-                  <div><span>Games tracked</span><strong>{summary.games}</strong></div>
-                  <div><span>Best match</span><strong>{bestMatch ? `${bestMatch.kills}/${bestMatch.deaths}` : '--'}</strong></div>
+                  <div><span>{isFr ? 'Degats moyens' : 'Average damage'}</span><strong>{Math.round(summary.damage).toLocaleString()}</strong></div>
+                  <div><span>{isFr ? 'Taux top 10' : 'Top 10 rate'}</span><strong>{summary.topTenRate.toFixed(0)}%</strong></div>
+                  <div><span>{isFr ? 'Parties suivies' : 'Games tracked'}</span><strong>{summary.games}</strong></div>
+                  <div><span>{isFr ? 'Meilleure partie' : 'Best match'}</span><strong>{bestMatch ? `${bestMatch.kills}/${bestMatch.deaths}` : '--'}</strong></div>
                 </div>
                 <div className="public-profile-history">
                   {summary.recent.slice(0, 5).map((entry) => (
                     <div key={entry.id}>
-                      <small>{entry.date || 'Recent'}</small>
+                      <small>{entry.date || (isFr ? 'Recents' : 'Recent')}</small>
                       <b>{entry.kills}/{entry.deaths}</b>
-                      <strong>{entry.damage.toLocaleString()} dmg</strong>
-                      <em>#{entry.placement || '--'}{entry.won ? ' win' : ''}</em>
+                      <strong>{entry.damage.toLocaleString()} {isFr ? 'dgts' : 'dmg'}</strong>
+                      <em>#{entry.placement || '--'}{entry.won ? (isFr ? ' win' : ' win') : ''}</em>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
               <div className="public-profile-empty">
-                <strong>Stats are private or empty</strong>
-                <p>This player can enable public tracker stats from account privacy.</p>
+                <strong>{isFr ? 'Stats privees ou vides' : 'Stats are private or empty'}</strong>
+                <p>{isFr ? 'Ce joueur peut activer les stats publiques depuis la confidentialite du compte.' : 'This player can enable public tracker stats from account privacy.'}</p>
               </div>
             )}
           </article>
@@ -277,7 +280,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
 
         <aside className="public-profile-side">
           <article className="public-profile-panel">
-            <span className="public-profile-kicker">LFG card</span>
+            <span className="public-profile-kicker">{isFr ? 'Carte LFG' : 'LFG card'}</span>
             <div className="public-profile-lfg">
               {lfgDetails.map(([label, value]) => (
                 <div key={label}>
@@ -287,25 +290,25 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
               ))}
             </div>
             <Link className="public-profile-primary-link" href={`/community?player=${encodeURIComponent(profile.pseudo)}`}>
-              Find squadmates
+              {isFr ? 'Trouver des coequipiers' : 'Find squadmates'}
             </Link>
           </article>
 
           <article className="public-profile-panel">
-            <span className="public-profile-kicker">Details</span>
+            <span className="public-profile-kicker">{isFr ? 'Details' : 'Details'}</span>
             <dl className="public-profile-details">
-              <div><dt>Pseudo</dt><dd>{profile.pseudo}</dd></div>
-              {profile.privacy.email && profile.email && <div><dt>Email</dt><dd>{profile.email}</dd></div>}
-              {profile.privacy.activisionId && profile.activisionId && <div><dt>Activision ID</dt><dd>{profile.activisionId}</dd></div>}
-              {profile.privacy.platformId && profile.platformId && <div><dt>Platform ID</dt><dd>{profile.platformId}</dd></div>}
-              {profile.mobileHudCode && <div><dt>Mobile HUD code</dt><dd>{profile.mobileHudCode}</dd></div>}
-              <div><dt>Updated</dt><dd>{updatedLabel}</dd></div>
+              <div><dt>{isFr ? 'Pseudo' : 'Pseudo'}</dt><dd>{profile.pseudo}</dd></div>
+              {profile.privacy.email && profile.email && <div><dt>{isFr ? 'Email' : 'Email'}</dt><dd>{profile.email}</dd></div>}
+              {profile.privacy.activisionId && profile.activisionId && <div><dt>{isFr ? 'ID Activision' : 'Activision ID'}</dt><dd>{profile.activisionId}</dd></div>}
+              {profile.privacy.platformId && profile.platformId && <div><dt>{isFr ? 'ID Plateforme' : 'Platform ID'}</dt><dd>{profile.platformId}</dd></div>}
+              {profile.mobileHudCode && <div><dt>{isFr ? 'Code HUD mobile' : 'Mobile HUD code'}</dt><dd>{profile.mobileHudCode}</dd></div>}
+              <div><dt>{isFr ? 'Mis a jour' : 'Updated'}</dt><dd>{updatedLabel}</dd></div>
             </dl>
           </article>
 
           {profile.privacy.socials && socials.length > 0 && (
             <article className="public-profile-panel">
-              <span className="public-profile-kicker">Socials</span>
+              <span className="public-profile-kicker">{isFr ? 'Reseaux' : 'Socials'}</span>
               <div className="public-profile-socials">
                 {socials.map(([mark, label, url]) => (
                   <a key={label} href={url} rel="noreferrer" target="_blank">

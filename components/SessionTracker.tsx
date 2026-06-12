@@ -113,7 +113,7 @@ export default function SessionTracker() {
             >
               <span>DATE</span><span>KILLS</span><span>DEATHS</span><span>PLACE</span><span>WINS</span><span>MIN</span><span />
             </div>
-            {[...sessions].reverse().map((s, i) => (
+            {[...sessions].reverse().map((s) => (
               <div key={s.id} className="px-6 grid gap-3 items-center border-b border-black/5"
                 style={{ paddingTop: '0.7rem', paddingBottom: '0.7rem', gridTemplateColumns: '5rem 1fr 1fr 1fr 1fr 1fr 2rem' }}
               >

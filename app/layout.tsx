@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import ClientGlassScene from "@/components/ClientGlassScene";
 import LegalFooter from "@/components/LegalFooter";
+import MonoTechOverlay from "@/components/MonoTechOverlay";
 import RuntimeI18n from "@/components/RuntimeI18n";
+import ThemeScript from "@/components/ThemeScript";
+import ThemeToggle from "@/components/ThemeToggle";
 import { LOCALE_HEADER, normalizeLocale } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/siteConfig";
 import "./globals.css";
 import "./legal-pages.css";
 import "./home-priority.css";
+import "./design-enhancements.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -29,6 +33,28 @@ export const metadata: Metadata = {
   },
 };
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: "WZPRO Meta",
+      url: SITE_URL,
+      email: "support@wzpro-meta.com",
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: "WZPRO Meta",
+      url: SITE_URL,
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      inLanguage: ["fr", "en", "es", "de", "pt"],
+      description: "Warzone meta loadouts, pro tools, PC optimization and tactical performance guides.",
+    },
+  ],
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -38,10 +64,21 @@ export default async function RootLayout({
   const locale = normalizeLocale(requestHeaders.get(LOCALE_HEADER));
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <ClientGlassScene backgroundSrc="/generated/operator-full-site-bg.png" />
+        <div className="grain-overlay" aria-hidden="true" />
+        <MonoTechOverlay />
         <RuntimeI18n locale={locale} />
+        <ThemeToggle />
         <div style={{ position: "relative", zIndex: 1 }}>
           {children}
           <LegalFooter locale={locale} />

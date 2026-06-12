@@ -16,13 +16,13 @@ const formatNumber = (value: number) => (
 );
 
 const views = [
-  { id: 'live', label: 'LIVE VIEW' },
-  { id: 'overview', label: 'Overview' },
-  { id: 'detailed', label: 'Detailed view' },
-  { id: 'maps', label: 'Maps' },
-  { id: 'players', label: 'Player Stats' },
-  { id: 'teams', label: 'Team Stats' },
-  { id: 'guns', label: 'Guns & loadouts' },
+  { id: 'live', labelEn: 'LIVE VIEW', labelFr: 'VUE LIVE' },
+  { id: 'overview', labelEn: 'Overview', labelFr: 'Apercu' },
+  { id: 'detailed', labelEn: 'Detailed view', labelFr: 'Vue detaillee' },
+  { id: 'maps', labelEn: 'Maps', labelFr: 'Cartes' },
+  { id: 'players', labelEn: 'Player Stats', labelFr: 'Stats joueurs' },
+  { id: 'teams', labelEn: 'Team Stats', labelFr: 'Stats equipes' },
+  { id: 'guns', labelEn: 'Guns & loadouts', labelFr: 'Armes et classes' },
 ];
 
 function viewHref(
@@ -47,21 +47,21 @@ export default async function ResurgenceSeriesPage({
   searchParams: Promise<{ year?: string; stage?: string; phase?: string; event?: string; view?: string }>;
 }) {
   const [query, locale] = await Promise.all([searchParams, getRequestLocale()]);
+  const isFr = locale === 'fr';
   const activeView = views.some((view) => view.id === query.view) ? query.view || 'live' : 'live';
   const data = await getWrsPageData(query);
   const selectedEvent = data.selected.event;
-  const eventStatus = selectedEvent?.active ? 'Live Event' : 'Finished';
+  const eventStatus = selectedEvent?.active ? (isFr ? 'En direct' : 'Live Event') : (isFr ? 'Termine' : 'Finished');
 
   return (
     <EsportChrome active="resurgence">
       <main className="competitive-page">
         <header className="competitive-hero">
           <div>
-            <p>Live Event</p>
-            <h1>Warzone Resurgence Series <span>WRS Leaderboards</span></h1>
+            <p>{isFr ? 'En direct' : 'Live Event'}</p>
+            <h1>Warzone Resurgence Series <span>{isFr ? 'Classements WRS' : 'WRS Leaderboards'}</span></h1>
             <small>
-              Welcome to the WRS tracking hub: match-point standings, live map scoring,
-              team totals, kills, deaths, K/D, and placement pressure for the LAN Finals.
+              {isFr ? 'Hub de suivi WRS : classements match-point, scoring live par carte, totaux equipe, eliminations, morts, K/D et pression de placement pour les finales LAN.' : 'Welcome to the WRS tracking hub: match-point standings, live map scoring, team totals, kills, deaths, K/D, and placement pressure for the LAN Finals.'}
             </small>
           </div>
           <div className="competitive-logo">WRS</div>
@@ -93,45 +93,45 @@ export default async function ResurgenceSeriesPage({
 
           <div className="competitive-tabs">
             <div>
-              {views.map((view) => (
+                {views.map((view) => (
                 <Link
                   key={view.id}
                   className={activeView === view.id ? 'is-live' : undefined}
                   href={viewHref(data.selected, view.id, locale)}
                 >
-                  {view.label}
+                  {isFr ? view.labelFr : view.labelEn}
                 </Link>
               ))}
             </div>
-            <p>Format: <strong>{selectedEvent?.format || 'Match Point'}</strong> <span>{eventStatus}</span></p>
+            <p>{isFr ? 'Format' : 'Format'}: <strong>{selectedEvent?.format || 'Match Point'}</strong> <span>{eventStatus}</span></p>
           </div>
 
           {activeView === 'live' && (
             <div className="competitive-live-strip">
               <span />
               Automated live view. Data follows CODMunity public WRS scoring and refreshes from server cache.
-              <button type="button">Full Screen</button>
+              <button type="button">{isFr ? 'Plein ecran' : 'Full Screen'}</button>
             </div>
           )}
 
           {(activeView === 'live' || activeView === 'overview') && (
             <div className="competitive-stat-grid">
-              <article><span>Games Played</span><strong>{data.gamesPlayed}</strong></article>
-              <article><span>Top Slayer</span><strong>{data.topSlayer}</strong></article>
-              <article><span>Top Team Slayer</span><strong>{data.topTeamSlayer}</strong></article>
+              <article><span>{isFr ? 'Parties jouees' : 'Games Played'}</span><strong>{data.gamesPlayed}</strong></article>
+              <article><span>{isFr ? 'Meilleur slayer' : 'Top Slayer'}</span><strong>{data.topSlayer}</strong></article>
+              <article><span>{isFr ? 'Meilleur slayer equipe' : 'Top Team Slayer'}</span><strong>{data.topTeamSlayer}</strong></article>
               <article><span>Match Point</span><strong>{data.matchpointThreshold}</strong></article>
-              <article><span>Winner Flag</span><strong>{data.winner}</strong></article>
-              <article><span>Teams Tracked</span><strong>{data.teams.length}</strong></article>
+              <article><span>{isFr ? 'Gagnant' : 'Winner Flag'}</span><strong>{data.winner}</strong></article>
+              <article><span>{isFr ? 'Equipes suivies' : 'Teams Tracked'}</span><strong>{data.teams.length}</strong></article>
             </div>
           )}
 
           {activeView === 'live' && (
             <div className="wrs-grid">
               <div className="wrs-live-wrap">
-                <div className="wrs-vertical-label">Scoreboard</div>
+                <div className="wrs-vertical-label">{isFr ? 'Classement' : 'Scoreboard'}</div>
                 <section className="wrs-panel">
                   <header>
-                    <h2>Live Leaderboard</h2>
+                    <h2>{isFr ? 'Classement Live' : 'Live Leaderboard'}</h2>
                     <span>Points</span>
                   </header>
                   <div className="wrs-live-list">
@@ -154,15 +154,15 @@ export default async function ResurgenceSeriesPage({
 
               <section className="wrs-panel">
                 <header>
-                  <h2>Live Map Scoring</h2>
-                  <span>Map {data.mapNumber}</span>
+                  <h2>{isFr ? 'Scoring Live par Carte' : 'Live Map Scoring'}</h2>
+                  <span>{isFr ? 'Carte' : 'Map'} {data.mapNumber}</span>
                 </header>
                 <table className="wrs-table">
                   <thead>
                     <tr>
-                      <th>Team</th>
-                      <th>Status</th>
-                      <th>Placement</th>
+                      <th>{isFr ? 'Equipe' : 'Team'}</th>
+                      <th>{isFr ? 'Statut' : 'Status'}</th>
+                      <th>{isFr ? 'Placement' : 'Placement'}</th>
                       <th>Kills</th>
                       <th>Points</th>
                     </tr>
@@ -190,11 +190,11 @@ export default async function ResurgenceSeriesPage({
                 <strong>{team.name}</strong>
                 <p>{team.players}</p>
                 <dl>
-                  <dt>Total kills</dt><dd>{team.kills}</dd>
-                  <dt>Total deaths</dt><dd>{team.deaths}</dd>
+                  <dt>{isFr ? 'Total kills' : 'Total kills'}</dt><dd>{team.kills}</dd>
+                  <dt>{isFr ? 'Total morts' : 'Total deaths'}</dt><dd>{team.deaths}</dd>
                   <dt>K / D</dt><dd>{team.kd.toFixed(1)}</dd>
-                  <dt>Avg kills</dt><dd>{team.avgKills.toFixed(1)}</dd>
-                  <dt>Avg placement</dt><dd>{team.avgPlacement.toFixed(1)}</dd>
+                  <dt>{isFr ? 'Moy kills' : 'Avg kills'}</dt><dd>{team.avgKills.toFixed(1)}</dd>
+                  <dt>{isFr ? 'Moy placement' : 'Avg placement'}</dt><dd>{team.avgPlacement.toFixed(1)}</dd>
                 </dl>
               </article>
             ))}
@@ -204,15 +204,15 @@ export default async function ResurgenceSeriesPage({
           {activeView === 'maps' && (
             <section className="wrs-panel">
               <header>
-                <h2>Maps</h2>
-                <span>{data.mapStats.length} played</span>
+                <h2>{isFr ? 'Cartes' : 'Maps'}</h2>
+                <span>{data.mapStats.length} {isFr ? 'jouees' : 'played'}</span>
               </header>
               <table className="wrs-table">
                 <thead>
                   <tr>
-                    <th>Map</th>
-                    <th>Top team</th>
-                    <th>Placement</th>
+                    <th>{isFr ? 'Carte' : 'Map'}</th>
+                    <th>{isFr ? 'Meilleure equipe' : 'Top team'}</th>
+                    <th>{isFr ? 'Placement' : 'Placement'}</th>
                     <th>Kills</th>
                     <th>Points</th>
                   </tr>
@@ -220,7 +220,7 @@ export default async function ResurgenceSeriesPage({
                 <tbody>
                   {data.mapStats.map((map) => (
                     <tr key={map.map}>
-                      <td>Map {map.map}</td>
+                      <td>{isFr ? 'Carte' : 'Map'} {map.map}</td>
                       <td>{map.topTeam}</td>
                       <td>{map.winnerPlacement}</td>
                       <td>{map.topKills}</td>
@@ -235,18 +235,18 @@ export default async function ResurgenceSeriesPage({
           {activeView === 'players' && (
             <section className="wrs-panel">
               <header>
-                <h2>Player Stats</h2>
+                <h2>{isFr ? 'Stats Joueurs' : 'Player Stats'}</h2>
                 <span>Kills</span>
               </header>
               <table className="wrs-table">
                 <thead>
                   <tr>
-                    <th>Player</th>
-                    <th>Team</th>
+                    <th>{isFr ? 'Joueur' : 'Player'}</th>
+                    <th>{isFr ? 'Equipe' : 'Team'}</th>
                     <th>Kills</th>
-                    <th>Deaths</th>
+                    <th>{isFr ? 'Morts' : 'Deaths'}</th>
                     <th>K / D</th>
-                    <th>Weapon</th>
+                    <th>{isFr ? 'Arme' : 'Weapon'}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -268,18 +268,18 @@ export default async function ResurgenceSeriesPage({
           {activeView === 'teams' && (
             <section className="wrs-panel">
               <header>
-                <h2>Team Stats</h2>
-                <span>Totals</span>
+                <h2>{isFr ? 'Stats Equipes' : 'Team Stats'}</h2>
+                <span>{isFr ? 'Totaux' : 'Totals'}</span>
               </header>
               <table className="wrs-table">
                 <thead>
                   <tr>
-                    <th>Team</th>
-                    <th>Players</th>
+                    <th>{isFr ? 'Equipe' : 'Team'}</th>
+                    <th>{isFr ? 'Joueurs' : 'Players'}</th>
                     <th>Kills</th>
-                    <th>Deaths</th>
+                    <th>{isFr ? 'Morts' : 'Deaths'}</th>
                     <th>K / D</th>
-                    <th>Avg Place</th>
+                    <th>{isFr ? 'Placement moy' : 'Avg Place'}</th>
                     <th>Points</th>
                   </tr>
                 </thead>
@@ -303,14 +303,14 @@ export default async function ResurgenceSeriesPage({
           {activeView === 'guns' && (
             <section className="wrs-panel">
               <header>
-                <h2>Guns & Loadouts</h2>
-                <span>Weapon kills</span>
+                <h2>{isFr ? 'Armes et Classes' : 'Guns & Loadouts'}</h2>
+                <span>{isFr ? 'Kills par arme' : 'Weapon kills'}</span>
               </header>
               <table className="wrs-table">
                 <thead>
                   <tr>
-                    <th>Weapon</th>
-                    <th>Class</th>
+                    <th>{isFr ? 'Arme' : 'Weapon'}</th>
+                    <th>{isFr ? 'Classe' : 'Class'}</th>
                     <th>Kills</th>
                   </tr>
                 </thead>
@@ -328,16 +328,16 @@ export default async function ResurgenceSeriesPage({
           )}
 
           {activeView === 'overview' && (
-          <section className="wrs-overall-grid" aria-label="WRS overall stats">
+          <section className="wrs-overall-grid" aria-label={isFr ? 'Stats globales WRS' : 'WRS overall stats'}>
             <article className="wrs-panel">
               <header>
-                <h2>Overall Top Slayers</h2>
+                <h2>{isFr ? 'Meilleurs Slayers' : 'Overall Top Slayers'}</h2>
                 <span>Kills</span>
               </header>
               <table className="wrs-overall-table">
                 <thead>
                   <tr>
-                    <th>Player</th>
+                    <th>{isFr ? 'Joueur' : 'Player'}</th>
                     <th>Kills</th>
                   </tr>
                 </thead>
@@ -354,13 +354,13 @@ export default async function ResurgenceSeriesPage({
 
             <article className="wrs-panel">
               <header>
-                <h2>Overall Top Team Kills</h2>
+                <h2>{isFr ? 'Meilleures Equipes en Kills' : 'Overall Top Team Kills'}</h2>
                 <span>Kills</span>
               </header>
               <table className="wrs-overall-table">
                 <thead>
                   <tr>
-                    <th>Team</th>
+                    <th>{isFr ? 'Equipe' : 'Team'}</th>
                     <th>Kills</th>
                   </tr>
                 </thead>
