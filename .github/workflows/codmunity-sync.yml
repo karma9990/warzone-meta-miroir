@@ -1,3 +1,4 @@
+# Scrape CODMunity -> Upstash (DeepSeek via OpenRouter)
 name: CODMunity sync
 
 on:
