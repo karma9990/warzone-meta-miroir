@@ -107,10 +107,10 @@ export default function MetaTrendChart({ history, locale }: Props) {
         .trend-svg { width: 100%; height: auto; display: block; }
         .trend-note { margin: 0.8rem 0 0; font-size: 0.78rem; color: rgba(16,16,14,0.6); line-height: 1.5; }
         .trend-meta { margin: 0.5rem 0 0; font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(16,16,14,0.4); }
-        :global(:root[data-theme="dark"]) .trend-controls span, :global(:root[data-theme="dark"]) .trend-current-label, :global(:root[data-theme="dark"]) .trend-note, :global(:root[data-theme="dark"]) .trend-meta { color: rgba(255,255,255,0.55); }
-        :global(:root[data-theme="dark"]) .trend-controls select { border-color: rgba(255,255,255,0.22); }
-        :global(:root[data-theme="dark"]) .trend-svg line { stroke: rgba(255,255,255,0.12); }
-        :global(:root[data-theme="dark"]) .trend-svg text { fill: rgba(255,255,255,0.45); }
+        :root[data-theme="dark"] .trend-controls span, :root[data-theme="dark"] .trend-current-label, :root[data-theme="dark"] .trend-note, :root[data-theme="dark"] .trend-meta { color: rgba(255,255,255,0.55); }
+        :root[data-theme="dark"] .trend-controls select { border-color: rgba(255,255,255,0.22); }
+        :root[data-theme="dark"] .trend-svg line { stroke: rgba(255,255,255,0.12); }
+        :root[data-theme="dark"] .trend-svg text { fill: rgba(255,255,255,0.45); }
       `}</style>
     </div>
   );

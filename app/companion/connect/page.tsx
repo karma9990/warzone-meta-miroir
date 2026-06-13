@@ -127,8 +127,8 @@ export default async function CompanionConnectPage({ searchParams }: {
           color: #d93d3d;
         }
 
-        :global(:root[data-theme="dark"]) .companion-connect-card p,
-        :global(:root[data-theme="dark"]) .companion-connect-card small {
+        :root[data-theme="dark"] .companion-connect-card p,
+        :root[data-theme="dark"] .companion-connect-card small {
           color: rgba(255,255,255,0.62);
         }
       `}</style>

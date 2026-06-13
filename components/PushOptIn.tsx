@@ -104,7 +104,7 @@ export default function PushOptIn({ locale }: Props) {
         .push-btn:disabled { opacity: 0.6; cursor: default; }
         .push-done { margin: 0; color: #1f8f4d; font-size: 0.82rem; font-weight: 800; }
         .push-note { margin: 0.6rem 0 0; font-size: 0.76rem; color: rgba(16,16,14,0.55); }
-        :global(:root[data-theme="dark"]) .push-hint, :global(:root[data-theme="dark"]) .push-note { color: rgba(255,255,255,0.6); }
+        :root[data-theme="dark"] .push-hint, :root[data-theme="dark"] .push-note { color: rgba(255,255,255,0.6); }
       `}</style>
     </div>
   );

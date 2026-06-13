@@ -101,7 +101,7 @@ export default async function CreateurPage() {
         .creator-hub-card p { margin: 0; font-size: 0.8rem; line-height: 1.5; color: rgba(16,16,14,0.62); }
         .creator-hub-arrow { position: absolute; right: 1.1rem; bottom: 1rem; color: #163cff; font-size: 1.1rem; font-weight: 900; }
         @media (max-width: 820px) { .creator-hub-grid { grid-template-columns: 1fr; } }
-        :global(:root[data-theme="dark"]) .creator-hub-card p { color: rgba(255,255,255,0.62); }
+        :root[data-theme="dark"] .creator-hub-card p { color: rgba(255,255,255,0.62); }
       `}</style>
     </>
   );

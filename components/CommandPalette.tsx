@@ -225,8 +225,8 @@ export default function CommandPalette() {
         .cmdk-foot { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; padding: 0.7rem 1rem; border-top: 1px solid rgba(16,16,14,0.12); font-size: 0.66rem; color: rgba(16,16,14,0.5); }
         .cmdk-foot kbd { border: 1px solid rgba(16,16,14,0.2); border-radius: 3px; padding: 0.05rem 0.35rem; font-family: inherit; font-size: 0.62rem; }
         .cmdk-foot span { margin-right: 0.6rem; }
-        :global(:root[data-theme="dark"]) .cmdk-meta, :global(:root[data-theme="dark"]) .cmdk-empty, :global(:root[data-theme="dark"]) .cmdk-foot { color: rgba(255,255,255,0.55); }
-        :global(:root[data-theme="dark"]) .cmdk-foot kbd { border-color: rgba(255,255,255,0.24); }
+        :root[data-theme="dark"] .cmdk-meta, :root[data-theme="dark"] .cmdk-empty, :root[data-theme="dark"] .cmdk-foot { color: rgba(255,255,255,0.55); }
+        :root[data-theme="dark"] .cmdk-foot kbd { border-color: rgba(255,255,255,0.24); }
       `}</style>
     </div>
   );

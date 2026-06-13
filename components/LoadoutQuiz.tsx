@@ -338,16 +338,16 @@ export default function LoadoutQuiz({ loadouts, locale }: Props) {
         .quiz-alt strong { font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.02em; }
         .quiz-alt > span:last-child { font-size: 0.72rem; color: rgba(16,16,14,0.55); }
         @media (max-width: 540px) { .quiz-alts-grid { grid-template-columns: 1fr; } }
-        :global(:root[data-theme="dark"]) .quiz-head p,
-        :global(:root[data-theme="dark"]) .quiz-options button span,
-        :global(:root[data-theme="dark"]) .quiz-result-head p,
-        :global(:root[data-theme="dark"]) .quiz-primary-meta,
-        :global(:root[data-theme="dark"]) .quiz-why,
-        :global(:root[data-theme="dark"]) .quiz-attachments span,
-        :global(:root[data-theme="dark"]) .quiz-alt > span:last-child { color: rgba(255,255,255,0.6); }
-        :global(:root[data-theme="dark"]) .quiz-options button,
-        :global(:root[data-theme="dark"]) .quiz-attachments span,
-        :global(:root[data-theme="dark"]) .quiz-alt { border-color: rgba(255,255,255,0.16); }
+        :root[data-theme="dark"] .quiz-head p,
+        :root[data-theme="dark"] .quiz-options button span,
+        :root[data-theme="dark"] .quiz-result-head p,
+        :root[data-theme="dark"] .quiz-primary-meta,
+        :root[data-theme="dark"] .quiz-why,
+        :root[data-theme="dark"] .quiz-attachments span,
+        :root[data-theme="dark"] .quiz-alt > span:last-child { color: rgba(255,255,255,0.6); }
+        :root[data-theme="dark"] .quiz-options button,
+        :root[data-theme="dark"] .quiz-attachments span,
+        :root[data-theme="dark"] .quiz-alt { border-color: rgba(255,255,255,0.16); }
       `}</style>
     </main>
   );

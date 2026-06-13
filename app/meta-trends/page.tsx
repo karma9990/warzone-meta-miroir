@@ -44,7 +44,7 @@ export default async function MetaTrendsPage() {
         .trends-page header span { color: #163cff; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; }
         .trends-page header h1 { margin: 0.4rem 0 0; font-size: clamp(2rem, 7vw, 3.4rem); letter-spacing: 0.04em; line-height: 0.95; }
         .trends-page header p { margin: 0.8rem 0 0; max-width: 56ch; color: rgba(16,16,14,0.6); line-height: 1.6; }
-        :global(:root[data-theme="dark"]) .trends-page header p { color: rgba(255,255,255,0.6); }
+        :root[data-theme="dark"] .trends-page header p { color: rgba(255,255,255,0.6); }
       `}</style>
     </>
   );

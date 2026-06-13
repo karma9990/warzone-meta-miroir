@@ -202,8 +202,8 @@ export default function CommunityBuilds({ initialBuilds, locale, isAuthed }: Pro
         .cb-note { margin: 0.6rem 0 0; font-size: 0.8rem; color: rgba(16,16,14,0.65); line-height: 1.5; }
         .cb-author { display: block; margin-top: 0.5rem; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(16,16,14,0.45); }
         @media (max-width: 560px) { .cb-grid { grid-template-columns: 1fr; } .cb-row { grid-template-columns: 120px 1fr auto; } }
-        :global(:root[data-theme="dark"]) .cb-page header p, :global(:root[data-theme="dark"]) .cb-empty, :global(:root[data-theme="dark"]) .cb-cat, :global(:root[data-theme="dark"]) .cb-atts span, :global(:root[data-theme="dark"]) .cb-note, :global(:root[data-theme="dark"]) .cb-author, :global(:root[data-theme="dark"]) .cb-form label span, :global(:root[data-theme="dark"]) .cb-section { color: rgba(255,255,255,0.6); }
-        :global(:root[data-theme="dark"]) .cb-form input, :global(:root[data-theme="dark"]) .cb-form select, :global(:root[data-theme="dark"]) .cb-form textarea, :global(:root[data-theme="dark"]) .cb-item, :global(:root[data-theme="dark"]) .cb-atts span, :global(:root[data-theme="dark"]) .cb-x, :global(:root[data-theme="dark"]) .cb-vote { border-color: rgba(255,255,255,0.18); }
+        :root[data-theme="dark"] .cb-page header p, :root[data-theme="dark"] .cb-empty, :root[data-theme="dark"] .cb-cat, :root[data-theme="dark"] .cb-atts span, :root[data-theme="dark"] .cb-note, :root[data-theme="dark"] .cb-author, :root[data-theme="dark"] .cb-form label span, :root[data-theme="dark"] .cb-section { color: rgba(255,255,255,0.6); }
+        :root[data-theme="dark"] .cb-form input, :root[data-theme="dark"] .cb-form select, :root[data-theme="dark"] .cb-form textarea, :root[data-theme="dark"] .cb-item, :root[data-theme="dark"] .cb-atts span, :root[data-theme="dark"] .cb-x, :root[data-theme="dark"] .cb-vote { border-color: rgba(255,255,255,0.18); }
       `}</style>
     </main>
   );

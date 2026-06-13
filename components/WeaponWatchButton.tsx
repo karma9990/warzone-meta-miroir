@@ -91,8 +91,8 @@ export default function WeaponWatchButton({ weaponId, weapon, locale }: Props) {
         .watch-form button:disabled { opacity: 0.6; cursor: default; }
         .watch-done { margin: 0; color: #1f8f4d; font-size: 0.8rem; font-weight: 800; }
         .watch-error { margin: 0.5rem 0 0; color: #c0392b; font-size: 0.74rem; }
-        :global(:root[data-theme="dark"]) .watch-hint { color: rgba(255,255,255,0.6); }
-        :global(:root[data-theme="dark"]) .watch-form input { border-color: rgba(255,255,255,0.22); }
+        :root[data-theme="dark"] .watch-hint { color: rgba(255,255,255,0.6); }
+        :root[data-theme="dark"] .watch-form input { border-color: rgba(255,255,255,0.22); }
       `}</style>
     </div>
   );
