@@ -1707,6 +1707,20 @@ body {
   color: var(--tm-ink) !important;
 }
 
+:root[data-theme="dark"] .account-companion-devices article {
+  background: var(--theme-panel) !important;
+  border-color: var(--tm-line) !important;
+}
+
+:root[data-theme="dark"] .account-companion-devices article small {
+  color: var(--tm-muted) !important;
+}
+
+:root[data-theme="dark"] .account-companion-devices button {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #fff !important;
+}
+
 :root[data-theme="dark"] .stats-share-page {
   color: var(--tm-ink) !important;
 }

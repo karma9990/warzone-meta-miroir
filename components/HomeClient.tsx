@@ -329,12 +329,8 @@ export default function HomeClient({
           <a href="#all-loadouts">L</a>
         </aside>
 
-        <h1 className="hero-title" aria-label="Warzone Pro Meta">
-          <span className="hero-title-line">{copy.titleTop}<b className="hero-r-badge" aria-hidden="true">R</b></span>
-          <strong>
-            {copy.titleMiddle} <br className="hero-mobile-break" />
-            {copy.titleBottom}
-          </strong>
+        <h1 className="hero-title hero-title-logo" aria-label="Warzone Pro Meta">
+          <img className="hero-logo" src="/brand/wazonepro.png" alt="Wazonepro Meta" />
         </h1>
         <div className="hero-brief">
           <span>{copy.eyebrow}</span>

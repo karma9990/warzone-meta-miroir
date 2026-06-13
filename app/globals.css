@@ -8223,3 +8223,20 @@ body:has(.ai-classes-page) .legal-footer {
   outline: 2px solid rgba(22, 60, 255, 0.55) !important;
   outline-offset: 2px !important;
 }
+
+/* Hero logo: replaces the big WARZONE PRO META text title. */
+.hero-title.hero-title-logo {
+  display: grid !important;
+  justify-items: center !important;
+}
+
+.hero-title .hero-logo {
+  display: block !important;
+  width: clamp(280px, 44vw, 620px) !important;
+  height: auto !important;
+}
+
+/* Black source logo -> white on dark theme. */
+:root[data-theme="dark"] .hero-title .hero-logo {
+  filter: invert(1) !important;
+}

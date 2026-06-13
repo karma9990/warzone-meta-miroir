@@ -54,9 +54,10 @@ function extractAfter(text: string, keywords: string[]): number | null {
   return null;
 }
 
-export default function StatsTracker({ initialEntries = [], syncToAccount = false }: {
+export default function StatsTracker({ initialEntries = [], syncToAccount = false, initialActivisionId = '' }: {
   initialEntries?: GameEntry[];
   syncToAccount?: boolean;
+  initialActivisionId?: string;
 }) {
   const [entries, setEntries] = useState<GameEntry[]>(() => initialEntries.length ? initialEntries : loadEntries());
   const [form, setForm] = useState({ kills: '', deaths: '', damage: '', placement: '', won: false });
@@ -151,6 +152,34 @@ export default function StatsTracker({ initialEntries = [], syncToAccount = fals
         </button>
       </div>
 
+      <div className="px-6 py-4 border-b border-black/8 bg-black/[0.015]">
+        <div className="grid gap-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)] md:items-center">
+          <div>
+            <div className="text-xs tracking-normal opacity-40 mb-1">ACTIVISION IDENTITY</div>
+            <div className="text-sm font-bold tracking-normal">
+              {initialActivisionId || 'No Activision ID linked'}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="m-0 flex-1 min-w-[220px] text-xs leading-relaxed opacity-55">
+              Activision stats are not public anymore. WZPRO uses this ID as your player identity, then builds your real tracker from imported games and screenshots.
+            </p>
+            <a href="#public-profile-settings"
+              className="font-mono text-xs tracking-normal rounded-sm no-underline"
+              style={{
+                padding: '6px 12px',
+                border: `1px solid ${BRAND_BLUE}`,
+                background: initialActivisionId ? 'transparent' : BRAND_BLUE_SOFT,
+                color: BRAND_BLUE,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {initialActivisionId ? 'EDIT ID' : 'ADD ID'}
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* Stats summary */}
       {entries.length > 0 && (
         <div className="grid grid-cols-4 border-b border-black/8">
@@ -175,8 +204,8 @@ export default function StatsTracker({ initialEntries = [], syncToAccount = fals
           {/* OCR upload */}
           <div className="mb-4 p-3 border border-dashed border-black/15 rounded-sm flex items-center gap-4">
             <div className="flex-1">
-              <div className="text-xs font-bold tracking-normal mb-0.5">AUTO SCAN</div>
-              <div className="text-xs opacity-45">Upload an end-of-game screenshot — stats will be auto-filled.</div>
+              <div className="text-xs font-bold tracking-normal mb-0.5">IMPORT SCREENSHOT</div>
+              <div className="text-xs opacity-45">Upload an end-of-game screen. WZPRO reads kills, deaths, damage and placement, then you validate.</div>
               {ocrHint && (
                 <div className="text-xs mt-1.5" style={{ color: ocrHint.includes('error') || ocrHint.includes('No ') ? '#ff6644' : BRAND_BLUE }}>
                   {ocrLoading ? '⏳ ' : '✓ '}{ocrHint}

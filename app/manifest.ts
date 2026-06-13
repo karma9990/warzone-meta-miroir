@@ -15,6 +15,18 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "48x48",
         type: "image/x-icon",
       },
+      {
+        src: "/brand/wazonepro-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/brand/wazonepro-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
     ],
   };
 }

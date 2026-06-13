@@ -1578,6 +1578,29 @@
   box-shadow: none !important;
 }
 
+/* Grilles : le fond de conteneur fournit les lignes bleues (gap 1px), les cellules
+   restent noires SANS bordure propre -> plus de noir qui deborde des contours bleus. */
+:root[data-theme="dark"] .pro-tools-page .pt-wt :is(
+  .pt-wt-proof-grid,
+  .pt-wt-product-preview,
+  .pt-wt-hero-stats,
+  .pt-wt-spawn-row,
+  .pt-wt-plans
+) {
+  background: rgba(22, 60, 255, 0.62) !important;
+  background-color: rgba(22, 60, 255, 0.62) !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page :is(
+  .pt-wt-proof-grid article,
+  .pt-wt-product-preview div,
+  .pt-wt-hero-stats div,
+  .pt-wt-spawn-row .pt-wt-spawn,
+  .pt-wt-plans .pt-wt-plan
+) {
+  border-color: transparent !important;
+}
+
 :root[data-theme="dark"] .pro-tools-page :is(p, small, span, li, dd, dt, label) {
   color: rgba(255, 255, 255, 0.82) !important;
 }
