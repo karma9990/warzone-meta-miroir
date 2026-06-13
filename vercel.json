@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/codmunity",
       "schedule": "45 12 * * *"
+    },
+    {
+      "path": "/api/cron/meta-snapshot",
+      "schedule": "0 13 * * *"
     }
   ]
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import ClientGlassScene from "@/components/ClientGlassScene";
+import CommandPalette from "@/components/CommandPalette";
 import LegalFooter from "@/components/LegalFooter";
 import MonoTechOverlay from "@/components/MonoTechOverlay";
 import RuntimeI18n from "@/components/RuntimeI18n";
@@ -74,11 +75,12 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <ClientGlassScene backgroundSrc="/generated/operator-full-site-bg.png" />
+        <ClientGlassScene backgroundSrc="/generated/operator-full-site-bg.webp" />
         <div className="grain-overlay" aria-hidden="true" />
         <MonoTechOverlay />
         <RuntimeI18n locale={locale} />
         <ThemeToggle />
+        <CommandPalette />
         <div style={{ position: "relative", zIndex: 1 }}>
           {children}
           <LegalFooter locale={locale} />

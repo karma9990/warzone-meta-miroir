@@ -1552,7 +1552,7 @@ canvas,
   z-index: 0 !important;
   content: "" !important;
   pointer-events: none !important;
-  background: url("/generated/operator-full-site-bg.png") center top / cover no-repeat !important;
+  background: url("/generated/operator-full-site-bg.webp") center top / cover no-repeat !important;
   opacity: 0.25 !important;
 }
 
@@ -1865,6 +1865,10 @@ canvas,
 
 .safari-bar input::placeholder {
   color: rgba(16,16,14,0.42) !important;
+}
+
+.safari-bar .safari-search-form {
+  display: contents !important;
 }
 
 .nav-readout {
@@ -3312,7 +3316,7 @@ canvas {
   overflow: hidden;
   background:
     linear-gradient(rgba(243,242,238,0.82), rgba(243,242,238,0.72)),
-    url("/generated/operator-full-site-bg.png") center 26% / min(760px, 68vw) auto no-repeat;
+    url("/generated/operator-full-site-bg.webp") center 26% / min(760px, 68vw) auto no-repeat;
   border-bottom: 1px solid var(--hairline);
 }
 

@@ -22,6 +22,9 @@ export default async function CompanionConnectPage({ searchParams }: {
     redirect(href(`/sign-in?next=${encodeURIComponent(`/companion/connect?code=${code}`)}`));
   }
 
+  // Server component rendered per-request (force-dynamic): reading the current
+  // time here is intentional and deterministic for the lifetime of the request.
+  // eslint-disable-next-line react-hooks/purity
   const expired = !flow || new Date(flow.expiresAt).getTime() <= Date.now();
 
   return (

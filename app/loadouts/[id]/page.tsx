@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import StatBar from '@/components/StatBar';
 import StatRadar from '@/components/StatRadar';
+import WeaponWatchButton from '@/components/WeaponWatchButton';
 import { getLoadouts } from '@/lib/data';
 import { getHomeUiCopy, localizeLoadoutNote, localizeLoadoutText, translateTerm, withLocalePath } from '@/lib/i18n';
 import { calculateMetaScore, formatMetaDate, getLoadoutSlug } from '@/lib/loadoutUtils';
@@ -218,6 +219,7 @@ export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
             </div>
             <p className="m-0 mt-2 text-[0.68rem] opacity-55 break-all">{shareUrl}</p>
           </div>
+          <WeaponWatchButton weaponId={loadout.weaponId || loadout.id} weapon={loadout.weapon} locale={locale} />
         </aside>
       </section>
 

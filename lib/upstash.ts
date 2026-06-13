@@ -2,6 +2,24 @@ export function hasUpstash() {
   return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 }
 
+const warnedEphemeral = new Set<string>();
+
+/**
+ * Warn when a store falls back to writing the local filesystem on a serverless
+ * platform (Vercel), where writes are ephemeral / read-only and silently lost
+ * on the next cold start. Helps detect a missing Upstash configuration in prod.
+ */
+export function warnIfEphemeralWrite(store: string) {
+  if (hasUpstash()) return;
+  if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') return;
+  if (warnedEphemeral.has(store)) return;
+  warnedEphemeral.add(store);
+  console.warn(
+    `[persistence] "${store}" is writing the local filesystem without Upstash configured. ` +
+    `On serverless this data will not persist. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.`,
+  );
+}
+
 async function upstashFetch(commands: unknown[][]) {
   const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
     method: 'POST',

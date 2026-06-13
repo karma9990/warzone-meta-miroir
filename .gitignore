@@ -76,6 +76,10 @@ vercel-env-*.txt
 /data/entitlements.json
 /data/claimed-tokens.json
 /data/used-email-tokens.json
+/data/weapon-watches.json
+/data/push-subscriptions.json
+/data/community-builds.json
+/data/meta-history.json
 
 # vercel
 .vercel

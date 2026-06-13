@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { hasUpstash, upstashCommand } from './upstash.ts';
+import { hasUpstash, upstashCommand, warnIfEphemeralWrite } from './upstash.ts';
 
 const DATA_FILE = path.join(process.cwd(), 'data', 'loadouts.json');
 const LOADOUTS_KEY = 'wz:loadouts';
@@ -545,6 +545,7 @@ function readLocalLoadouts(): Loadout[] {
 }
 
 function writeLocalLoadouts(loadouts: Loadout[]): void {
+  warnIfEphemeralWrite('loadouts');
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
   fs.writeFileSync(DATA_FILE, JSON.stringify(loadouts, null, 2));
 }

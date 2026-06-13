@@ -39,7 +39,7 @@ type MetaSignal = {
 };
 
 const OPENROUTER_MODEL = process.env.OPENROUTER_AI_CLASSES_MODEL || 'google/gemma-4-31b-it:free';
-const OPENROUTER_MODEL_VISION = process.env.OPENROUTER_AI_CLASSES_MODEL_VISION || 'meta-llama/llama-3.2-11b-vision-instruct';
+const OPENROUTER_MODEL_VISION = process.env.OPENROUTER_AI_CLASSES_MODEL_VISION || 'meta-llama/llama-3.2-11b-vision-instruct:free';
 
 const CHAT_BODY_LIMIT_BYTES = 6_500_000;
 

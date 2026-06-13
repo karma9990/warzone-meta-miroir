@@ -13,7 +13,7 @@ const ALLOWED_LARGE_ASSETS = new Set([
   'assets/tools/pro-movement/map-rebirth.jpg',
   'assets/weapons/wzstats/vx-compact.png',
   'generated/loadouts-dark-glass-bg.png',
-  'generated/operator-full-site-bg.png',
+  'generated/operator-full-site-bg.webp',
   'generated/warzone-liquid-bg.png',
 ]);
 
