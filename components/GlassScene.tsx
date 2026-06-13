@@ -17,13 +17,22 @@ export default function GlassScene({ backgroundSrc }: Props) {
     const container = mountRef.current;
     if (!container || typeof window === 'undefined') return;
 
+    const nav = window.navigator as Navigator & {
+      connection?: { saveData?: boolean };
+      deviceMemory?: number;
+    };
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const lowMemory = typeof nav.deviceMemory === 'number' && nav.deviceMemory <= 4;
+    const isLargeFinePointer = window.innerWidth >= 1024 && !coarsePointer;
+
     // ── Renderer ──────────────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: false,
       premultipliedAlpha: false,
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(nav.connection?.saveData || lowMemory ? 1 : Math.min(window.devicePixelRatio, 1.5));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.autoClear = false;
     Object.assign(renderer.domElement.style, {
@@ -95,8 +104,7 @@ export default function GlassScene({ backgroundSrc }: Props) {
     let envReady = true;
     let idleHandle: ReturnType<typeof setTimeout> | number | null = null;
 
-    const nav = window.navigator as Navigator & { connection?: { saveData?: boolean } };
-    const shouldLoadEnvMap = !nav.connection?.saveData && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const shouldLoadEnvMap = isLargeFinePointer && !lowMemory && !nav.connection?.saveData && !reduceMotion;
     if (shouldLoadEnvMap) {
       envReady = false;
       const loadEnvMap = () => {

@@ -1,7 +1,7 @@
 import HomeClient from '@/components/HomeClient';
 import { getLoadouts } from '@/lib/data';
 import { LOCALE_HEADER, getHomeUiCopy, localizeSiteContent, normalizeLocale } from '@/lib/i18n';
-import { getPublicProfiles } from '@/lib/profileStore';
+import { getProfile, getPublicProfiles } from '@/lib/profileStore';
 import { getSiteContent } from '@/lib/siteContent';
 import { getSiteControls } from '@/lib/siteControls';
 import { getStatsSummary } from '@/lib/statsSummary';
@@ -39,7 +39,9 @@ export default async function HomePage({
   ]);
   const compareA = typeof query?.compareA === 'string' ? query.compareA : undefined;
   const compareB = typeof query?.compareB === 'string' ? query.compareB : undefined;
+  const initialQuery = typeof query?.q === 'string' ? query.q : undefined;
   const locale = normalizeLocale(requestHeaders.get(LOCALE_HEADER));
+  const profile = user ? await getProfile(user.sub) : null;
   const siteContent = localizeSiteContent(rawSiteContent, locale);
   const loadoutById = new Map(loadouts.map((loadout) => [loadout.id, loadout]));
   const searchableProfiles = profiles.map((profile) => {
@@ -80,6 +82,8 @@ export default async function HomePage({
       locale={locale}
       initialCompareA={compareA}
       initialCompareB={compareB}
+      initialQuery={initialQuery}
+      initialAccountFavorites={profile?.favoriteLoadouts ?? []}
       initialUser={user}
     />
   );

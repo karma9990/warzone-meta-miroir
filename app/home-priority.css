@@ -123,6 +123,15 @@ body {
   background: rgba(16, 16, 14, 0.04) !important;
 }
 
+.favorite-loadouts-status {
+  margin: -8px 0 18px !important;
+  color: rgba(16, 16, 14, 0.54) !important;
+  font-family: var(--tm-mono) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
 .loadout-card-tools {
   display: flex !important;
   align-items: center !important;
@@ -215,6 +224,32 @@ body {
   display: grid !important;
   gap: 8px !important;
   margin: 14px 0 !important;
+}
+
+.compare-verdict {
+  display: grid !important;
+  gap: 8px !important;
+  margin: 0 0 18px !important;
+  padding: 16px 18px !important;
+  border: 1px solid rgba(22, 60, 255, 0.22) !important;
+  background: rgba(22, 60, 255, 0.06) !important;
+  color: var(--tm-ink, #10100e) !important;
+  font-family: var(--tm-mono) !important;
+}
+
+.compare-verdict span {
+  color: var(--tm-blue, #163cff) !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+}
+
+.compare-verdict p {
+  max-width: 760px !important;
+  margin: 0 !important;
+  color: rgba(16, 16, 14, 0.72) !important;
+  font-size: 0.82rem !important;
+  line-height: 1.55 !important;
 }
 
 .compare-bars div {
@@ -2359,7 +2394,8 @@ body {
   line-height: 1.6;
 }
 
-.hidden-balance-panel {
+.hidden-balance-panel,
+.recent-changes-panel {
   display: grid;
   grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.4fr);
   gap: 1rem;
@@ -2370,7 +2406,9 @@ body {
 }
 
 .hidden-balance-panel > div:first-child span,
-.hidden-balance-grid small {
+.hidden-balance-grid small,
+.recent-changes-panel > div:first-child span,
+.recent-changes-grid small {
   display: block;
   margin-bottom: 0.55rem;
   color: var(--tm-blue);
@@ -2380,46 +2418,55 @@ body {
   text-transform: uppercase;
 }
 
-.hidden-balance-panel h2 {
+.hidden-balance-panel h2,
+.recent-changes-panel h2 {
   margin: 0 0 0.8rem;
   font-size: clamp(1.3rem, 4vw, 2.4rem);
   line-height: 0.95;
   text-transform: uppercase;
 }
 
-.hidden-balance-panel p {
+.hidden-balance-panel p,
+.recent-changes-panel p {
   margin: 0;
   color: var(--tm-muted);
   font-size: 0.76rem;
   line-height: 1.65;
 }
 
-.hidden-balance-grid {
+.hidden-balance-grid,
+.recent-changes-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 0.75rem;
 }
 
-.hidden-balance-grid article {
+.hidden-balance-grid article,
+.recent-changes-grid article {
   min-height: 150px;
   padding: 1rem;
   border: 1px solid var(--tm-line);
   background: var(--theme-panel, rgba(239, 238, 232, 0.62));
 }
 
-.hidden-balance-grid article[data-tone="buff"] {
+.hidden-balance-grid article[data-tone="buff"],
+.recent-changes-grid article[data-tone="buff"] {
   border-color: rgba(0, 150, 92, 0.35);
 }
 
-.hidden-balance-grid article[data-tone="nerf"] {
+.hidden-balance-grid article[data-tone="nerf"],
+.recent-changes-grid article[data-tone="nerf"] {
   border-color: rgba(210, 42, 56, 0.35);
 }
 
-.hidden-balance-grid article[data-tone="watch"] {
+.hidden-balance-grid article[data-tone="watch"],
+.recent-changes-grid article[data-tone="watch"],
+.recent-changes-grid article[data-tone="patch"] {
   border-color: rgba(22, 60, 255, 0.32);
 }
 
-.hidden-balance-grid strong {
+.hidden-balance-grid strong,
+.recent-changes-grid strong {
   display: block;
   margin-bottom: 0.55rem;
   font-size: 0.74rem;

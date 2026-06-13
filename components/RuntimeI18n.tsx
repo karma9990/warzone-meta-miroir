@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { stripLocale, withLocalePath, type Locale } from '@/lib/i18n';
 
 const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'TEXTAREA', 'SELECT']);
@@ -48,11 +49,13 @@ function translateAttributes(root: ParentNode, locale: Locale, translateRuntimeT
 }
 
 export default function RuntimeI18n({ locale }: { locale: Locale }) {
+  const pathname = usePathname();
+
   useEffect(() => {
     if (locale === 'en') return;
 
-    let observer: MutationObserver | null = null;
     let cancelled = false;
+    const cleanupTasks: Array<() => void> = [];
 
     import('@/lib/runtimeTranslations').then(({ translateRuntimeText }) => {
       if (cancelled) return;
@@ -64,26 +67,18 @@ export default function RuntimeI18n({ locale }: { locale: Locale }) {
 
       apply();
 
-      observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          for (const node of Array.from(mutation.addedNodes)) {
-            if (node.nodeType === Node.TEXT_NODE && node.parentNode) {
-              translateTextNodes(node.parentNode, locale, translateRuntimeText);
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-              apply(node as Element);
-            }
-          }
-        }
-      });
+      const frame = window.requestAnimationFrame(() => apply());
+      cleanupTasks.push(() => window.cancelAnimationFrame(frame));
 
-      observer.observe(document.body, { childList: true, subtree: true });
+      const timeout = window.setTimeout(() => apply(), 350);
+      cleanupTasks.push(() => window.clearTimeout(timeout));
     });
 
     return () => {
       cancelled = true;
-      observer?.disconnect();
+      cleanupTasks.forEach((cleanup) => cleanup());
     };
-  }, [locale]);
+  }, [locale, pathname]);
 
   return null;
 }

@@ -20,7 +20,7 @@ $script:pendingLines = New-Object 'System.Collections.Concurrent.ConcurrentQueue
 $script:historyCount = 0
 $script:allowExit = $false
 $script:minimizeNoticeShown = $false
-$script:site = if ($Site) { $Site.TrimEnd('/') } else { 'http://localhost:3000' }
+$script:site = if ($Site) { $Site.TrimEnd('/') } else { 'https://wzprometa.com' }
 $script:deviceToken = ''
 $script:connectedName = ''
 $script:deviceCode = ''
@@ -54,7 +54,11 @@ function Load-Session {
 function Api-Post {
   param([string]$Path, [hashtable]$Body)
   $json = $Body | ConvertTo-Json -Compress
-  return Invoke-RestMethod -Uri "$script:site$Path" -Method Post -ContentType 'application/json' -Body $json
+  try {
+    return Invoke-RestMethod -Uri "$script:site$Path" -Method Post -ContentType 'application/json' -Body $json
+  } catch {
+    throw "Impossible de joindre $script:site. Verifie ta connexion internet ou relance l'app avec -Site https://wzprometa.com. $($_.Exception.Message)"
+  }
 }
 
 function Add-LogLine {

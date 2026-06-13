@@ -97,7 +97,21 @@ if (Test-Path $zipPath) {
   Remove-Item -LiteralPath $zipPath -Force
 }
 Write-Output "Creating download package..."
-Compress-Archive -Path (Join-Path $fullOutput '*') -DestinationPath $zipPath -Force
+$tempZipPath = Join-Path ([System.IO.Path]::GetTempPath()) ('WZPRO Companion-' + [System.Guid]::NewGuid().ToString('N') + '.zip')
+$packageItems = @(
+  $exePath,
+  $runtimeDir,
+  $appDir,
+  $nodeModulesTarget
+)
+try {
+  Compress-Archive -Path $packageItems -DestinationPath $tempZipPath -Force
+  Move-Item -Force -LiteralPath $tempZipPath -Destination $zipPath
+} finally {
+  if (Test-Path $tempZipPath) {
+    Remove-Item -LiteralPath $tempZipPath -Force -ErrorAction SilentlyContinue
+  }
+}
 
 Write-Output "Built $exePath"
 Write-Output "Packaged runtime: $runtimeDir"
