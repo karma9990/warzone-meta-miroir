@@ -3,7 +3,9 @@ import { redirect } from 'next/navigation';
 import AccountActions from '@/components/AccountActions';
 import AccountLoadoutPrefs from '@/components/AccountLoadoutPrefs';
 import AccountProfileForm from '@/components/AccountProfileForm';
+import CompanionDeviceList from '@/components/CompanionDeviceList';
 import StatsTracker from '@/components/StatsTracker';
+import { listCompanionDevices } from '@/lib/companionDeviceStore';
 import { getLoadouts } from '@/lib/data';
 import { getEntitlements, type EntitlementRecord } from '@/lib/entitlementStore';
 import { emptyProfile, getProfile } from '@/lib/profileStore';
@@ -329,6 +331,7 @@ export default async function AccountPage() {
   const profileCompletion = Math.round((profileSteps.filter(Boolean).length / profileSteps.length) * 100);
   const mainLoadout = loadouts.find((loadout) => loadout.id === profile.featuredLoadoutId)
     || loadouts.find((loadout) => profile.favoriteLoadouts.includes(loadout.id));
+  const companionDevices = await listCompanionDevices(user.sub);
 
   const purchaseDate = entitlements.updatedAt ? formatDate(entitlements.updatedAt, locale) : t.noPurchase;
 
@@ -513,7 +516,22 @@ export default async function AccountPage() {
               </Link>
             )}
           </div>
-          <StatsTracker initialEntries={profile.statsEntries} syncToAccount />
+          <StatsTracker initialEntries={profile.statsEntries} syncToAccount initialActivisionId={profile.activisionId} />
+          <aside className="account-companion-panel">
+            <span>WZPRO COMPANION</span>
+            <h3>Capture auto volontaire</h3>
+            <p>
+              Lance l outil sur ton PC pendant Warzone. Il attend que le jeu soit ouvert et actif, capture uniquement la fenetre du jeu, detecte les ecrans de fin de game, lit les stats par OCR et les envoie sur ce profil.
+            </p>
+            <a className="account-companion-download" href="/api/companion/download" download>
+              Telecharger WZPRO Companion (.zip)
+            </a>
+            <small>La connexion se fait dans le navigateur avec un code temporaire. Aucune cle privee n est affichee.</small>
+            <div className="account-companion-device-block">
+              <strong>Appareils connectes</strong>
+              <CompanionDeviceList initialDevices={companionDevices} />
+            </div>
+          </aside>
         </section>
       </main>
 
@@ -598,6 +616,145 @@ export default async function AccountPage() {
         .account-share-stats--setup {
           background: transparent;
           color: #163cff;
+        }
+
+        .account-companion-panel {
+          display: grid;
+          gap: 0.65rem;
+          margin-top: 1rem;
+          padding: 1rem;
+          border: 1px solid rgba(22,60,255,0.35);
+          background: rgba(22,60,255,0.04);
+          font-family: var(--font-mono, monospace);
+        }
+
+        .account-companion-panel span {
+          color: #163cff;
+          font-size: 0.6rem;
+          font-weight: 900;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+
+        .account-companion-panel h3 {
+          margin: 0;
+          font-size: 1rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .account-companion-panel p,
+        .account-companion-panel small {
+          margin: 0;
+          color: rgba(0,0,0,0.62);
+          font-size: 0.72rem;
+          line-height: 1.6;
+        }
+
+        .account-companion-download {
+          display: inline-grid;
+          place-items: center;
+          min-height: 44px;
+          padding: 0 1rem;
+          background: #163cff;
+          border: 1px solid rgba(22,60,255,0.45);
+          color: #fff;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.68rem;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+          text-decoration: none;
+          text-transform: uppercase;
+        }
+
+        .account-companion-download:hover {
+          background: #0f2bcc;
+        }
+
+        .account-companion-panel code {
+          display: block;
+          overflow-x: auto;
+          padding: 0.75rem;
+          border: 1px solid rgba(0,0,0,0.14);
+          background: rgba(0,0,0,0.05);
+          color: #163cff;
+          font-size: 0.68rem;
+          line-height: 1.5;
+          white-space: nowrap;
+        }
+
+        .account-companion-device-block {
+          display: grid;
+          gap: 0.4rem;
+          padding: 0.75rem;
+          border: 1px solid rgba(22,60,255,0.32);
+          background: rgba(22,60,255,0.07);
+        }
+
+        .account-companion-device-block > strong {
+          color: #163cff;
+          font-size: 0.62rem;
+          font-weight: 950;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .account-companion-devices {
+          display: grid;
+          gap: 0.5rem;
+        }
+
+        .account-companion-devices p {
+          margin: 0;
+        }
+
+        .account-companion-devices article {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(255,255,255,0.3);
+          padding: 0.65rem;
+        }
+
+        .account-companion-devices article.is-revoked {
+          opacity: 0.56;
+        }
+
+        .account-companion-devices article div {
+          display: grid;
+          gap: 0.25rem;
+        }
+
+        .account-companion-devices article strong {
+          color: inherit;
+          font-size: 0.74rem;
+          text-transform: uppercase;
+        }
+
+        .account-companion-devices article small {
+          color: rgba(0,0,0,0.52);
+          font-size: 0.66rem;
+        }
+
+        .account-companion-devices button {
+          min-height: 34px;
+          border: 1px solid rgba(22,60,255,0.45);
+          background: transparent;
+          color: #163cff;
+          cursor: pointer;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.62rem;
+          font-weight: 950;
+          letter-spacing: 0.1em;
+          padding: 0 0.85rem;
+          text-transform: uppercase;
+        }
+
+        .account-companion-devices button:disabled {
+          cursor: default;
+          opacity: 0.55;
         }
 
         .account-action {

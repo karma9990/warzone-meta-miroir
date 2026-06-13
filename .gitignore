@@ -58,6 +58,11 @@ uploads_files_*.obj
 *.winmd
 Olise*.jpg
 
+# generated companion package internals
+/dist/wzpro-companion/**
+!/dist/wzpro-companion/
+!/dist/wzpro-companion/WZPRO Companion.zip
+
 # env files (can opt-in for committing if needed)
 .env*
 *.env.local
