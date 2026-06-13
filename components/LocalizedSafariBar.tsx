@@ -34,9 +34,6 @@ export default function LocalizedSafariBar({
   const links = [
     ['pro-tools', href('/pro-tools'), copy.proTools],
     ['loadouts', href('/#all-loadouts'), copy.loadouts],
-    ['quiz', href('/quiz'), 'Quiz'],
-    ['meta-trends', href('/meta-trends'), locale === 'fr' ? 'Tendances' : locale === 'es' ? 'Tendencias' : 'Trends'],
-    ['builds', href('/builds'), locale === 'fr' ? 'Builds' : 'Builds'],
     ['ai-classes', href('/ai-classes'), 'IA WZPRO'],
     ['pro-classe', href('/pro-classe'), locale === 'fr' ? 'Classes Pro' : locale === 'es' ? 'Clases Pro' : 'Pro Classes'],
     ['set-up', href('/set-up'), copy.setUp],
