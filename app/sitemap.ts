@@ -33,6 +33,8 @@ const staticRoutes = [
   "/esport/wsow",
   "/subscribe",
   "/contact",
+  "/companion",
+  "/download",
   "/legal",
   "/privacy",
   "/terms",

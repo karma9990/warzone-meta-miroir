@@ -9,7 +9,7 @@ function getSiteUrl() {
 
 export const SITE_URL = getSiteUrl();
 
-export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@wzpro-meta.com';
+export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@wzprometa.com';
 
 export const LEGAL = {
   publisherName: process.env.NEXT_PUBLIC_LEGAL_PUBLISHER_NAME || 'WZPRO Meta',

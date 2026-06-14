@@ -11,6 +11,7 @@
     "companion": "node scripts/wzpro-companion.mjs",
     "companion:gui": "dist\\wzpro-companion\\\"WZPRO Companion.exe\"",
     "companion:build-exe": "powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File scripts/build-companion-exe.ps1",
+    "companion:build-installer": "powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File scripts/build-companion-installer.ps1",
     "brand:assets": "node scripts/build-brand-assets.mjs",
     "lint": "eslint",
     "test": "node --no-warnings --experimental-strip-types --test tests/*.test.mjs && node scripts/audit-assets.mjs",

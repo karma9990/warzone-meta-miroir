@@ -12,6 +12,7 @@ export type CompanionDevice = {
   deviceId: string;
   userId: string;
   userName: string;
+  userPicture?: string;
   email?: string;
   deviceName: string;
   createdAt: string;
@@ -28,6 +29,7 @@ export type CompanionFlow = {
   authorizedAt?: string;
   userId?: string;
   userName?: string;
+  userPicture?: string;
   email?: string;
 };
 
@@ -96,6 +98,7 @@ function normalizeFlow(input: CompanionFlow): CompanionFlow {
     authorizedAt: input.authorizedAt,
     userId: input.userId,
     userName: input.userName,
+    userPicture: input.userPicture,
     email: input.email,
   };
 }
@@ -105,6 +108,7 @@ function normalizeDevice(input: CompanionDevice): CompanionDevice {
     deviceId: input.deviceId,
     userId: input.userId,
     userName: input.userName || 'WZPRO Player',
+    userPicture: input.userPicture,
     email: input.email,
     deviceName: cleanDeviceName(input.deviceName),
     createdAt: input.createdAt || nowIso(),
@@ -148,7 +152,7 @@ export async function getCompanionFlow(codeInput: string) {
   return store.flows.find((flow) => flow.code === cleanCode) || null;
 }
 
-export async function authorizeCompanionFlow(codeInput: string, user: UserSession) {
+export async function authorizeCompanionFlow(codeInput: string, user: UserSession, userPicture?: string) {
   const flow = await getCompanionFlow(codeInput);
   if (!flow || new Date(flow.expiresAt).getTime() <= Date.now()) return null;
 
@@ -157,12 +161,14 @@ export async function authorizeCompanionFlow(codeInput: string, user: UserSessio
     authorizedAt: nowIso(),
     userId: user.sub,
     userName: user.name,
+    userPicture: userPicture || user.picture,
     email: user.email,
   });
   const device = normalizeDevice({
     deviceId: authorized.deviceId,
     userId: user.sub,
     userName: user.name,
+    userPicture: userPicture || user.picture,
     email: user.email,
     deviceName: authorized.deviceName,
     createdAt: nowIso(),

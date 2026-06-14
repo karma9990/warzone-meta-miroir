@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     status: 'authorized',
     userName: flow.userName || 'WZPRO Player',
+    profilePicture: flow.userPicture || '',
     deviceName: flow.deviceName,
     token: await createCompanionDeviceToken({ userId: flow.userId, deviceId: flow.deviceId }),
   });

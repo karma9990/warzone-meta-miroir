@@ -68,6 +68,10 @@ if (-not $nodeCommand) {
 
 Copy-Item -Force -Path $nodeCommand.Source -Destination (Join-Path $runtimeDir 'node.exe')
 Copy-Item -Force -Path (Join-Path $root 'scripts\wzpro-companion.mjs') -Destination (Join-Path $appDir 'wzpro-companion.mjs')
+$fontPath = Join-Path $root 'font\bisou-font\copyrightbolditalicstudio-bisouexpandedtrial.otf'
+if (Test-Path $fontPath) {
+  Copy-Item -Force -Path $fontPath -Destination (Join-Path $appDir 'bisou-expanded.otf')
+}
 if (Test-Path $resolvedIconPath) {
   Copy-Item -Force -Path $resolvedIconPath -Destination (Join-Path $appDir 'wzpro-companion.ico')
 }

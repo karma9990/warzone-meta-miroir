@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Text;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -19,6 +20,8 @@ public sealed class WzproCompanionApp : Form
     private readonly string sessionPath;
     private readonly string site;
     private readonly HttpClient http = new HttpClient();
+    private readonly PrivateFontCollection appFonts = new PrivateFontCollection();
+    private FontFamily displayFontFamily;
 
     private Process companionProcess;
     private NotifyIcon tray;
@@ -30,16 +33,45 @@ public sealed class WzproCompanionApp : Form
     private Label connectionLabel;
     private Label titleLabel;
     private Label leadLabel;
+    private Label freePageTitleLabel;
+    private Label freePageDescLabel;
+    private Label premiumPageTitleLabel;
+    private Label premiumPageDescLabel;
     private Label hintLabel;
     private Label verifyLabel;
     private Label secondsLabel;
+    private Label highlightsTitleLabel;
+    private Label highlightsDescLabel;
+    private Label highlightsStatusLabel;
     private Label importsLabel;
     private Label journalLabel;
+    private Panel sidebarPanel;
+    private Panel mainPanel;
+    private Panel welcomePanel;
+    private Panel welcomeLoginPanel;
+    private Panel freeInfoCard;
+    private Panel freeConnectionCard;
+    private Panel freeControlsCard;
+    private Panel profilePanel;
+    private PictureBox profilePictureBox;
+    private Label profileNameLabel;
+    private Label welcomeKickerLabel;
+    private Label welcomeTitleLabel;
+    private Label welcomeSubtitleLabel;
+    private Label welcomeStatsLabel;
+    private Label welcomeLoginTitleLabel;
+    private Label welcomeLoginStatusLabel;
     private Button connectButton;
+    private Button welcomeConnectButton;
+    private Button welcomeSiteButton;
     private Button themeButton;
+    private Button freeAccessButton;
+    private Button premiumButton;
     private Button startButton;
     private Button stopButton;
+    private CheckBox highlightsToggle;
     private ComboBox languageBox;
+    private ComboBox welcomeLanguageBox;
     private NumericUpDown pollBox;
     private ListBox historyList;
     private TextBox logBox;
@@ -47,13 +79,19 @@ public sealed class WzproCompanionApp : Form
     private ToolStripMenuItem trayStartItem;
     private ToolStripMenuItem trayStopItem;
     private ToolStripMenuItem trayQuitItem;
+    private ContextMenuStrip profileMenu;
+    private ToolStripMenuItem profileSettingsItem;
+    private ToolStripMenuItem profileLogoutItem;
 
     private string deviceToken = "";
     private string connectedName = "";
+    private string profilePictureUrl = "";
     private string deviceCode = "";
     private string deviceId = "";
     private string themeMode = "dark";
     private string languageCode = "fr";
+    private string activePage = "free";
+    private bool highlightsProEnabled;
     private bool updatingLanguageUi;
     private bool pollingLogin;
     private bool allowExit;
@@ -93,6 +131,7 @@ public sealed class WzproCompanionApp : Form
         sessionDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WZPRO Companion");
         sessionPath = Path.Combine(sessionDir, "session.txt");
 
+        LoadAppFonts();
         BuildUi();
         BuildTray();
         BuildTimers();
@@ -100,8 +139,33 @@ public sealed class WzproCompanionApp : Form
         ApplyTheme();
         ApplyLanguage();
         RefreshConnectionUi();
+        if (string.IsNullOrWhiteSpace(deviceToken)) ShowWelcome();
+        else ShowAppShell();
         AddLogLine(T("ready"));
         AddLogLine(T("site") + site);
+    }
+
+    private void LoadAppFonts()
+    {
+        string bundledFont = Path.Combine(root, "app", "bisou-expanded.otf");
+        string sourceFont = Path.Combine(root, "font", "bisou-font", "copyrightbolditalicstudio-bisouexpandedtrial.otf");
+        string fontPath = File.Exists(bundledFont) ? bundledFont : sourceFont;
+        if (!File.Exists(fontPath)) return;
+        try
+        {
+            appFonts.AddFontFile(fontPath);
+            if (appFonts.Families.Length > 0) displayFontFamily = appFonts.Families[0];
+        }
+        catch
+        {
+            displayFontFamily = null;
+        }
+    }
+
+    private Font AppFont(float size, FontStyle style)
+    {
+        if (displayFontFamily != null) return new Font(displayFontFamily, size, style);
+        return new Font("Consolas", size, style);
     }
 
     private static string GetArg(string[] args, string name)
@@ -116,97 +180,271 @@ public sealed class WzproCompanionApp : Form
     private void BuildUi()
     {
         Text = "WZPRO Companion";
-        Size = new Size(760, 560);
-        MinimumSize = new Size(680, 500);
+        Size = new Size(900, 640);
+        MinimumSize = new Size(820, 600);
         StartPosition = FormStartPosition.CenterScreen;
-        Font = new Font("Consolas", 9);
+        Font = AppFont(9, FontStyle.Regular);
 
-        titleLabel = Label("WZPRO COMPANION", 20, 18, 360, 32, 18, FontStyle.Bold, Color.White);
-        Controls.Add(titleLabel);
+        welcomePanel = new Panel
+        {
+            Location = new Point(0, 0),
+            Size = new Size(900, 640),
+            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+        };
+        Controls.Add(welcomePanel);
+
+        welcomeLanguageBox = new ComboBox
+        {
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Location = new Point(78, 58),
+            Size = new Size(220, 34),
+            Font = AppFont(8, FontStyle.Bold)
+        };
+        welcomeLanguageBox.Items.AddRange(new object[] { "FR", "EN", "ES" });
+        welcomeLanguageBox.SelectedIndexChanged += delegate { OnWelcomeLanguageChanged(); };
+        welcomePanel.Controls.Add(welcomeLanguageBox);
+
+        welcomeKickerLabel = Label("", 78, 138, 270, 34, 9, FontStyle.Bold, Color.White);
+        welcomePanel.Controls.Add(welcomeKickerLabel);
+
+        welcomeTitleLabel = Label("", 78, 210, 460, 150, 22, FontStyle.Bold, Color.White);
+        welcomePanel.Controls.Add(welcomeTitleLabel);
+
+        welcomeSubtitleLabel = Label("", 78, 350, 430, 70, 12, FontStyle.Regular, Color.White);
+        welcomeSubtitleLabel.Visible = false;
+        welcomePanel.Controls.Add(welcomeSubtitleLabel);
+
+        welcomeStatsLabel = Label("", 78, 470, 430, 58, 10, FontStyle.Bold, Color.White);
+        welcomePanel.Controls.Add(welcomeStatsLabel);
+
+        welcomeLoginPanel = new Panel
+        {
+            Location = new Point(586, 156),
+            Size = new Size(274, 330),
+            Anchor = AnchorStyles.Top | AnchorStyles.Right
+        };
+        welcomePanel.Controls.Add(welcomeLoginPanel);
+
+        welcomeLoginTitleLabel = Label("", 24, 34, 226, 60, 17, FontStyle.Bold, Color.White);
+        welcomeLoginTitleLabel.TextAlign = ContentAlignment.MiddleCenter;
+        welcomeLoginPanel.Controls.Add(welcomeLoginTitleLabel);
+
+        welcomeConnectButton = Button("", 32, 122, 210, 44, Color.FromArgb(22, 60, 255));
+        welcomeConnectButton.Click += async delegate { await StartLoginFlow(); };
+        welcomeLoginPanel.Controls.Add(welcomeConnectButton);
+
+        welcomeSiteButton = Button("", 32, 180, 210, 38, Color.FromArgb(42, 42, 48));
+        welcomeSiteButton.Click += delegate { OpenUrl(site); };
+        welcomeLoginPanel.Controls.Add(welcomeSiteButton);
+
+        welcomeLoginStatusLabel = Label("", 30, 246, 214, 52, 8, FontStyle.Regular, Color.White);
+        welcomeLoginStatusLabel.TextAlign = ContentAlignment.TopCenter;
+        welcomeLoginPanel.Controls.Add(welcomeLoginStatusLabel);
+
+        sidebarPanel = new Panel
+        {
+            Location = new Point(0, 0),
+            Size = new Size(220, 640),
+            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left
+        };
+        Controls.Add(sidebarPanel);
+
+        mainPanel = new Panel
+        {
+            Location = new Point(220, 0),
+            Size = new Size(680, 640),
+            Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+        };
+        Controls.Add(mainPanel);
+
+        titleLabel = Label("WZPRO", 22, 22, 176, 34, 18, FontStyle.Bold, Color.White);
+        sidebarPanel.Controls.Add(titleLabel);
+
+        leadLabel = Label("", 34, 30, 360, 46, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        leadLabel.Visible = false;
+        mainPanel.Controls.Add(leadLabel);
+
+        freeAccessButton = Button("", 16, 92, 188, 44, Color.FromArgb(22, 60, 255));
+        freeAccessButton.Click += delegate { ShowPage("free"); };
+        sidebarPanel.Controls.Add(freeAccessButton);
+
+        premiumButton = Button("", 16, 146, 188, 44, Color.FromArgb(42, 42, 48));
+        premiumButton.Click += delegate { ShowPage("premium"); };
+        sidebarPanel.Controls.Add(premiumButton);
+
+        profilePanel = new Panel
+        {
+            Location = new Point(16, 500),
+            Size = new Size(188, 96),
+            Anchor = AnchorStyles.Left | AnchorStyles.Bottom,
+            Cursor = Cursors.Hand
+        };
+        profilePanel.Click += delegate { ShowProfileMenu(); };
+        sidebarPanel.Controls.Add(profilePanel);
+
+        profilePictureBox = new PictureBox
+        {
+            Location = new Point(74, 8),
+            Size = new Size(42, 42),
+            SizeMode = PictureBoxSizeMode.Zoom,
+            BackColor = Color.Transparent,
+            Cursor = Cursors.Hand
+        };
+        profilePictureBox.Click += delegate { ShowProfileMenu(); };
+        profilePanel.Controls.Add(profilePictureBox);
+
+        profileNameLabel = Label("", 8, 56, 172, 30, 8, FontStyle.Bold, Color.White);
+        profileNameLabel.TextAlign = ContentAlignment.TopCenter;
+        profileNameLabel.Cursor = Cursors.Hand;
+        profileNameLabel.Click += delegate { ShowProfileMenu(); };
+        profilePanel.Controls.Add(profileNameLabel);
+
+        profileMenu = new ContextMenuStrip();
+        profileSettingsItem = new ToolStripMenuItem("", null, delegate { OpenProfileSettings(); });
+        profileLogoutItem = new ToolStripMenuItem("", null, delegate { LogoutProfile(); });
+        profileMenu.Items.Add(profileSettingsItem);
+        profileMenu.Items.Add(profileLogoutItem);
 
         languageBox = new ComboBox
         {
             DropDownStyle = ComboBoxStyle.DropDownList,
-            Location = new Point(496, 22),
+            Location = new Point(420, 26),
             Size = new Size(88, 28),
-            Font = new Font("Consolas", 8, FontStyle.Bold)
+            Font = AppFont(8, FontStyle.Bold)
         };
         languageBox.Items.AddRange(new object[] { "FR", "EN", "ES" });
         languageBox.SelectedIndexChanged += delegate { OnLanguageChanged(); };
-        Controls.Add(languageBox);
+        mainPanel.Controls.Add(languageBox);
 
-        themeButton = Button("MODE CLAIR", 594, 22, 116, 28, Color.FromArgb(22, 60, 255));
+        themeButton = Button("MODE CLAIR", 528, 24, 116, 28, Color.FromArgb(22, 60, 255));
         themeButton.Click += delegate { ToggleTheme(); };
-        Controls.Add(themeButton);
+        mainPanel.Controls.Add(themeButton);
 
-        leadLabel = Label("", 22, 54, 690, 20, 9, FontStyle.Regular, Color.FromArgb(185, 185, 185));
-        Controls.Add(leadLabel);
+        freeInfoCard = new Panel
+        {
+            Location = new Point(34, 92),
+            Size = new Size(596, 126),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(freeInfoCard);
 
-        statusLabel = Label("", 22, 78, 460, 24, 10, FontStyle.Bold, Color.FromArgb(185, 185, 185));
-        Controls.Add(statusLabel);
+        freePageTitleLabel = Label("", 24, 22, 420, 32, 16, FontStyle.Bold, Color.White);
+        freeInfoCard.Controls.Add(freePageTitleLabel);
 
-        connectionLabel = Label("", 22, 118, 320, 24, 10, FontStyle.Bold, Color.FromArgb(255, 204, 0));
-        Controls.Add(connectionLabel);
+        freePageDescLabel = Label("", 24, 64, 540, 42, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        freeInfoCard.Controls.Add(freePageDescLabel);
 
-        connectButton = Button("", 374, 112, 336, 34, Color.FromArgb(22, 60, 255));
+        freeConnectionCard = new Panel
+        {
+            Location = new Point(34, 238),
+            Size = new Size(596, 106),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(freeConnectionCard);
+
+        statusLabel = Label("", 24, 18, 260, 24, 10, FontStyle.Bold, Color.FromArgb(185, 185, 185));
+        freeConnectionCard.Controls.Add(statusLabel);
+
+        connectionLabel = Label("", 24, 58, 300, 24, 9, FontStyle.Bold, Color.FromArgb(255, 204, 0));
+        freeConnectionCard.Controls.Add(connectionLabel);
+
+        connectButton = Button("", 360, 34, 206, 38, Color.FromArgb(22, 60, 255));
         connectButton.Click += async delegate { await StartLoginFlow(); };
-        Controls.Add(connectButton);
+        freeConnectionCard.Controls.Add(connectButton);
 
-        verifyLabel = Label("", 22, 166, 120, 20, 9, FontStyle.Regular, Color.White);
-        Controls.Add(verifyLabel);
+        freeControlsCard = new Panel
+        {
+            Location = new Point(34, 364),
+            Size = new Size(596, 112),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(freeControlsCard);
+
+        verifyLabel = Label("", 24, 20, 120, 20, 8, FontStyle.Regular, Color.White);
+        freeControlsCard.Controls.Add(verifyLabel);
         pollBox = new NumericUpDown
         {
             Minimum = 3,
             Maximum = 30,
             Increment = 1,
             Value = 5,
-            Location = new Point(150, 162),
+            Location = new Point(154, 16),
             Size = new Size(120, 24),
             BackColor = Color.FromArgb(14, 18, 45),
             ForeColor = Color.White
         };
-        Controls.Add(pollBox);
-        secondsLabel = Label("", 278, 166, 90, 20, 9, FontStyle.Regular, Color.White);
-        Controls.Add(secondsLabel);
+        freeControlsCard.Controls.Add(pollBox);
+        secondsLabel = Label("", 286, 20, 90, 20, 8, FontStyle.Regular, Color.White);
+        freeControlsCard.Controls.Add(secondsLabel);
 
-        startButton = Button("", 374, 160, 120, 30, Color.FromArgb(22, 60, 255));
+        startButton = Button("", 390, 14, 82, 34, Color.FromArgb(22, 60, 255));
         startButton.Click += delegate { StartCompanion(); };
-        Controls.Add(startButton);
+        freeControlsCard.Controls.Add(startButton);
 
-        stopButton = Button("", 506, 160, 120, 30, Color.FromArgb(42, 42, 48));
+        stopButton = Button("", 486, 14, 82, 34, Color.FromArgb(42, 42, 48));
         stopButton.Enabled = false;
         stopButton.Click += delegate { StopCompanion(); };
-        Controls.Add(stopButton);
+        freeControlsCard.Controls.Add(stopButton);
 
-        hintLabel = Label("", 22, 198, 690, 34, 9, FontStyle.Regular, Color.FromArgb(150, 150, 155));
-        Controls.Add(hintLabel);
+        hintLabel = Label("", 24, 66, 540, 34, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        freeControlsCard.Controls.Add(hintLabel);
 
-        importsLabel = Label("", 22, 246, 160, 20, 9, FontStyle.Bold, Color.White);
-        Controls.Add(importsLabel);
+        premiumPageTitleLabel = Label("", 34, 112, 420, 32, 16, FontStyle.Bold, Color.White);
+        mainPanel.Controls.Add(premiumPageTitleLabel);
+
+        premiumPageDescLabel = Label("", 34, 150, 590, 42, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        mainPanel.Controls.Add(premiumPageDescLabel);
+
+        highlightsTitleLabel = Label("", 34, 220, 210, 22, 10, FontStyle.Bold, Color.White);
+        mainPanel.Controls.Add(highlightsTitleLabel);
+
+        highlightsToggle = new CheckBox
+        {
+            Location = new Point(360, 216),
+            Size = new Size(278, 28),
+            FlatStyle = FlatStyle.Flat,
+            Font = AppFont(8, FontStyle.Bold),
+            ForeColor = Color.White
+        };
+        highlightsToggle.CheckedChanged += delegate { OnHighlightsChanged(); };
+        mainPanel.Controls.Add(highlightsToggle);
+
+        highlightsDescLabel = Label("", 34, 260, 590, 54, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        mainPanel.Controls.Add(highlightsDescLabel);
+
+        highlightsStatusLabel = Label("", 34, 306, 590, 44, 8, FontStyle.Bold, Color.FromArgb(255, 204, 0));
+        mainPanel.Controls.Add(highlightsStatusLabel);
+
+        importsLabel = Label("", 34, 492, 160, 20, 9, FontStyle.Bold, Color.White);
+        mainPanel.Controls.Add(importsLabel);
         historyList = new ListBox
         {
-            Location = new Point(22, 270),
-            Size = new Size(314, 204),
+            Location = new Point(34, 516),
+            Size = new Size(290, 56),
             BackColor = Color.FromArgb(4, 4, 6),
             ForeColor = Color.White,
             BorderStyle = BorderStyle.FixedSingle
         };
-        Controls.Add(historyList);
+        mainPanel.Controls.Add(historyList);
 
-        journalLabel = Label("", 356, 246, 160, 20, 9, FontStyle.Bold, Color.White);
-        Controls.Add(journalLabel);
+        journalLabel = Label("", 348, 492, 160, 20, 9, FontStyle.Bold, Color.White);
+        mainPanel.Controls.Add(journalLabel);
         logBox = new TextBox
         {
-            Location = new Point(356, 270),
-            Size = new Size(344, 204),
+            Location = new Point(348, 516),
+            Size = new Size(290, 56),
             Multiline = true,
             ScrollBars = ScrollBars.Vertical,
             ReadOnly = true,
             BackColor = Color.FromArgb(4, 4, 6),
             ForeColor = Color.FromArgb(220, 220, 225),
+            Font = new Font("Consolas", 8, FontStyle.Regular),
             BorderStyle = BorderStyle.FixedSingle
         };
-        Controls.Add(logBox);
+        mainPanel.Controls.Add(logBox);
     }
 
     private Label Label(string text, int x, int y, int w, int h, float size, FontStyle style, Color color)
@@ -235,6 +473,8 @@ public sealed class WzproCompanionApp : Form
         };
         button.FlatAppearance.BorderSize = 1;
         button.FlatAppearance.BorderColor = color;
+        button.FlatAppearance.MouseOverBackColor = color;
+        button.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(color);
         return button;
     }
 
@@ -301,9 +541,26 @@ public sealed class WzproCompanionApp : Form
             switch (key)
             {
                 case "title": return "WZPRO COMPANION";
-                case "lead": return "Connect this app to your WZPRO account, then let it watch Warzone while you play.";
+                case "lead": return "";
                 case "themeLight": return "LIGHT MODE";
                 case "themeDark": return "DARK MODE";
+                case "freeAccess": return "FREE ACCESS";
+                case "premiumAccess": return "PREMIUM";
+                case "freePageTitle": return "Free performance tracker";
+                case "freePageDesc": return "Connect WZPRO, launch Warzone and let Companion import your end-game stats automatically.";
+                case "premiumPageTitle": return "Premium access";
+                case "premiumPageDesc": return "Optional paid modules for players who want clips, review tools and richer automation inside the same app.";
+                case "profileGuest": return "Not connected";
+                case "goSettings": return "Go to settings";
+                case "logout": return "Log out";
+                case "welcomeKicker": return "STEP INTO WZPRO";
+                case "welcomeTitle": return "WZPRO COMPANION TRACKS YOUR GAME STATS";
+                case "welcomeSubtitle": return "";
+                case "welcomeStats": return "Live stats import  /  Free access  /  Premium modules ready";
+                case "welcomeLoginTitle": return "Connect to continue";
+                case "welcomeConnect": return "CONNECT WZPRO";
+                case "welcomeSite": return "OPEN SITE";
+                case "welcomeStatus": return "Connection opens your browser with a temporary code. Once approved, this app continues automatically.";
                 case "stopped": return "Stopped";
                 case "disconnected": return "Not connected";
                 case "connect": return "CONNECT TO WZPRO";
@@ -313,6 +570,12 @@ public sealed class WzproCompanionApp : Form
                 case "start": return "START";
                 case "stop": return "STOP";
                 case "hint": return "Connection opens your browser. Once authorized on the site, the key stays hidden in this app.";
+                case "highlightsTitle": return "Highlights Pro";
+                case "highlightsToggle": return "AUTO CLIPS";
+                case "highlightsDesc": return "Paid module planned: keep a rolling game buffer, save only kill/death moments, then build a best-of at the end of each game.";
+                case "highlightsStatusOn": return "Queued for Pro access. Recording will stay inactive until the paid module is released.";
+                case "highlightsStatusOff": return "Optional paid add-on. Free tracking keeps working without it.";
+                case "highlightsQueued": return "Highlights Pro option is selected. Video capture is a paid module and is not active in this build.";
                 case "imports": return "Imports";
                 case "journal": return "Log";
                 case "ready": return "Ready. Start when Warzone is open.";
@@ -356,9 +619,26 @@ public sealed class WzproCompanionApp : Form
             switch (key)
             {
                 case "title": return "WZPRO COMPANION";
-                case "lead": return "Conecta esta app a tu cuenta WZPRO y dejala vigilar Warzone mientras juegas.";
+                case "lead": return "";
                 case "themeLight": return "MODO CLARO";
                 case "themeDark": return "MODO OSCURO";
+                case "freeAccess": return "ACCESO GRATIS";
+                case "premiumAccess": return "PREMIUM";
+                case "freePageTitle": return "Tracker gratis";
+                case "freePageDesc": return "Conecta WZPRO, abre Warzone y deja que Companion importe tus stats de fin de partida.";
+                case "premiumPageTitle": return "Acceso premium";
+                case "premiumPageDesc": return "Modulos de pago opcionales para clips, review y automatizaciones mas completas en la misma app.";
+                case "profileGuest": return "No conectado";
+                case "goSettings": return "Ir a ajustes";
+                case "logout": return "Cerrar sesion";
+                case "welcomeKicker": return "ENTRA EN WZPRO";
+                case "welcomeTitle": return "WZPRO COMPANION TRACKTEA TUS STATS DE PARTIDA";
+                case "welcomeSubtitle": return "";
+                case "welcomeStats": return "Import de stats  /  Acceso gratis  /  Modulos premium listos";
+                case "welcomeLoginTitle": return "Conecta para continuar";
+                case "welcomeConnect": return "CONECTAR WZPRO";
+                case "welcomeSite": return "ABRIR SITIO";
+                case "welcomeStatus": return "La conexion abre tu navegador con un codigo temporal. Tras aprobarlo, esta app continua automaticamente.";
                 case "stopped": return "Detenido";
                 case "disconnected": return "No conectado";
                 case "connect": return "CONECTAR A WZPRO";
@@ -368,6 +648,12 @@ public sealed class WzproCompanionApp : Form
                 case "start": return "INICIAR";
                 case "stop": return "PARAR";
                 case "hint": return "La conexion abre tu navegador. Una vez autorizada en el sitio, la clave queda oculta en esta app.";
+                case "highlightsTitle": return "Highlights Pro";
+                case "highlightsToggle": return "CLIPS AUTO";
+                case "highlightsDesc": return "Modulo de pago previsto: buffer de partida, guarda solo kills/muertes y crea un best-of al final de cada partida.";
+                case "highlightsStatusOn": return "Preparado para acceso Pro. La grabacion queda inactiva hasta publicar el modulo de pago.";
+                case "highlightsStatusOff": return "Add-on de pago opcional. El tracking gratis sigue funcionando sin el.";
+                case "highlightsQueued": return "Highlights Pro esta seleccionado. La captura de video es de pago y no esta activa en esta build.";
                 case "imports": return "Importaciones";
                 case "journal": return "Registro";
                 case "ready": return "Listo. Inicia cuando Warzone este abierto.";
@@ -410,9 +696,26 @@ public sealed class WzproCompanionApp : Form
         switch (key)
         {
             case "title": return "WZPRO COMPANION";
-            case "lead": return "Connecte cette app a ton compte WZPRO, puis laisse-la surveiller Warzone quand tu joues.";
+            case "lead": return "";
             case "themeLight": return "MODE CLAIR";
             case "themeDark": return "MODE SOMBRE";
+            case "freeAccess": return "FREE ACCESS";
+            case "premiumAccess": return "PREMIUM";
+            case "freePageTitle": return "Tracker gratuit";
+            case "freePageDesc": return "Connecte WZPRO, lance Warzone et laisse Companion importer automatiquement tes stats de fin de game.";
+            case "premiumPageTitle": return "Acces premium";
+            case "premiumPageDesc": return "Modules payants optionnels pour les clips, la review et plus d automatisations dans la meme app.";
+            case "profileGuest": return "Non connecte";
+            case "goSettings": return "Go to settings";
+            case "logout": return "Deconnexion";
+            case "welcomeKicker": return "ENTRE DANS WZPRO";
+            case "welcomeTitle": return "WZPRO COMPANION TRACKE TES STATISTIQUES DE GAME";
+            case "welcomeSubtitle": return "";
+            case "welcomeStats": return "Import stats live  /  Acces gratuit  /  Modules premium prets";
+            case "welcomeLoginTitle": return "Connexion requise";
+            case "welcomeConnect": return "CONNECTER WZPRO";
+            case "welcomeSite": return "OUVRIR LE SITE";
+            case "welcomeStatus": return "La connexion ouvre ton navigateur avec un code temporaire. Une fois validee, l app continue automatiquement.";
             case "stopped": return "Arrete";
             case "disconnected": return "Non connecte";
             case "connect": return "SE CONNECTER A WZPRO";
@@ -422,6 +725,12 @@ public sealed class WzproCompanionApp : Form
             case "start": return "START";
             case "stop": return "STOP";
             case "hint": return "La connexion ouvre ton navigateur. Une fois autorisee sur le site, la cle reste cachee dans cette app.";
+            case "highlightsTitle": return "Highlights Pro";
+            case "highlightsToggle": return "CLIPS AUTO";
+            case "highlightsDesc": return "Module payant prevu: buffer de game, sauvegarde seulement les kills/morts, puis genere un best-of a la fin de chaque partie.";
+            case "highlightsStatusOn": return "Prepare pour l acces Pro. L enregistrement reste inactif tant que le module payant n est pas publie.";
+            case "highlightsStatusOff": return "Option payante non obligatoire. Le tracking gratuit continue sans elle.";
+            case "highlightsQueued": return "Option Highlights Pro selectionnee. La capture video est payante et inactive dans cette build.";
             case "imports": return "Imports";
             case "journal": return "Journal";
             case "ready": return "Pret. Lance quand Warzone est ouvert.";
@@ -487,22 +796,195 @@ public sealed class WzproCompanionApp : Form
         SaveSession();
     }
 
+    private void OnWelcomeLanguageChanged()
+    {
+        if (updatingLanguageUi || welcomeLanguageBox.SelectedItem == null) return;
+        languageCode = welcomeLanguageBox.SelectedItem.ToString().ToLowerInvariant();
+        ApplyLanguage();
+        RefreshConnectionUi();
+        SaveSession();
+    }
+
+    private void ShowWelcome()
+    {
+        if (welcomePanel != null) welcomePanel.Visible = true;
+        if (sidebarPanel != null) sidebarPanel.Visible = false;
+        if (mainPanel != null) mainPanel.Visible = false;
+    }
+
+    private void ShowAppShell()
+    {
+        if (welcomePanel != null) welcomePanel.Visible = false;
+        if (sidebarPanel != null) sidebarPanel.Visible = true;
+        if (mainPanel != null) mainPanel.Visible = true;
+        ShowPage(activePage);
+    }
+
+    private void ShowPage(string page)
+    {
+        activePage = page == "premium" ? "premium" : "free";
+        bool premium = activePage == "premium";
+
+        if (freeInfoCard != null) freeInfoCard.Visible = !premium;
+        if (freeConnectionCard != null) freeConnectionCard.Visible = !premium;
+        if (freeControlsCard != null) freeControlsCard.Visible = !premium;
+        importsLabel.Visible = !premium;
+        historyList.Visible = !premium;
+        journalLabel.Visible = !premium;
+        logBox.Visible = !premium;
+
+        highlightsTitleLabel.Visible = premium;
+        premiumPageTitleLabel.Visible = premium;
+        premiumPageDescLabel.Visible = premium;
+        highlightsToggle.Visible = premium;
+        highlightsDescLabel.Visible = false;
+        highlightsStatusLabel.Visible = premium;
+
+        StylePageButtons(Theme);
+    }
+
+    private void OnHighlightsChanged()
+    {
+        highlightsProEnabled = highlightsToggle.Checked;
+        highlightsStatusLabel.Text = highlightsProEnabled ? T("highlightsStatusOn") : T("highlightsStatusOff");
+        highlightsStatusLabel.ForeColor = highlightsProEnabled ? Theme.Warn : Theme.Muted;
+        SaveSession();
+    }
+
+    private void ShowProfileMenu()
+    {
+        if (profileMenu == null || profilePanel == null) return;
+        profileMenu.Show(profilePanel, new Point(0, -profileMenu.Height));
+    }
+
+    private void OpenProfileSettings()
+    {
+        OpenUrl(site + "/account#public-profile-settings");
+    }
+
+    private void LogoutProfile()
+    {
+        StopCompanion();
+        deviceToken = "";
+        connectedName = "";
+        profilePictureUrl = "";
+        deviceCode = "";
+        deviceId = "";
+        pollingLogin = false;
+        if (loginPollTimer != null) loginPollTimer.Stop();
+        SaveSession();
+        RefreshConnectionUi();
+        RefreshProfileUi();
+        ShowWelcome();
+    }
+
+    private void RefreshProfileUi()
+    {
+        if (profileNameLabel == null || profilePictureBox == null) return;
+        string name = string.IsNullOrWhiteSpace(connectedName) ? T("profileGuest") : connectedName;
+        profileNameLabel.Text = name;
+        profilePictureBox.Image = BuildAvatarImage(name);
+        if (!string.IsNullOrWhiteSpace(profilePictureUrl))
+        {
+            Task.Run(async delegate { await LoadProfilePicture(profilePictureUrl); });
+        }
+    }
+
+    private Bitmap BuildAvatarImage(string name)
+    {
+        var theme = Theme;
+        var bitmap = new Bitmap(38, 38);
+        using (Graphics g = Graphics.FromImage(bitmap))
+        using (SolidBrush bg = new SolidBrush(theme.Blue))
+        using (SolidBrush fg = new SolidBrush(theme.BlueText))
+        using (Font font = AppFont(10, FontStyle.Bold))
+        {
+            g.Clear(theme.Surface);
+            g.FillEllipse(bg, 1, 1, 36, 36);
+            string initials = Initials(name);
+            SizeF size = g.MeasureString(initials, font);
+            g.DrawString(initials, font, fg, (38 - size.Width) / 2, (38 - size.Height) / 2);
+        }
+        return bitmap;
+    }
+
+    private static string Initials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "WZ";
+        string[] parts = name.Trim().Split(new[] { ' ', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2) return (parts[0].Substring(0, 1) + parts[1].Substring(0, 1)).ToUpperInvariant();
+        return name.Trim().Substring(0, Math.Min(2, name.Trim().Length)).ToUpperInvariant();
+    }
+
+    private async Task LoadProfilePicture(string value)
+    {
+        try
+        {
+            byte[] bytes;
+            if (value.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
+            {
+                int comma = value.IndexOf(',');
+                if (comma < 0) return;
+                bytes = Convert.FromBase64String(value.Substring(comma + 1));
+            }
+            else
+            {
+                bytes = await http.GetByteArrayAsync(value);
+            }
+
+            using (var stream = new MemoryStream(bytes))
+            {
+                Image image = Image.FromStream(stream);
+                if (profilePictureBox != null && !profilePictureBox.IsDisposed)
+                {
+                    profilePictureBox.BeginInvoke(new Action(delegate { profilePictureBox.Image = image; }));
+                }
+            }
+        }
+        catch
+        {
+            // Avatar initials remain as fallback.
+        }
+    }
+
     private void ApplyLanguage()
     {
         Text = "WZPRO Companion";
         titleLabel.Text = T("title");
         leadLabel.Text = T("lead");
+        freeAccessButton.Text = T("freeAccess");
+        premiumButton.Text = T("premiumAccess");
+        freePageTitleLabel.Text = T("freePageTitle");
+        freePageDescLabel.Text = T("freePageDesc");
+        premiumPageTitleLabel.Text = T("premiumPageTitle");
+        premiumPageDescLabel.Text = T("premiumPageDesc");
+        profileSettingsItem.Text = T("goSettings");
+        profileLogoutItem.Text = T("logout");
+        welcomeKickerLabel.Text = T("welcomeKicker");
+        welcomeTitleLabel.Text = T("welcomeTitle");
+        welcomeSubtitleLabel.Text = T("welcomeSubtitle");
+        welcomeStatsLabel.Text = T("welcomeStats");
+        welcomeLoginTitleLabel.Text = T("welcomeLoginTitle");
+        welcomeConnectButton.Text = T("welcomeConnect");
+        welcomeSiteButton.Text = T("welcomeSite");
+        welcomeLoginStatusLabel.Text = pollingLogin ? T("connecting") : T("welcomeStatus");
+        RefreshProfileUi();
         verifyLabel.Text = T("verifyEvery");
         secondsLabel.Text = T("seconds");
         startButton.Text = T("start");
         stopButton.Text = T("stop");
         hintLabel.Text = T("hint");
+        highlightsTitleLabel.Text = T("highlightsTitle");
+        highlightsToggle.Text = T("highlightsToggle");
+        highlightsDescLabel.Text = T("highlightsDesc");
+        highlightsStatusLabel.Text = highlightsProEnabled ? T("highlightsStatusOn") : T("highlightsStatusOff");
         importsLabel.Text = T("imports");
         journalLabel.Text = T("journal");
         themeButton.Text = themeMode == "light" ? T("themeDark") : T("themeLight");
 
         updatingLanguageUi = true;
         languageBox.SelectedItem = languageCode.ToUpperInvariant();
+        welcomeLanguageBox.SelectedItem = languageCode.ToUpperInvariant();
         updatingLanguageUi = false;
 
         if (trayShowItem != null) trayShowItem.Text = T("show");
@@ -510,6 +992,7 @@ public sealed class WzproCompanionApp : Form
         if (trayStopItem != null) trayStopItem.Text = T("stop");
         if (trayQuitItem != null) trayQuitItem.Text = T("quit");
         if (tray != null && !IsRunning) tray.Text = T("trayStopped");
+        ShowPage(activePage);
     }
 
     private void ApplyTheme()
@@ -517,22 +1000,65 @@ public sealed class WzproCompanionApp : Form
         var theme = Theme;
         BackColor = theme.Canvas;
         ForeColor = theme.Ink;
+        if (sidebarPanel != null) sidebarPanel.BackColor = theme.SurfaceAlt;
+        if (mainPanel != null) mainPanel.BackColor = theme.Canvas;
+        if (welcomePanel != null) welcomePanel.BackColor = theme.Canvas;
+        if (welcomeLoginPanel != null) welcomeLoginPanel.BackColor = theme.Surface;
+        if (freeInfoCard != null) freeInfoCard.BackColor = theme.Surface;
+        if (freeConnectionCard != null) freeConnectionCard.BackColor = theme.Surface;
+        if (freeControlsCard != null) freeControlsCard.BackColor = theme.Surface;
+        if (profilePanel != null) profilePanel.BackColor = theme.SurfaceAlt;
+        if (profileNameLabel != null) profileNameLabel.ForeColor = theme.Ink;
+        if (profilePictureBox != null) profilePictureBox.BackColor = Color.Transparent;
+        if (profileMenu != null)
+        {
+            profileMenu.BackColor = theme.SurfaceAlt;
+            profileMenu.ForeColor = theme.Ink;
+        }
 
         ApplyThemeToControls(Controls, theme);
 
+        if (sidebarPanel != null) sidebarPanel.BackColor = theme.SurfaceAlt;
+        if (mainPanel != null) mainPanel.BackColor = theme.Canvas;
+        if (welcomePanel != null) welcomePanel.BackColor = theme.Canvas;
+        if (welcomeLoginPanel != null) welcomeLoginPanel.BackColor = theme.Surface;
+        if (freeInfoCard != null) freeInfoCard.BackColor = theme.Surface;
+        if (freeConnectionCard != null) freeConnectionCard.BackColor = theme.Surface;
+        if (freeControlsCard != null) freeControlsCard.BackColor = theme.Surface;
+        if (profilePanel != null) profilePanel.BackColor = theme.SurfaceAlt;
+        if (profileNameLabel != null) profileNameLabel.ForeColor = theme.Ink;
+        if (profilePictureBox != null) profilePictureBox.BackColor = Color.Transparent;
         titleLabel.ForeColor = theme.Blue;
+        welcomeKickerLabel.ForeColor = theme.Blue;
+        welcomeTitleLabel.ForeColor = theme.Ink;
+        welcomeSubtitleLabel.ForeColor = theme.Muted;
+        welcomeStatsLabel.ForeColor = theme.Ink;
+        welcomeLoginTitleLabel.ForeColor = theme.Ink;
+        welcomeLoginStatusLabel.ForeColor = theme.Muted;
         leadLabel.ForeColor = theme.Muted;
+        freePageTitleLabel.ForeColor = theme.Ink;
+        freePageDescLabel.ForeColor = theme.Muted;
+        premiumPageTitleLabel.ForeColor = theme.Ink;
+        premiumPageDescLabel.ForeColor = theme.Muted;
         hintLabel.ForeColor = theme.Muted;
         verifyLabel.ForeColor = theme.Ink;
         secondsLabel.ForeColor = theme.Ink;
+        highlightsTitleLabel.ForeColor = theme.Blue;
+        highlightsDescLabel.ForeColor = theme.Muted;
+        highlightsStatusLabel.ForeColor = highlightsProEnabled ? theme.Warn : theme.Muted;
         importsLabel.ForeColor = theme.Blue;
         journalLabel.ForeColor = theme.Blue;
 
         StylePrimaryButton(connectButton, theme);
+        StylePrimaryButton(welcomeConnectButton, theme);
+        StyleSecondaryButton(welcomeSiteButton, theme);
         StylePrimaryButton(startButton, theme);
         StyleSecondaryButton(stopButton, theme);
         StyleSecondaryButton(themeButton, theme);
         StyleComboBox(languageBox, theme);
+        StyleCheckBox(highlightsToggle, theme);
+        StylePageButtons(theme);
+        RefreshProfileUi();
     }
 
     private void ApplyThemeToControls(Control.ControlCollection controls, WzTheme theme)
@@ -552,6 +1078,11 @@ public sealed class WzproCompanionApp : Form
             else if (control is Button)
             {
                 control.BackColor = theme.SurfaceAlt;
+                control.ForeColor = theme.Ink;
+            }
+            else if (control is CheckBox)
+            {
+                control.BackColor = Color.Transparent;
                 control.ForeColor = theme.Ink;
             }
 
@@ -579,11 +1110,37 @@ public sealed class WzproCompanionApp : Form
         button.FlatAppearance.MouseDownBackColor = theme.SurfaceAlt;
     }
 
+    private void StylePageButtons(WzTheme theme)
+    {
+        StylePageButton(freeAccessButton, activePage == "free", theme);
+        StylePageButton(premiumButton, activePage == "premium", theme);
+    }
+
+    private void StylePageButton(Button button, bool active, WzTheme theme)
+    {
+        if (button == null) return;
+        button.BackColor = active ? theme.Blue : theme.SurfaceAlt;
+        button.ForeColor = active ? theme.BlueText : theme.Ink;
+        button.FlatAppearance.BorderColor = active ? theme.Blue : theme.Line;
+        button.FlatAppearance.MouseOverBackColor = active ? theme.Blue : theme.Surface;
+        button.FlatAppearance.MouseDownBackColor = active ? theme.Blue : theme.SurfaceAlt;
+    }
+
     private void StyleComboBox(ComboBox comboBox, WzTheme theme)
     {
         if (comboBox == null) return;
         comboBox.BackColor = theme.SurfaceAlt;
         comboBox.ForeColor = theme.Ink;
+    }
+
+    private void StyleCheckBox(CheckBox checkBox, WzTheme theme)
+    {
+        if (checkBox == null) return;
+        checkBox.BackColor = Color.Transparent;
+        checkBox.ForeColor = theme.Ink;
+        checkBox.FlatAppearance.BorderColor = highlightsProEnabled ? theme.Warn : theme.Line;
+        checkBox.FlatAppearance.CheckedBackColor = theme.SurfaceAlt;
+        checkBox.FlatAppearance.MouseOverBackColor = theme.SurfaceAlt;
     }
 
     private void BuildTray()
@@ -677,22 +1234,26 @@ public sealed class WzproCompanionApp : Form
             string text = File.ReadAllText(sessionPath);
             deviceToken = ExtractLine(text, "token");
             connectedName = ExtractLine(text, "userName");
+            profilePictureUrl = ExtractLine(text, "profilePicture");
             string savedTheme = ExtractLine(text, "theme");
             if (savedTheme == "light" || savedTheme == "dark") themeMode = savedTheme;
             string savedLanguage = ExtractLine(text, "language");
             if (savedLanguage == "fr" || savedLanguage == "en" || savedLanguage == "es") languageCode = savedLanguage;
+            highlightsProEnabled = ExtractLine(text, "highlightsPro") == "1";
+            if (highlightsToggle != null) highlightsToggle.Checked = highlightsProEnabled;
         }
         catch
         {
             deviceToken = "";
             connectedName = "";
+            profilePictureUrl = "";
         }
     }
 
     private void SaveSession()
     {
         Directory.CreateDirectory(sessionDir);
-        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode, Encoding.UTF8);
+        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0"), Encoding.UTF8);
     }
 
     private static string ExtractLine(string text, string key)
@@ -750,8 +1311,10 @@ public sealed class WzproCompanionApp : Form
         {
             pollingLogin = true;
             connectButton.Enabled = false;
+            if (welcomeConnectButton != null) welcomeConnectButton.Enabled = false;
             connectionLabel.Text = T("connecting");
             connectionLabel.ForeColor = Theme.Info;
+            if (welcomeLoginStatusLabel != null) welcomeLoginStatusLabel.Text = T("connecting");
             string deviceName = Environment.MachineName;
             string response = await ApiPost("/api/companion/device/start", "{\"deviceName\":\"" + JsonEscape(deviceName) + "\"}");
             deviceCode = JsonString(response, "code");
@@ -765,8 +1328,10 @@ public sealed class WzproCompanionApp : Form
         {
             pollingLogin = false;
             connectButton.Enabled = true;
+            if (welcomeConnectButton != null) welcomeConnectButton.Enabled = true;
             connectionLabel.Text = T("loginImpossible");
             connectionLabel.ForeColor = Theme.Warn;
+            if (welcomeLoginStatusLabel != null) welcomeLoginStatusLabel.Text = T("loginImpossible");
             AddLogLine(T("loginFailed") + ex.Message);
         }
     }
@@ -784,8 +1349,11 @@ public sealed class WzproCompanionApp : Form
                 pollingLogin = false;
                 deviceToken = JsonString(response, "token");
                 connectedName = JsonString(response, "userName");
+                profilePictureUrl = JsonString(response, "profilePicture");
                 SaveSession();
                 RefreshConnectionUi();
+                RefreshProfileUi();
+                ShowAppShell();
                 AddLogLine(T("connectedAs") + connectedName);
             }
             else if (status == "expired")
@@ -795,6 +1363,8 @@ public sealed class WzproCompanionApp : Form
                 deviceCode = "";
                 deviceId = "";
                 RefreshConnectionUi();
+                if (welcomeConnectButton != null) welcomeConnectButton.Enabled = true;
+                if (welcomeLoginStatusLabel != null) welcomeLoginStatusLabel.Text = T("expired");
                 AddLogLine(T("expired"));
             }
         }
@@ -812,6 +1382,8 @@ public sealed class WzproCompanionApp : Form
             connectionLabel.Text = (languageCode == "en" ? "Connected: " : languageCode == "es" ? "Conectado: " : "Connecte : ") + (string.IsNullOrWhiteSpace(connectedName) ? "WZPRO" : connectedName);
             connectionLabel.ForeColor = theme.Success;
             connectButton.Text = T("reconnect");
+            if (welcomeConnectButton != null) welcomeConnectButton.Text = T("welcomeConnect");
+            if (welcomeConnectButton != null) welcomeConnectButton.Enabled = !pollingLogin;
             startButton.Enabled = true;
         }
         else
@@ -819,8 +1391,11 @@ public sealed class WzproCompanionApp : Form
             connectionLabel.Text = T("disconnected");
             connectionLabel.ForeColor = theme.Warn;
             connectButton.Text = T("connect");
+            if (welcomeConnectButton != null) welcomeConnectButton.Text = T("welcomeConnect");
+            if (welcomeConnectButton != null) welcomeConnectButton.Enabled = !pollingLogin;
             startButton.Enabled = false;
         }
+        RefreshProfileUi();
     }
 
     private void StartCompanion()
@@ -842,6 +1417,7 @@ public sealed class WzproCompanionApp : Form
         statusLabel.Text = T("starting");
         statusLabel.ForeColor = Theme.Info;
         AddLogLine(T("startingFor") + site);
+        if (highlightsProEnabled) AddLogLine(T("highlightsQueued"));
 
         var start = new ProcessStartInfo
         {

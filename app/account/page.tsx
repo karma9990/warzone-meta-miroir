@@ -115,6 +115,16 @@ const copy = {
     perfDesc: 'Saved to your account, with a local browser copy as fallback.',
     openShare: 'Open share card',
     setPseudo: 'Set pseudo to share',
+    companionKicker: 'WZPRO COMPANION',
+    companionTitle: 'Optional auto capture',
+    companionDesc: 'Run the tool on your PC during Warzone. It waits for the game to be open and active, captures only the game window, detects end-game screens, reads stats with OCR and sends them to this profile.',
+    companionDownload: 'Download WZPRO Companion (.zip)',
+    companionPrivacy: 'Connection opens the browser with a temporary code. No private key is displayed.',
+    companionHighlights: 'Highlights Pro',
+    companionHighlightsDesc: 'Planned paid add-on inside the same .exe: rolling recording buffer, kill/death clips only, and an automatic best-of after each game.',
+    companionBase: 'Free tracker',
+    companionPro: 'Paid option',
+    companionDevices: 'Connected devices',
     googleOAuth: 'Google OAuth',
     bnOAuth: 'Battle.net OAuth',
     appleOAuth: 'Apple OAuth',
@@ -181,6 +191,16 @@ const copy = {
     perfDesc: 'Sauvegarde sur votre compte, avec une copie locale en secours.',
     openShare: 'Ouvrir la carte de partage',
     setPseudo: 'Definir un pseudo pour partager',
+    companionKicker: 'WZPRO COMPANION',
+    companionTitle: 'Capture auto volontaire',
+    companionDesc: 'Lance l outil sur ton PC pendant Warzone. Il attend que le jeu soit ouvert et actif, capture uniquement la fenetre du jeu, detecte les ecrans de fin de game, lit les stats par OCR et les envoie sur ce profil.',
+    companionDownload: 'Telecharger WZPRO Companion (.zip)',
+    companionPrivacy: 'La connexion se fait dans le navigateur avec un code temporaire. Aucune cle privee n est affichee.',
+    companionHighlights: 'Highlights Pro',
+    companionHighlightsDesc: 'Add-on payant prevu dans le meme .exe: buffer d enregistrement, clips seulement sur kill/mort, puis best-of automatique a la fin de chaque game.',
+    companionBase: 'Tracker gratuit',
+    companionPro: 'Option payante',
+    companionDevices: 'Appareils connectes',
     googleOAuth: 'Google OAuth',
     bnOAuth: 'Battle.net OAuth',
     appleOAuth: 'Apple OAuth',
@@ -247,6 +267,16 @@ const copy = {
     perfDesc: 'Guardado en tu cuenta, con una copia local como respaldo.',
     openShare: 'Abrir tarjeta de compartir',
     setPseudo: 'Define un pseudo para compartir',
+    companionKicker: 'WZPRO COMPANION',
+    companionTitle: 'Captura automatica opcional',
+    companionDesc: 'Ejecuta la herramienta en tu PC durante Warzone. Espera a que el juego este abierto y activo, captura solo la ventana del juego, detecta pantallas de fin de partida, lee las stats por OCR y las envia a este perfil.',
+    companionDownload: 'Descargar WZPRO Companion (.zip)',
+    companionPrivacy: 'La conexion se hace en el navegador con un codigo temporal. No se muestra ninguna clave privada.',
+    companionHighlights: 'Highlights Pro',
+    companionHighlightsDesc: 'Add-on de pago previsto en el mismo .exe: buffer de grabacion, clips solo en kills/muertes y best-of automatico al final de cada partida.',
+    companionBase: 'Tracker gratis',
+    companionPro: 'Opcion de pago',
+    companionDevices: 'Dispositivos conectados',
     googleOAuth: 'Google OAuth',
     bnOAuth: 'Battle.net OAuth',
     appleOAuth: 'Apple OAuth',
@@ -518,17 +548,23 @@ export default async function AccountPage() {
           </div>
           <StatsTracker initialEntries={profile.statsEntries} syncToAccount initialActivisionId={profile.activisionId} />
           <aside className="account-companion-panel">
-            <span>WZPRO COMPANION</span>
-            <h3>Capture auto volontaire</h3>
-            <p>
-              Lance l outil sur ton PC pendant Warzone. Il attend que le jeu soit ouvert et actif, capture uniquement la fenetre du jeu, detecte les ecrans de fin de game, lit les stats par OCR et les envoie sur ce profil.
-            </p>
+            <span>{t.companionKicker}</span>
+            <h3>{t.companionTitle}</h3>
+            <p>{t.companionDesc}</p>
+            <div className="account-companion-feature-row" aria-label="Companion feature modes">
+              <strong>{t.companionBase}</strong>
+              <strong>{t.companionPro}</strong>
+            </div>
+            <div className="account-companion-highlight">
+              <b>{t.companionHighlights}</b>
+              <small>{t.companionHighlightsDesc}</small>
+            </div>
             <a className="account-companion-download" href="/api/companion/download" download>
-              Telecharger WZPRO Companion (.zip)
+              {t.companionDownload}
             </a>
-            <small>La connexion se fait dans le navigateur avec un code temporaire. Aucune cle privee n est affichee.</small>
+            <small>{t.companionPrivacy}</small>
             <div className="account-companion-device-block">
-              <strong>Appareils connectes</strong>
+              <strong>{t.companionDevices}</strong>
               <CompanionDeviceList initialDevices={companionDevices} />
             </div>
           </aside>
@@ -649,6 +685,40 @@ export default async function AccountPage() {
           color: rgba(0,0,0,0.62);
           font-size: 0.72rem;
           line-height: 1.6;
+        }
+
+        .account-companion-feature-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .account-companion-feature-row strong {
+          display: inline-flex;
+          align-items: center;
+          min-height: 30px;
+          border: 1px solid rgba(22,60,255,0.34);
+          background: rgba(22,60,255,0.08);
+          color: #163cff;
+          font-size: 0.62rem;
+          font-weight: 950;
+          padding: 0 0.65rem;
+          text-transform: uppercase;
+        }
+
+        .account-companion-highlight {
+          display: grid;
+          gap: 0.35rem;
+          border: 1px solid rgba(0,0,0,0.14);
+          background: rgba(16,16,14,0.045);
+          padding: 0.8rem;
+        }
+
+        .account-companion-highlight b {
+          color: #10100e;
+          font-size: 0.78rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
         }
 
         .account-companion-download {
