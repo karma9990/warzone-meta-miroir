@@ -1566,11 +1566,9 @@
   .ptv2-rail-panel,
   .ptv2-jump,
   .pt-preview-card,
-  .pt-preview-unlock,
-  .safari-bar,
-  .nav-readout
+  .pt-preview-unlock
 ) {
-  background: #050506 !important;
+  background:#050506 !important;
   background-color: #050506 !important;
   background-image: none !important;
   border-color: rgba(22, 60, 255, 0.62) !important;
@@ -1587,8 +1585,8 @@
   .pt-wt-spawn-row,
   .pt-wt-plans
 ) {
-  background: rgba(22, 60, 255, 0.62) !important;
-  background-color: rgba(22, 60, 255, 0.62) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 :root[data-theme="dark"] .pro-tools-page :is(
@@ -1610,5 +1608,243 @@
 }
 
 :root[data-theme="dark"] .pro-tools-page :is(.pt-wt-module-tag, .pt-wt-entry-idx, .pt-wt-hero-kicker, .pt-wt-map-title) {
+  color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Correctif final (mode sombre)
+   1. Safari-bar : IDENTIQUE a la home (.glass-demo .safari-bar) ->
+      fond totalement transparent, AUCUN flou, cellules transparentes,
+      contours bleus. Le "noir" = le fond de page qui transparait, donc
+      exactement le meme noir que la home.
+   2. Grilles : cellules a EXACTEMENT la couleur de fond de page,
+      conteneur recadre (overflow) -> plus aucun noir qui deborde
+      des contours bleus.
+   ─────────────────────────────────────────────────────────────── */
+
+:root[data-theme="dark"] .pro-tools-page .safari-bar,
+:root[data-theme="dark"] .pro-tools-page .safari-bar .brand-pill,
+:root[data-theme="dark"] .pro-tools-page .safari-bar nav,
+:root[data-theme="dark"] .pro-tools-page .safari-bar nav a,
+:root[data-theme="dark"] .pro-tools-page .safari-bar label,
+:root[data-theme="dark"] .pro-tools-page .nav-readout,
+:root[data-theme="dark"] .pro-tools-page .nav-readout span {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border-color: rgba(22, 60, 255, 0.55) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Surfaces "cartes" : teinte panneau LEGEREMENT plus claire que le fond
+   de page (#050506). Chaque case bleue se lit alors comme une boite
+   distincte au lieu d'un seul bloc noir continu. Le fond de page et le
+   wrapper .pt-wt restent en #050506 -> les gaps entre cartes sont plus
+   sombres que les cartes, le noir ne "deborde" plus des contours bleus. */
+:root[data-theme="dark"] .pro-tools-page.pro-tools-page :is(
+  .pt-wt-hero,
+  .pt-wt-module,
+  .ptv2-rail-panel,
+  .ptv2-jump,
+  .pt-preview-card,
+  .pt-preview-unlock,
+  .pt-wt-proof-grid > article,
+  .pt-wt-product-preview > div,
+  .pt-wt-hero-stats > div,
+  .pt-wt-spawn-row > .pt-wt-spawn,
+  .pt-wt-plans > .pt-wt-plan,
+  .pt-access-compare > article
+) {
+  background: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Grilles : conteneur recadre + cellules sans bordure propre (les lignes
+   bleues viennent du fond bleu du conteneur via le gap 1px). */
+:root[data-theme="dark"] .pro-tools-page .pt-wt :is(
+  .pt-wt-proof-grid,
+  .pt-wt-product-preview,
+  .pt-wt-hero-stats,
+  .pt-wt-spawn-row,
+  .pt-wt-plans
+) {
+  overflow: hidden !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page :is(
+  .pt-wt-proof-grid > article,
+  .pt-wt-product-preview > div,
+  .pt-wt-hero-stats > div,
+  .pt-wt-spawn-row > .pt-wt-spawn,
+  .pt-wt-plans > .pt-wt-plan
+) {
+  border-color: transparent !important;
+}
+
+/* .pt-access-compare : meme technique grille (conteneur bleu = lignes,
+   gap 1px, cartes recadrees, bouton "comparer" aligne sur les cases). */
+:root[data-theme="dark"] .pro-tools-page .pt-access-compare {
+  background: rgba(22, 60, 255, 0.62) !important;
+  background-color: rgba(22, 60, 255, 0.62) !important;
+  border-color: rgba(22, 60, 255, 0.62) !important;
+  overflow: hidden !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pt-access-compare > article,
+:root[data-theme="dark"] .pro-tools-page .pt-access-compare > a {
+  border-color: transparent !important;
+}
+
+/* Force Pro Tools cards off the light paper skin only in dark mode. */
+:root[data-theme="dark"]:has(.pro-tools-page),
+:root[data-theme="dark"] body:has(.pro-tools-page) {
+  background:
+    linear-gradient(90deg, var(--theme-grid-x) 1px, transparent 1px),
+    linear-gradient(var(--theme-grid-y) 1px, transparent 1px),
+    var(--tm-paper) !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page {
+  min-height: 100vh;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page.pt-wt,
+:root[data-theme="dark"] .pro-tools-page .pt-wt,
+:root[data-theme="dark"] body:has(.pro-tools-page) .ptv2-main.pt-wt {
+  --wt-ink: #ffffff;
+  --wt-muted: rgba(255, 255, 255, 0.72);
+  --wt-line: rgba(22, 60, 255, 0.62);
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pt-wt::before,
+:root[data-theme="dark"] .pro-tools-page .pt-wt::after {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pt-wt :is(
+  .pt-wt-hero,
+  .pt-wt-proof-grid > article,
+  .pt-wt-module,
+  .ptv2-rail-panel,
+  .ptv2-jump,
+  .pt-wt-product-preview > div,
+  .pt-wt-hero-stats > div,
+  .pt-wt-spawn-row > .pt-wt-spawn,
+  .pt-wt-plans > .pt-wt-plan,
+  .pt-access-compare > article,
+  .pt-access-compare > a
+) {
+  background: #050506 !important;
+  background-color: #050506 !important;
+  background-image: none !important;
+  border-color: rgba(22, 60, 255, 0.62) !important;
+  color: #ffffff !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pt-wt :is(
+  .pt-wt-proof-grid,
+  .pt-wt-product-preview,
+  .pt-wt-hero-stats,
+  .pt-wt-spawn-row,
+  .pt-wt-plans,
+  .pt-access-compare
+) {
+  background: rgba(22, 60, 255, 0.62) !important;
+  background-color: rgba(22, 60, 255, 0.62) !important;
+  border-color: rgba(22, 60, 255, 0.62) !important;
+  overflow: hidden !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pt-wt :is(
+  .pt-wt-proof-grid > article,
+  .pt-wt-product-preview > div,
+  .pt-wt-hero-stats > div,
+  .pt-wt-spawn-row > .pt-wt-spawn,
+  .pt-wt-plans > .pt-wt-plan,
+  .pt-access-compare > article,
+  .pt-access-compare > a
+) {
+  border-color: transparent !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pt-wt :is(p, small, span, li, dd, dt, label) {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pt-wt :is(h1, h2, h3, strong, b, .pt-wt-hero-title) {
+  color: #ffffff !important;
+}
+
+:root[data-theme="dark"] .pro-tools-page .pt-wt :is(
+  .pt-wt-hero-kicker,
+  .pt-wt-proof-grid span,
+  .pt-wt-module-idx,
+  .pt-wt-module-tag,
+  .pt-wt-entry-idx,
+  .pt-wt-map-title,
+  .pt-wt-hero-stats dd
+) {
   color: #4d6bff !important;
+}
+
+/* Dark Pro Tools: remove component fills so only the shared page background shows through. */
+:root[data-theme="dark"] body:has(.pro-tools-page) :is(
+  .pt-wt-hero,
+  .pt-wt-proof-grid,
+  .pt-wt-proof-grid > article,
+  .pt-wt-module,
+  .ptv2-rail-panel,
+  .ptv2-jump,
+  .pt-wt-product-preview,
+  .pt-wt-product-preview > div,
+  .pt-wt-hero-stats,
+  .pt-wt-hero-stats > div,
+  .pt-wt-spawn-row,
+  .pt-wt-spawn-row > .pt-wt-spawn,
+  .pt-wt-plans,
+  .pt-wt-plans > .pt-wt-plan,
+  .pt-access-compare,
+  .pt-access-compare > article,
+  .pt-access-compare > a,
+  .pt-preview-card,
+  .pt-preview-unlock
+) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] body:has(.pro-tools-page) :is(
+  .pt-wt-hero,
+  .pt-wt-proof-grid,
+  .pt-wt-module,
+  .ptv2-rail-panel,
+  .ptv2-jump,
+  .pt-wt-product-preview,
+  .pt-wt-hero-stats,
+  .pt-wt-spawn-row,
+  .pt-wt-plans,
+  .pt-access-compare,
+  .pt-preview-card,
+  .pt-preview-unlock
+) {
+  border-color: rgba(22, 60, 255, 0.62) !important;
 }

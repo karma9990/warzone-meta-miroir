@@ -1,0 +1,46 @@
+﻿{
+    "product":  "WZPRO Companion",
+    "version":  "0.1.0",
+    "channel":  "public-preview",
+    "createdAt":  "2026-06-17T04:26:25Z",
+    "downloadUrl":  "https://wzprometa.com/downloads/wzpro-companion/v0.1.0/WZPRO-Companion-Setup.exe",
+    "latestDownloadUrl":  "https://wzprometa.com/downloads/WZPRO-Companion-Setup.exe",
+    "documentationUrl":  "https://wzprometa.com/companion",
+    "files":  [
+                  {
+                      "name":  "WZPRO Companion Setup.exe",
+                      "role":  "installer",
+                      "path":  "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\dist\\wzpro-companion-installer\\WZPRO Companion Setup.exe",
+                      "size":  55898670,
+                      "sha256":  "82EE465659A158BDA794CFA5344193581D74EDC73FAB0689FAF962DFF31CE374"
+                  },
+                  {
+                      "name":  "WZPRO Companion.exe",
+                      "role":  "launcher",
+                      "path":  "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\dist\\wzpro-companion\\WZPRO Companion.exe",
+                      "size":  174592,
+                      "sha256":  "1E833188DDC5F2BE62750BE36984887F8D8E18E6680079C22013812B605F1059"
+                  },
+                  {
+                      "name":  "WZPRO Companion.zip",
+                      "role":  "portable-package",
+                      "path":  "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\dist\\wzpro-companion\\WZPRO Companion.zip",
+                      "size":  83325730,
+                      "sha256":  "05E652A3480D7998EED715A2A23AD60FE49854F216DF5524DEE8FE1C00D14B5F"
+                  },
+                  {
+                      "name":  "WZPRO-Companion-Setup.exe",
+                      "role":  "public-download",
+                      "path":  "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\downloads\\WZPRO-Companion-Setup.exe",
+                      "size":  55898670,
+                      "sha256":  "82EE465659A158BDA794CFA5344193581D74EDC73FAB0689FAF962DFF31CE374"
+                  },
+                  {
+                      "name":  "WZPRO-Companion-Setup.exe",
+                      "role":  "versioned-public-download",
+                      "path":  "C:\\Users\\Cajaz\\Projects\\warzone-meta-miroir\\public\\downloads\\wzpro-companion\\v0.1.0\\WZPRO-Companion-Setup.exe",
+                      "size":  55898670,
+                      "sha256":  "82EE465659A158BDA794CFA5344193581D74EDC73FAB0689FAF962DFF31CE374"
+                  }
+              ]
+}

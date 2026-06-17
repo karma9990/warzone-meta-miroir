@@ -1,5 +1,5 @@
 import { CompetitiveLeaderboardPage } from '@/components/CompetitivePageShell';
-import { getTop250Rows } from '@/lib/competitive-data';
+import { getTop250Snapshot } from '@/lib/competitive-data';
 import { getRequestLocale } from '@/lib/requestLocale';
 
 export const metadata = {
@@ -8,20 +8,23 @@ export const metadata = {
 };
 
 export default async function Top250Page() {
-  const [rows, locale] = await Promise.all([getTop250Rows(), getRequestLocale()]);
+  const [snapshot, locale] = await Promise.all([getTop250Snapshot(), getRequestLocale()]);
+  const { rows, season, game, source } = snapshot;
   const filledRows = rows.filter((row) => !row.unavailable);
   const highestSr = filledRows.find((row) => row.rank === 1)?.points || 0;
   const isFr = locale === 'fr';
+  const gameLabel = game === 'resurgence' ? 'Resurgence' : game;
+  const sourceStatus = source === 'api' ? 'API publique CODMunity' : 'Scan CODMunity quotidien';
 
   const labels = isFr ? {
     eyebrow: 'Partie Classee',
     title: 'Warzone Classee -',
     accent: 'Top 250',
     description: 'Parcourez chaque place du Top 250 pour Warzone Partie Classee. Les entrees remplies proviennent des donnees publiques CODMunity.',
-    filters: ['2026', 'Saison 3', 'Resurgence'],
+    filters: ['2026', season.replace('Season', 'Saison'), gameLabel],
     tabs: ['Resurgence', 'Multijoueur'],
     format: 'Partie Classee',
-    status: 'Snapshot API publique',
+    status: sourceStatus,
     metricLabel: 'Variation SR',
     scoreLabel: 'SR Total',
     sourceName: 'CODMunity Top 250',
@@ -36,10 +39,10 @@ export default async function Top250Page() {
     title: 'Warzone Ranked -',
     accent: 'Top 250 Leaderboard',
     description: 'Browse every Top 250 rank slot for Warzone Ranked Play. Filled rows come from CODMunity public data; unavailable slots are shown explicitly instead of pretending the profile exists.',
-    filters: ['2026', 'Season 3', 'Resurgence'],
+    filters: ['2026', season, gameLabel],
     tabs: ['Resurgence', 'Multiplayer'],
     format: 'Ranked Play',
-    status: 'Public API snapshot',
+    status: source === 'api' ? 'CODMunity public API' : 'Daily CODMunity scan',
     metricLabel: 'SR var',
     scoreLabel: 'Total SR',
     sourceName: 'CODMunity Top 250',

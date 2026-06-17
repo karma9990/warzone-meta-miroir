@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   }
 
   const user = await getUserSession();
-  if (purchase.type === 'tool' && !user) {
+  if ((purchase.type === 'tool' || purchase.type === 'companion') && !user) {
     return NextResponse.json({ error: 'Sign in before opening this tool.' }, { status: 401 });
   }
 
@@ -52,13 +52,16 @@ export async function POST(req: NextRequest) {
     userId: user?.sub || metadataString(checkout.metadata, 'userId') || email,
     email: user?.email || email,
     pro: purchase.type === 'pro',
+    companion: purchase.type === 'companion',
     toolId: purchase.type === 'tool' ? purchase.id : undefined,
   });
 
   const token = await createAccessToken(purchase, email);
   const accessUrl = purchase.type === 'pro'
     ? '/tools/aim-tools?claimed=1'
-    : `/tools/${purchase.id}?claimed=1`;
+    : purchase.type === 'companion'
+      ? '/account?claimed=1'
+      : `/tools/${purchase.id}?claimed=1`;
 
   return NextResponse.json({
     ok: true,

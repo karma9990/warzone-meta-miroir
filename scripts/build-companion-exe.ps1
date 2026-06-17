@@ -16,6 +16,7 @@ $zipPath = Join-Path $fullOutput 'WZPRO Companion.zip'
 $nodeModulesSource = Join-Path $root 'node_modules'
 $nodeModulesTarget = Join-Path $fullOutput 'node_modules'
 $companionModules = @(
+  'ffmpeg-static',
   'tesseract.js',
   'bmp-js',
   'idb-keyval',
@@ -32,8 +33,18 @@ $companionModules = @(
 )
 
 New-Item -ItemType Directory -Force -Path $fullOutput | Out-Null
-New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
-New-Item -ItemType Directory -Force -Path $appDir | Out-Null
+
+foreach ($dir in @($runtimeDir, $appDir)) {
+  if (Test-Path $dir) {
+    $resolvedDir = (Resolve-Path $dir).Path
+    $resolvedOutput = (Resolve-Path $fullOutput).Path
+    if (-not $resolvedDir.StartsWith($resolvedOutput, [System.StringComparison]::OrdinalIgnoreCase)) {
+      throw "Refusing to clean directory outside the companion output directory: $resolvedDir"
+    }
+    Remove-Item -Recurse -Force -LiteralPath $dir
+  }
+  New-Item -ItemType Directory -Force -Path $dir | Out-Null
+}
 
 $cscCommand = Get-Command csc.exe -ErrorAction SilentlyContinue
 $cscPath = if ($cscCommand) { $cscCommand.Source } else { '' }
@@ -60,6 +71,9 @@ if (Test-Path $resolvedIconPath) {
 $cscArgs += $sourcePath
 
 & $cscPath @cscArgs
+if ($LASTEXITCODE -ne 0) {
+  throw "csc.exe failed with exit code $LASTEXITCODE."
+}
 
 $nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
 if (-not $nodeCommand) {

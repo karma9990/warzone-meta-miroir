@@ -12,9 +12,7 @@ const ALLOWED_LARGE_ASSETS = new Set([
   'assets/tools/pro-movement/map-haven.jpg',
   'assets/tools/pro-movement/map-rebirth.jpg',
   'assets/weapons/wzstats/vx-compact.png',
-  'generated/loadouts-dark-glass-bg.png',
   'generated/operator-full-site-bg.webp',
-  'generated/warzone-liquid-bg.png',
 ]);
 
 const refs = new Map();
@@ -76,6 +74,9 @@ function walkPublic(dir = 'public') {
     }
 
     const rel = path.relative('public', fullPath).replaceAll(path.sep, '/');
+    // Installer downloads under public/downloads are intentional distributables
+    // (gated companion installers); being large is the point, so skip them.
+    if (rel.startsWith('downloads/')) continue;
     const size = fs.statSync(fullPath).size;
     if (size > MAX_PUBLIC_ASSET_BYTES && !ALLOWED_LARGE_ASSETS.has(rel)) {
       oversized.push({ rel, size });

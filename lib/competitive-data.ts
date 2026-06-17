@@ -18,6 +18,19 @@ type RankedPlayer = {
   } | null;
 };
 
+type Top250ApiPage = {
+  rankedPlayers?: RankedPlayer[];
+  season?: string;
+  game?: string;
+};
+
+export type Top250Snapshot = {
+  rows: TeamRow[];
+  season: string;
+  game: string;
+  source: 'api' | 'scrape';
+};
+
 type CompetitionStat = {
   rank: number;
   name: string;
@@ -329,12 +342,25 @@ function normalizeWrsQuery(query: WrsQuery) {
 }
 
 export async function getTop250Rows(): Promise<TeamRow[]> {
-  // Source primaire : scraping LLM de codmunity.gg ; fallback : API officielle.
+  const snapshot = await getTop250Snapshot();
+  return snapshot.rows;
+}
+
+export async function getTop250Snapshot(): Promise<Top250Snapshot> {
+  // Source primaire : API publique CODMunity. Le scrape LLM reste un fallback
+  // de secours, car il peut mal lire le HTML et ne doit pas ecraser les rangs officiels.
+  try {
+    const snapshot = await getTop250RowsViaApi();
+    if (snapshot.rows.some((row) => !row.unavailable)) return snapshot;
+  } catch (error) {
+    console.error('Top 250 API failed, falling back to scrape cache:', error);
+  }
+
   try {
     const scraped = await getCachedTeamRows('top-250');
     if (scraped?.length) {
       const byRank = new Map(scraped.map((row) => [row.rank, row]));
-      return Array.from({ length: 250 }, (_, index) => {
+      const rows = Array.from({ length: 250 }, (_, index) => {
         const rank = index + 1;
         const row = byRank.get(rank);
         if (!row) {
@@ -354,21 +380,40 @@ export async function getTop250Rows(): Promise<TeamRow[]> {
           tone: podiumTone(rank),
         };
       });
+      return {
+        rows,
+        season: 'Season from daily CODMunity scan',
+        game: 'resurgence',
+        source: 'scrape',
+      };
     }
   } catch (error) {
-    console.error('Top 250 scrape failed, falling back to API:', error);
+    console.error('Top 250 scrape cache failed:', error);
   }
 
-  return getTop250RowsViaApi();
+  return {
+    rows: Array.from({ length: 250 }, (_, index) => ({
+      rank: index + 1,
+      team: 'Rank slot not exposed',
+      players: 'CODMunity data unavailable for this slot',
+      unavailable: true,
+    })),
+    season: 'Season unavailable',
+    game: 'resurgence',
+    source: 'api',
+  };
 }
 
-async function getTop250RowsViaApi(): Promise<TeamRow[]> {
-  const data = await fetch(`${API_BASE}/top-250`, { next: { revalidate: 1800 } }).then((response) => response.json());
+async function getTop250RowsViaApi(): Promise<Top250Snapshot> {
+  const response = await fetch(`${API_BASE}/top-250`, { next: { revalidate: 1800 } });
+  if (!response.ok) throw new Error(`CODMunity Top 250 API failed: ${response.status}`);
+
+  const data = await response.json() as Top250ApiPage;
   const players = new Map<number, RankedPlayer>(
-    (data.rankedPlayers || []).map((player: RankedPlayer) => [player.rank + 1, player]),
+    (data.rankedPlayers || []).map((player) => [player.rank + 1, player]),
   );
 
-  return Array.from({ length: 250 }, (_, index) => {
+  const rows = Array.from({ length: 250 }, (_, index) => {
     const rank = index + 1;
     const player = players.get(rank);
 
@@ -390,6 +435,13 @@ async function getTop250RowsViaApi(): Promise<TeamRow[]> {
       tone: podiumTone(rank),
     };
   });
+
+  return {
+    rows,
+    season: data.season || 'Current season',
+    game: data.game || 'resurgence',
+    source: 'api',
+  };
 }
 
 export async function getCompetitionRows(slug: 'wsow' | 'wrs' | 'ewc' | 'pcl'): Promise<TeamRow[]> {

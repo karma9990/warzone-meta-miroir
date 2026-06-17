@@ -14,7 +14,7 @@ function formatDate(value: string) {
 }
 
 export default function CompanionDeviceList({ initialDevices }: { initialDevices: CompanionDevice[] }) {
-  const [devices, setDevices] = useState(initialDevices);
+  const [devices, setDevices] = useState(() => initialDevices.filter((device) => !device.revoked));
 
   async function revoke(deviceId: string) {
     const response = await fetch('/api/companion/device/revoke', {
@@ -23,7 +23,7 @@ export default function CompanionDeviceList({ initialDevices }: { initialDevices
       body: JSON.stringify({ deviceId }),
     });
     if (response.ok) {
-      setDevices((current) => current.map((device) => device.deviceId === deviceId ? { ...device, revoked: true } : device));
+      setDevices((current) => current.filter((device) => device.deviceId !== deviceId));
     }
   }
 
@@ -32,16 +32,12 @@ export default function CompanionDeviceList({ initialDevices }: { initialDevices
       {devices.length === 0 ? (
         <p>Aucun appareil compagnon connecte.</p>
       ) : devices.map((device) => (
-        <article key={device.deviceId} className={device.revoked ? 'is-revoked' : ''}>
+        <article key={device.deviceId}>
           <div>
             <strong>{device.deviceName}</strong>
-            <small>
-              {device.revoked ? 'Revoque' : `Derniere activite : ${formatDate(device.lastSeenAt)}`}
-            </small>
+            <small>{`Derniere activite : ${formatDate(device.lastSeenAt)}`}</small>
           </div>
-          <button type="button" onClick={() => revoke(device.deviceId)} disabled={device.revoked}>
-            {device.revoked ? 'Revoque' : 'Revoquer'}
-          </button>
+          <button type="button" onClick={() => revoke(device.deviceId)}>Revoquer</button>
         </article>
       ))}
     </div>

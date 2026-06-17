@@ -103,21 +103,27 @@ export function detectVisitorLocale(
 }
 
 export function stripLocale(pathname: string) {
-  const [, maybeLocale, ...rest] = pathname.split('/');
+  const suffixMatch = pathname.match(/([?#].*)$/);
+  const suffix = suffixMatch?.[1] ?? '';
+  const cleanPathname = suffix ? pathname.slice(0, -suffix.length) : pathname;
+  const [, maybeLocale, ...rest] = cleanPathname.split('/');
   if (!isLocale(maybeLocale)) {
     return { locale: null, pathname };
   }
 
   const nextPathname = `/${rest.join('/')}`.replace(/\/$/, '') || '/';
-  return { locale: maybeLocale, pathname: nextPathname };
+  return { locale: maybeLocale, pathname: `${nextPathname}${suffix}` };
 }
 
 export function withLocalePath(pathname: string, locale: Locale) {
   if (/^(https?:|mailto:|tel:|#)/.test(pathname)) return pathname;
   const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`;
   const { pathname: cleanPathname } = stripLocale(normalized);
-  if (cleanPathname === '/') return `/${locale}`;
-  return `/${locale}${cleanPathname}`;
+  const suffixMatch = cleanPathname.match(/([?#].*)$/);
+  const suffix = suffixMatch?.[1] ?? '';
+  const pathOnly = suffix ? cleanPathname.slice(0, -suffix.length) : cleanPathname;
+  if (pathOnly === '/') return `/${locale}${suffix}`;
+  return `/${locale}${pathOnly}${suffix}`;
 }
 
 const TERM_COPY: Partial<Record<Locale, Record<string, string>>> = {

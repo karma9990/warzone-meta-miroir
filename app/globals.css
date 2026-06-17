@@ -6259,6 +6259,26 @@ canvas,
   font-weight: 800;
 }
 
+.community-language-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+
+.community-language-row span {
+  display: inline-grid;
+  min-height: 24px;
+  place-items: center;
+  padding: 0 0.55rem;
+  border: 1px solid var(--tm-line);
+  background: rgba(22, 60, 255, 0.055);
+  color: var(--tm-blue);
+  font-size: 0.58rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
 .community-post h2 {
   margin: 0.55rem 0 0.55rem;
   color: var(--tm-ink);

@@ -467,6 +467,7 @@ export default function HomeClient({
           <Link href={href('/tournois')}>{locale === 'fr' ? 'Tournois' : locale === 'es' ? 'Torneos' : 'Tournaments'}</Link>
           <Link href={href('/actualites')}>{locale === 'fr' ? 'Actualites' : locale === 'es' ? 'Noticias' : 'News'}</Link>
           <Link href={href('/createur')}>{locale === 'fr' ? 'Createur' : locale === 'es' ? 'Creador' : 'Creator'}</Link>
+          <Link href={href('/leaderboard')}>{locale === 'fr' ? 'Classement' : locale === 'es' ? 'Clasificacion' : 'Leaderboard'}</Link>
           <Link href={href('/community')}>{uiCopy.community}</Link>
         </nav>
         <div className="global-search-panel">

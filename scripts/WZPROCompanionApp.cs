@@ -5,13 +5,25 @@ using System.Drawing.Text;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+[assembly: AssemblyTitle("WZPRO Companion")]
+[assembly: AssemblyDescription("WZPRO desktop companion for Warzone statistics")]
+[assembly: AssemblyCompany("WZPRO Meta")]
+[assembly: AssemblyProduct("WZPRO Companion")]
+[assembly: AssemblyCopyright("Copyright 2026 WZPRO Meta")]
+[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyFileVersion("0.1.0.0")]
+
 public sealed class WzproCompanionApp : Form
 {
+    private const string AppVersion = "0.1.0";
     private readonly string root;
     private readonly string nodePath;
     private readonly string engineScript;
@@ -20,13 +32,56 @@ public sealed class WzproCompanionApp : Form
     private readonly string sessionPath;
     private readonly string site;
     private readonly HttpClient http = new HttpClient();
-    private readonly PrivateFontCollection appFonts = new PrivateFontCollection();
-    private FontFamily displayFontFamily;
 
     private Process companionProcess;
     private NotifyIcon tray;
     private Timer outputTimer;
     private Timer loginPollTimer;
+    private Timer captureTimer;
+    private static readonly System.Collections.Generic.HashSet<string> GameProcessNames = new System.Collections.Generic.HashSet<string>
+    {
+        "cod", "cod22-cod", "cod23-cod", "cod24-cod", "modernwarfare", "modernwarfareii", "modernwarfareiii"
+    };
+    private static readonly string NativeScreenshotPath = Path.Combine(Path.GetTempPath(), "wzpro-companion-warzone-window.png");
+
+    // Rolling-buffer clip recorder (ffmpeg). Records the focused game window into a
+    // circular set of short segments; a highlight saves the recent segments as a clip.
+    private string ffmpegPath = "";
+    private Process recorderProcess;
+    private bool recorderActive;
+    private ComboBox clipModeCombo;
+    private ComboBox socialFormatCombo;
+    private Button musicButton;
+    private Label musicLabel;
+    private string musicPath = "";
+    private Button audioButton;
+    private string systemAudioDevice = ""; // dshow device name for game/system audio ("" = none)
+    private string micAudioDevice = "";    // dshow device name for the microphone ("" = none)
+    private bool recorderAudioDisabled;    // set if audio capture fails and we retry video-only
+    private string clipMode = "social";       // social | raw | full | ask
+    private string socialFormat = "vertical"; // vertical | square | horizontal
+    private readonly System.Collections.Generic.List<string> sessionClips = new System.Collections.Generic.List<string>();
+    private readonly System.Collections.Generic.List<string> pendingGameClips = new System.Collections.Generic.List<string>();
+    private Form endGameForm;
+    private Timer endGameTimer;
+    private string pendingUploadedLine = "";
+    private int recorderRecipeIndex;
+    private DateTime recorderStartedUtc;
+    private int noGameTicks;
+    private static readonly string BufferDir = Path.Combine(Path.GetTempPath(), "wzpro-companion-buffer");
+
+    // Capture + encoder recipes, tried in order (fast-failing ones are skipped at runtime).
+    // ddagrab = Desktop Duplication: captures the whole monitor INCLUDING exclusive
+    // fullscreen games, GPU-accelerated. gdigrab is the last-resort fallback (windowed only).
+    private static readonly string[] CaptureRecipes =
+    {
+        "-f lavfi -i ddagrab=output_idx=0:framerate=30 -c:v h264_nvenc -preset p4 -tune ll -b:v 12M",
+        "-f lavfi -i ddagrab=output_idx=0:framerate=30 -c:v h264_amf -quality speed -usage lowlatency -b:v 12M",
+        "-f lavfi -i ddagrab=output_idx=0:framerate=30 -vf hwdownload,format=bgra,format=nv12 -c:v h264_qsv -b:v 12M",
+        "-f lavfi -i ddagrab=output_idx=0:framerate=30 -vf hwdownload,format=bgra,format=nv12 -c:v h264_mf -b:v 12M",
+        "-f lavfi -i ddagrab=output_idx=0:framerate=30 -vf hwdownload,format=bgra,format=yuv420p,scale='min(1600,iw)':-2 -c:v libx264 -preset ultrafast -tune zerolatency -crf 26",
+        "-f gdigrab -framerate 30 -i desktop -vf scale='min(1600,iw)':-2 -c:v libx264 -preset ultrafast -tune zerolatency -crf 26 -pix_fmt yuv420p",
+    };
     private readonly System.Collections.Concurrent.ConcurrentQueue<string> pendingLines = new System.Collections.Concurrent.ConcurrentQueue<string>();
 
     private Label statusLabel;
@@ -43,8 +98,25 @@ public sealed class WzproCompanionApp : Form
     private Label highlightsTitleLabel;
     private Label highlightsDescLabel;
     private Label highlightsStatusLabel;
+    private Label clipsFolderTitleLabel;
+    private Label clipsFolderValueLabel;
+    private Label premiumCheckoutHintLabel;
+    private Label premiumAccessStatusLabel;
     private Label importsLabel;
     private Label journalLabel;
+    private Label metaTodayLabel;
+    private bool homeFetched;
+    private DateTime sessionStartUtc;
+    private int sessionGameCount;
+    private Button statsButton;
+    private Button gameBarButton;
+    private TextBox statsBox;
+    private Button overlayButton;
+    private Form overlayForm;
+    private Label overlayLabel;
+    private string metaTodayWeapon = "";
+    private Point overlayDragStart;
+    private bool overlayDragging;
     private Panel sidebarPanel;
     private Panel mainPanel;
     private Panel welcomePanel;
@@ -69,6 +141,10 @@ public sealed class WzproCompanionApp : Form
     private Button premiumButton;
     private Button startButton;
     private Button stopButton;
+    private Button clipsFolderButton;
+    private Button clipsOpenFolderButton;
+    private Button premiumCheckoutButton;
+    private Button premiumRefreshButton;
     private CheckBox highlightsToggle;
     private ComboBox languageBox;
     private ComboBox welcomeLanguageBox;
@@ -91,11 +167,17 @@ public sealed class WzproCompanionApp : Form
     private string themeMode = "dark";
     private string languageCode = "fr";
     private string activePage = "free";
+    private string clipsFolderPath = "";
     private bool highlightsProEnabled;
     private bool updatingLanguageUi;
     private bool pollingLogin;
     private bool allowExit;
     private bool minimizeNoticeShown;
+    private bool premiumAccessActive;
+    private bool premiumCheckRunning;
+    private DateTime lastPremiumCheckUtc = DateTime.MinValue;
+    private Task backgroundPremiumCheck;
+    private Task backgroundHome;
     private int historyCount;
 
     [STAThread]
@@ -103,6 +185,8 @@ public sealed class WzproCompanionApp : Form
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
+        Application.ThreadException += delegate(object sender, System.Threading.ThreadExceptionEventArgs e) { LogCrash(e.Exception); };
+        AppDomain.CurrentDomain.UnhandledException += delegate(object sender, UnhandledExceptionEventArgs e) { LogCrash(e.ExceptionObject as Exception); };
         Application.Run(new WzproCompanionApp(args));
     }
 
@@ -131,7 +215,6 @@ public sealed class WzproCompanionApp : Form
         sessionDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WZPRO Companion");
         sessionPath = Path.Combine(sessionDir, "session.txt");
 
-        LoadAppFonts();
         BuildUi();
         BuildTray();
         BuildTimers();
@@ -143,29 +226,23 @@ public sealed class WzproCompanionApp : Form
         else ShowAppShell();
         AddLogLine(T("ready"));
         AddLogLine(T("site") + site);
-    }
-
-    private void LoadAppFonts()
-    {
-        string bundledFont = Path.Combine(root, "app", "bisou-expanded.otf");
-        string sourceFont = Path.Combine(root, "font", "bisou-font", "copyrightbolditalicstudio-bisouexpandedtrial.otf");
-        string fontPath = File.Exists(bundledFont) ? bundledFont : sourceFont;
-        if (!File.Exists(fontPath)) return;
-        try
-        {
-            appFonts.AddFontFile(fontPath);
-            if (appFonts.Families.Length > 0) displayFontFamily = appFonts.Families[0];
-        }
-        catch
-        {
-            displayFontFamily = null;
-        }
+        if (!string.IsNullOrWhiteSpace(deviceToken)) backgroundHome = FetchHomeData();
     }
 
     private Font AppFont(float size, FontStyle style)
     {
-        if (displayFontFamily != null) return new Font(displayFontFamily, size, style);
-        return new Font("Consolas", size, style);
+        // Match the website's technical monospace stack (readable), not the display font.
+        foreach (string name in new[] { "Cascadia Mono", "Cascadia Code", "Consolas" })
+        {
+            try
+            {
+                var f = new Font(name, size, style);
+                if (string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase)) return f;
+                f.Dispose();
+            }
+            catch { }
+        }
+        return new Font(FontFamily.GenericMonospace, size, style);
     }
 
     private static string GetArg(string[] args, string name)
@@ -177,18 +254,34 @@ public sealed class WzproCompanionApp : Form
         return null;
     }
 
+    private static void LogCrash(Exception ex)
+    {
+        try
+        {
+            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WZPRO Companion");
+            Directory.CreateDirectory(dir);
+            string path = Path.Combine(dir, "crash.log");
+            string body = "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "] " + (ex == null ? "Unknown crash" : ex.ToString());
+            File.AppendAllText(path, body + Environment.NewLine + Environment.NewLine, Encoding.UTF8);
+        }
+        catch
+        {
+            // Crash logging must never trigger another crash.
+        }
+    }
+
     private void BuildUi()
     {
-        Text = "WZPRO Companion";
-        Size = new Size(900, 640);
-        MinimumSize = new Size(820, 600);
+        Text = "WZPRO Companion v" + AppVersion;
+        Size = new Size(980, 680);
+        MinimumSize = new Size(920, 640);
         StartPosition = FormStartPosition.CenterScreen;
         Font = AppFont(9, FontStyle.Regular);
 
         welcomePanel = new Panel
         {
             Location = new Point(0, 0),
-            Size = new Size(900, 640),
+            Size = new Size(980, 680),
             Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
         };
         Controls.Add(welcomePanel);
@@ -207,19 +300,19 @@ public sealed class WzproCompanionApp : Form
         welcomeKickerLabel = Label("", 78, 138, 270, 34, 9, FontStyle.Bold, Color.White);
         welcomePanel.Controls.Add(welcomeKickerLabel);
 
-        welcomeTitleLabel = Label("", 78, 210, 460, 150, 22, FontStyle.Bold, Color.White);
+        welcomeTitleLabel = Label("", 78, 210, 500, 150, 22, FontStyle.Bold, Color.White);
         welcomePanel.Controls.Add(welcomeTitleLabel);
 
         welcomeSubtitleLabel = Label("", 78, 350, 430, 70, 12, FontStyle.Regular, Color.White);
         welcomeSubtitleLabel.Visible = false;
         welcomePanel.Controls.Add(welcomeSubtitleLabel);
 
-        welcomeStatsLabel = Label("", 78, 470, 430, 58, 10, FontStyle.Bold, Color.White);
+        welcomeStatsLabel = Label("", 78, 470, 500, 58, 10, FontStyle.Bold, Color.White);
         welcomePanel.Controls.Add(welcomeStatsLabel);
 
         welcomeLoginPanel = new Panel
         {
-            Location = new Point(586, 156),
+            Location = new Point(666, 156),
             Size = new Size(274, 330),
             Anchor = AnchorStyles.Top | AnchorStyles.Right
         };
@@ -244,7 +337,7 @@ public sealed class WzproCompanionApp : Form
         sidebarPanel = new Panel
         {
             Location = new Point(0, 0),
-            Size = new Size(220, 640),
+            Size = new Size(220, 680),
             Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left
         };
         Controls.Add(sidebarPanel);
@@ -252,7 +345,7 @@ public sealed class WzproCompanionApp : Form
         mainPanel = new Panel
         {
             Location = new Point(220, 0),
-            Size = new Size(680, 640),
+            Size = new Size(760, 680),
             Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
         };
         Controls.Add(mainPanel);
@@ -308,7 +401,7 @@ public sealed class WzproCompanionApp : Form
         languageBox = new ComboBox
         {
             DropDownStyle = ComboBoxStyle.DropDownList,
-            Location = new Point(420, 26),
+            Location = new Point(34, 26),
             Size = new Size(88, 28),
             Font = AppFont(8, FontStyle.Bold)
         };
@@ -316,14 +409,22 @@ public sealed class WzproCompanionApp : Form
         languageBox.SelectedIndexChanged += delegate { OnLanguageChanged(); };
         mainPanel.Controls.Add(languageBox);
 
-        themeButton = Button("MODE CLAIR", 528, 24, 116, 28, Color.FromArgb(22, 60, 255));
+        themeButton = Button("MODE CLAIR", 608, 24, 116, 28, Color.FromArgb(22, 60, 255));
         themeButton.Click += delegate { ToggleTheme(); };
         mainPanel.Controls.Add(themeButton);
+
+        overlayButton = Button("", 466, 24, 132, 28, Color.FromArgb(42, 42, 48));
+        overlayButton.Click += delegate { ToggleOverlay(); };
+        mainPanel.Controls.Add(overlayButton);
+
+        gameBarButton = Button("", 300, 24, 158, 28, Color.FromArgb(22, 60, 255));
+        gameBarButton.Click += delegate { OpenUrl("ms-settings:gaming-gamebar"); };
+        mainPanel.Controls.Add(gameBarButton);
 
         freeInfoCard = new Panel
         {
             Location = new Point(34, 92),
-            Size = new Size(596, 126),
+            Size = new Size(690, 126),
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
             BorderStyle = BorderStyle.FixedSingle
         };
@@ -332,13 +433,16 @@ public sealed class WzproCompanionApp : Form
         freePageTitleLabel = Label("", 24, 22, 420, 32, 16, FontStyle.Bold, Color.White);
         freeInfoCard.Controls.Add(freePageTitleLabel);
 
-        freePageDescLabel = Label("", 24, 64, 540, 42, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        freePageDescLabel = Label("", 24, 64, 620, 36, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
         freeInfoCard.Controls.Add(freePageDescLabel);
+
+        metaTodayLabel = Label("", 24, 100, 640, 20, 9, FontStyle.Bold, Color.FromArgb(120, 150, 255));
+        freeInfoCard.Controls.Add(metaTodayLabel);
 
         freeConnectionCard = new Panel
         {
             Location = new Point(34, 238),
-            Size = new Size(596, 106),
+            Size = new Size(690, 106),
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
             BorderStyle = BorderStyle.FixedSingle
         };
@@ -347,17 +451,17 @@ public sealed class WzproCompanionApp : Form
         statusLabel = Label("", 24, 18, 260, 24, 10, FontStyle.Bold, Color.FromArgb(185, 185, 185));
         freeConnectionCard.Controls.Add(statusLabel);
 
-        connectionLabel = Label("", 24, 58, 300, 24, 9, FontStyle.Bold, Color.FromArgb(255, 204, 0));
+        connectionLabel = Label("", 24, 58, 360, 24, 9, FontStyle.Bold, Color.FromArgb(255, 204, 0));
         freeConnectionCard.Controls.Add(connectionLabel);
 
-        connectButton = Button("", 360, 34, 206, 38, Color.FromArgb(22, 60, 255));
+        connectButton = Button("", 440, 34, 220, 38, Color.FromArgb(22, 60, 255));
         connectButton.Click += async delegate { await StartLoginFlow(); };
         freeConnectionCard.Controls.Add(connectButton);
 
         freeControlsCard = new Panel
         {
             Location = new Point(34, 364),
-            Size = new Size(596, 112),
+            Size = new Size(690, 112),
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
             BorderStyle = BorderStyle.FixedSingle
         };
@@ -380,22 +484,22 @@ public sealed class WzproCompanionApp : Form
         secondsLabel = Label("", 286, 20, 90, 20, 8, FontStyle.Regular, Color.White);
         freeControlsCard.Controls.Add(secondsLabel);
 
-        startButton = Button("", 390, 14, 82, 34, Color.FromArgb(22, 60, 255));
+        startButton = Button("", 470, 14, 82, 34, Color.FromArgb(22, 60, 255));
         startButton.Click += delegate { StartCompanion(); };
         freeControlsCard.Controls.Add(startButton);
 
-        stopButton = Button("", 486, 14, 82, 34, Color.FromArgb(42, 42, 48));
+        stopButton = Button("", 566, 14, 82, 34, Color.FromArgb(42, 42, 48));
         stopButton.Enabled = false;
         stopButton.Click += delegate { StopCompanion(); };
         freeControlsCard.Controls.Add(stopButton);
 
-        hintLabel = Label("", 24, 66, 540, 34, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        hintLabel = Label("", 24, 66, 620, 34, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
         freeControlsCard.Controls.Add(hintLabel);
 
         premiumPageTitleLabel = Label("", 34, 112, 420, 32, 16, FontStyle.Bold, Color.White);
         mainPanel.Controls.Add(premiumPageTitleLabel);
 
-        premiumPageDescLabel = Label("", 34, 150, 590, 42, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        premiumPageDescLabel = Label("", 34, 150, 670, 42, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
         mainPanel.Controls.Add(premiumPageDescLabel);
 
         highlightsTitleLabel = Label("", 34, 220, 210, 22, 10, FontStyle.Bold, Color.White);
@@ -403,7 +507,7 @@ public sealed class WzproCompanionApp : Form
 
         highlightsToggle = new CheckBox
         {
-            Location = new Point(360, 216),
+            Location = new Point(430, 216),
             Size = new Size(278, 28),
             FlatStyle = FlatStyle.Flat,
             Font = AppFont(8, FontStyle.Bold),
@@ -412,36 +516,118 @@ public sealed class WzproCompanionApp : Form
         highlightsToggle.CheckedChanged += delegate { OnHighlightsChanged(); };
         mainPanel.Controls.Add(highlightsToggle);
 
-        highlightsDescLabel = Label("", 34, 260, 590, 54, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        highlightsDescLabel = Label("", 34, 258, 690, 50, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
         mainPanel.Controls.Add(highlightsDescLabel);
 
-        highlightsStatusLabel = Label("", 34, 306, 590, 44, 8, FontStyle.Bold, Color.FromArgb(255, 204, 0));
+        highlightsStatusLabel = Label("", 34, 320, 690, 30, 8, FontStyle.Bold, Color.FromArgb(255, 204, 0));
         mainPanel.Controls.Add(highlightsStatusLabel);
+
+        clipsFolderTitleLabel = Label("", 34, 370, 260, 22, 10, FontStyle.Bold, Color.White);
+        mainPanel.Controls.Add(clipsFolderTitleLabel);
+
+        clipsFolderValueLabel = Label("", 34, 400, 470, 38, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        mainPanel.Controls.Add(clipsFolderValueLabel);
+
+        clipsFolderButton = Button("", 520, 392, 100, 34, Color.FromArgb(22, 60, 255));
+        clipsFolderButton.Click += delegate { ChooseClipsFolder(); };
+        mainPanel.Controls.Add(clipsFolderButton);
+
+        clipsOpenFolderButton = Button("", 632, 392, 92, 34, Color.FromArgb(42, 42, 48));
+        clipsOpenFolderButton.Click += delegate { OpenClipsFolder(); };
+        mainPanel.Controls.Add(clipsOpenFolderButton);
+
+        premiumCheckoutHintLabel = Label("", 34, 460, 360, 38, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        mainPanel.Controls.Add(premiumCheckoutHintLabel);
+
+        premiumAccessStatusLabel = Label("", 34, 516, 360, 38, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
+        mainPanel.Controls.Add(premiumAccessStatusLabel);
+
+        premiumCheckoutButton = Button("", 414, 456, 310, 38, Color.FromArgb(22, 60, 255));
+        premiumCheckoutButton.Click += delegate { OpenPremiumAccessPage(); };
+        mainPanel.Controls.Add(premiumCheckoutButton);
+
+        premiumRefreshButton = Button("", 414, 512, 310, 34, Color.FromArgb(42, 42, 48));
+        premiumRefreshButton.Click += async delegate { await CheckPremiumAccess(true); };
+        mainPanel.Controls.Add(premiumRefreshButton);
+
+        statsButton = Button("", 34, 560, 200, 32, Color.FromArgb(22, 60, 255));
+        statsButton.Click += async delegate { await FetchStats(); };
+        mainPanel.Controls.Add(statsButton);
+
+        statsBox = new TextBox
+        {
+            Location = new Point(244, 556),
+            Size = new Size(480, 88),
+            Multiline = true,
+            ReadOnly = true,
+            ScrollBars = ScrollBars.Vertical,
+            BackColor = Color.FromArgb(4, 4, 6),
+            ForeColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(statsBox);
+
+        clipModeCombo = new ComboBox
+        {
+            Location = new Point(34, 598),
+            Size = new Size(210, 24),
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            BackColor = Color.FromArgb(14, 18, 45),
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = AppFont(8, FontStyle.Bold)
+        };
+        clipModeCombo.SelectedIndexChanged += delegate { OnClipModeChanged(); };
+        mainPanel.Controls.Add(clipModeCombo);
+
+        socialFormatCombo = new ComboBox
+        {
+            Location = new Point(34, 626),
+            Size = new Size(210, 24),
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            BackColor = Color.FromArgb(14, 18, 45),
+            ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = AppFont(8, FontStyle.Bold)
+        };
+        socialFormatCombo.SelectedIndexChanged += delegate { OnSocialFormatChanged(); };
+        mainPanel.Controls.Add(socialFormatCombo);
+
+        musicButton = Button("", 34, 654, 210, 24, Color.FromArgb(42, 42, 48));
+        musicButton.Click += delegate { ChooseMusic(); };
+        mainPanel.Controls.Add(musicButton);
+
+        musicLabel = Label("", 250, 658, 300, 16, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        mainPanel.Controls.Add(musicLabel);
+
+        audioButton = Button("", 560, 652, 164, 26, Color.FromArgb(42, 42, 48));
+        audioButton.Click += delegate { OpenAudioSettings(); };
+        mainPanel.Controls.Add(audioButton);
 
         importsLabel = Label("", 34, 492, 160, 20, 9, FontStyle.Bold, Color.White);
         mainPanel.Controls.Add(importsLabel);
         historyList = new ListBox
         {
             Location = new Point(34, 516),
-            Size = new Size(290, 56),
+            Size = new Size(330, 56),
             BackColor = Color.FromArgb(4, 4, 6),
             ForeColor = Color.White,
             BorderStyle = BorderStyle.FixedSingle
         };
         mainPanel.Controls.Add(historyList);
 
-        journalLabel = Label("", 348, 492, 160, 20, 9, FontStyle.Bold, Color.White);
+        journalLabel = Label("", 388, 492, 160, 20, 9, FontStyle.Bold, Color.White);
         mainPanel.Controls.Add(journalLabel);
         logBox = new TextBox
         {
-            Location = new Point(348, 516),
-            Size = new Size(290, 56),
+            Location = new Point(388, 516),
+            Size = new Size(330, 56),
             Multiline = true,
             ScrollBars = ScrollBars.Vertical,
             ReadOnly = true,
             BackColor = Color.FromArgb(4, 4, 6),
             ForeColor = Color.FromArgb(220, 220, 225),
-            Font = new Font("Consolas", 8, FontStyle.Regular),
+            Font = AppFont(8, FontStyle.Regular),
             BorderStyle = BorderStyle.FixedSingle
         };
         mainPanel.Controls.Add(logBox);
@@ -454,7 +640,7 @@ public sealed class WzproCompanionApp : Form
             Text = text,
             Location = new Point(x, y),
             Size = new Size(w, h),
-            Font = new Font("Consolas", size, style),
+            Font = AppFont(size, style),
             ForeColor = color
         };
     }
@@ -469,7 +655,7 @@ public sealed class WzproCompanionApp : Form
             BackColor = color,
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Font = new Font("Consolas", 8, FontStyle.Bold)
+            Font = AppFont(8, FontStyle.Bold)
         };
         button.FlatAppearance.BorderSize = 1;
         button.FlatAppearance.BorderColor = color;
@@ -572,11 +758,82 @@ public sealed class WzproCompanionApp : Form
                 case "hint": return "Connection opens your browser. Once authorized on the site, the key stays hidden in this app.";
                 case "highlightsTitle": return "Highlights Pro";
                 case "highlightsToggle": return "AUTO CLIPS";
-                case "highlightsDesc": return "Paid module planned: keep a rolling game buffer, save only kill/death moments, then build a best-of at the end of each game.";
-                case "highlightsStatusOn": return "Queued for Pro access. Recording will stay inactive until the paid module is released.";
+                case "highlightsDesc": return "Records your strong moments (win, multi-kill, top 3) into your clips folder automatically while you play, with a light built-in recorder.";
+                case "gameBar": return "XBOX GAME BAR";
+                case "highlightsStatusOn": return "Ready for Pro access. Choose the clip folder, then unlock Premium on the site.";
                 case "highlightsStatusOff": return "Optional paid add-on. Free tracking keeps working without it.";
-                case "highlightsQueued": return "Highlights Pro option is selected. Video capture is a paid module and is not active in this build.";
+                case "highlightsQueued": return "Highlights Pro selected. Clip folder: ";
+                case "clipsFolderTitle": return "Clip save folder";
+                case "clipsFolderUnset": return "No folder selected yet. Default clips will use Videos\\WZPRO Clips.";
+                case "clipsFolderChoose": return "CHOOSE";
+                case "clipsFolderOpen": return "OPEN";
+                case "clipsFolderSaved": return "Clip folder saved: ";
+                case "clipsFolderError": return "Unable to use this folder: ";
+                case "premiumCheckout": return "UNLOCK PREMIUM ON SITE";
+                case "premiumCheckoutHint": return "Premium is paid on wzprometa.com. The desktop app stays free for stat tracking.";
+                case "premiumRefresh": return "CHECK PREMIUM ACCESS";
+                case "premiumChecking": return "Checking Premium access...";
+                case "premiumActive": return "Premium active on this WZPRO account.";
+                case "premiumInactive": return "Premium not active yet. Pay on the site, then check again.";
+                case "premiumCheckFailed": return "Premium check failed: ";
+                case "premiumRequired": return "Premium access is required for automatic clips.";
+                case "clipsFolderReady": return "Premium clips will be saved in ";
                 case "imports": return "Imports";
+                case "metaToday": return "Meta of the day: ";
+                case "tipPrefix": return "Tip: ";
+                case "patchPrefix": return "Patch: ";
+                case "sessionSummary": return "Session recap: ";
+                case "sessionGamesSuffix": return " games in ";
+                case "statsButton": return "MY STATS";
+                case "statsLoading": return "Loading stats...";
+                case "statsFailed": return "Stats unavailable.";
+                case "statsLevel": return "Level: ";
+                case "overlayButton": return "OVERLAY";
+                case "overlayGames": return "Games: ";
+                case "highlightDetected": return "Highlight: ";
+                case "highlightWin": return "Victory";
+                case "highlightTop3": return "Top 3";
+                case "highlightMultikill": return "Multi-kill";
+                case "highlightSaved": return "Highlight saved in ";
+                case "highlightClip": return "Game Bar capture triggered (Win+Alt+G).";
+                case "recorderUnavailable": return "Clip recorder unavailable: ";
+                case "clipSaving": return "Saving clip: ";
+                case "clipFailed": return "Clip save failed: ";
+                case "modeSocial": return "Output: Social (montage)";
+                case "modeRaw": return "Output: Raw clips (pro)";
+                case "modeFull": return "Output: Full game + AI coach";
+                case "modeAsk": return "Output: Ask after each game";
+                case "endGameTitle": return "Game over - save this game as:";
+                case "endGameSocial": return "Social montage";
+                case "endGameCoach": return "Game + AI coach";
+                case "endGameSkip": return "Skip";
+                case "musicButton": return "Background music";
+                case "musicNone": return "No music (silent)";
+                case "audioButton": return "Multitrack audio";
+                case "audioTitle": return "Multitrack audio (full game)";
+                case "audioSystem": return "System / game audio (loopback device):";
+                case "audioMic": return "Microphone:";
+                case "audioNone": return "None";
+                case "audioHint": return "Records both as separate tracks. System audio needs a loopback device (Stereo Mix, VB-Cable, Voicemeeter).";
+                case "audioSave": return "Save";
+                case "audioCancel": return "Cancel";
+                case "audioSaved": return "Audio devices saved.";
+                case "clipsNeedConnect": return "Connect your WZPRO account first (Free Access tab), then unlock Premium to enable auto clips.";
+                case "clipsNeedPremium": return "Auto clips need Premium. Unlock it on the site, then click 'Check Premium access'. Checking now...";
+                case "fmtVertical": return "Format: Vertical 9:16";
+                case "fmtSquare": return "Format: Square 1:1";
+                case "fmtHorizontal": return "Format: Horizontal 16:9";
+                case "montageSaved": return "Montage saved: ";
+                case "montageFailed": return "Montage failed: ";
+                case "fullGameSaved": return "Full game saved: ";
+                case "coachTitle": return "Game coach analysis";
+                case "coachAdviceTitle": return "Advice:";
+                case "coachWin": return "Win secured - keep closing out late-game fights with that composure.";
+                case "coachLowKills": return "Low kills - take more early fights to build loadout cash and confidence.";
+                case "coachHighKills": return "High-kill game - work on surviving longer to convert it into wins.";
+                case "coachDamageNoFinish": return "Lots of damage without finishes - push angles, avoid open ground.";
+                case "coachEarlyDeath": return "Died early - play safer in the opening and rotate before the zone.";
+                case "coachGeneric": return "Rewatch this recording and note one decision you would change.";
                 case "journal": return "Log";
                 case "ready": return "Ready. Start when Warzone is open.";
                 case "site": return "WZPRO site: ";
@@ -605,8 +862,10 @@ public sealed class WzproCompanionApp : Form
                 case "trayWaitingFocus": return "WZPRO Companion - Waiting for focus";
                 case "trayWatching": return "WZPRO Companion - Watching Warzone";
                 case "minimizeTitle": return "WZprometa";
-                case "minimizeNotice": return "WZprometa is minimized to the tray.";
+                case "minimizeNotice": return "WZprometa is minimized to the notification area.";
                 case "minimizeBody": return "The app can keep running in the background. You can also quit the application completely.";
+                case "engineExited": return "Companion engine stopped. Exit code: ";
+                case "crashLogged": return "A crash report was saved in ";
                 case "reduce": return "MINIMIZE";
                 case "quitDialog": return "QUIT COMPLETELY";
                 case "gamePrefix": return "Game ";
@@ -650,11 +909,82 @@ public sealed class WzproCompanionApp : Form
                 case "hint": return "La conexion abre tu navegador. Una vez autorizada en el sitio, la clave queda oculta en esta app.";
                 case "highlightsTitle": return "Highlights Pro";
                 case "highlightsToggle": return "CLIPS AUTO";
-                case "highlightsDesc": return "Modulo de pago previsto: buffer de partida, guarda solo kills/muertes y crea un best-of al final de cada partida.";
-                case "highlightsStatusOn": return "Preparado para acceso Pro. La grabacion queda inactiva hasta publicar el modulo de pago.";
+                case "highlightsDesc": return "Graba tus mejores momentos (victoria, multi-baja, top 3) en tu carpeta de clips automaticamente mientras juegas, con un grabador integrado ligero.";
+                case "gameBar": return "XBOX GAME BAR";
+                case "highlightsStatusOn": return "Listo para acceso Pro. Elige la carpeta de clips y desbloquea Premium en el sitio.";
                 case "highlightsStatusOff": return "Add-on de pago opcional. El tracking gratis sigue funcionando sin el.";
-                case "highlightsQueued": return "Highlights Pro esta seleccionado. La captura de video es de pago y no esta activa en esta build.";
+                case "highlightsQueued": return "Highlights Pro seleccionado. Carpeta de clips: ";
+                case "clipsFolderTitle": return "Carpeta de clips";
+                case "clipsFolderUnset": return "Ninguna carpeta seleccionada. Por defecto se usara Videos\\WZPRO Clips.";
+                case "clipsFolderChoose": return "ELEGIR";
+                case "clipsFolderOpen": return "ABRIR";
+                case "clipsFolderSaved": return "Carpeta de clips guardada: ";
+                case "clipsFolderError": return "No se puede usar esta carpeta: ";
+                case "premiumCheckout": return "DESBLOQUEAR PREMIUM";
+                case "premiumCheckoutHint": return "Premium se paga en wzprometa.com. El tracking de stats sigue gratis.";
+                case "premiumRefresh": return "COMPROBAR PREMIUM";
+                case "premiumChecking": return "Comprobando acceso Premium...";
+                case "premiumActive": return "Premium activo en esta cuenta WZPRO.";
+                case "premiumInactive": return "Premium aun no esta activo. Paga en el sitio y vuelve a comprobar.";
+                case "premiumCheckFailed": return "Error al comprobar Premium: ";
+                case "premiumRequired": return "Se requiere Premium para los clips automaticos.";
+                case "clipsFolderReady": return "Los clips Premium se guardaran en ";
                 case "imports": return "Importaciones";
+                case "metaToday": return "Meta del dia: ";
+                case "tipPrefix": return "Consejo: ";
+                case "patchPrefix": return "Patch: ";
+                case "sessionSummary": return "Resumen de sesion: ";
+                case "sessionGamesSuffix": return " partidas en ";
+                case "statsButton": return "MIS STATS";
+                case "statsLoading": return "Cargando stats...";
+                case "statsFailed": return "Stats no disponibles.";
+                case "statsLevel": return "Nivel: ";
+                case "overlayButton": return "SUPERPOSICION";
+                case "overlayGames": return "Partidas: ";
+                case "highlightDetected": return "Momento destacado: ";
+                case "highlightWin": return "Victoria";
+                case "highlightTop3": return "Top 3";
+                case "highlightMultikill": return "Multi-baja";
+                case "highlightSaved": return "Momento guardado en ";
+                case "highlightClip": return "Captura Game Bar activada (Win+Alt+G).";
+                case "recorderUnavailable": return "Grabador de clips no disponible: ";
+                case "clipSaving": return "Guardando clip: ";
+                case "clipFailed": return "Error al guardar clip: ";
+                case "modeSocial": return "Salida: Redes (montaje)";
+                case "modeRaw": return "Salida: Bruto (pro)";
+                case "modeFull": return "Salida: Partida + Coach IA";
+                case "modeAsk": return "Salida: Preguntar tras cada partida";
+                case "endGameTitle": return "Fin de partida - guardar como:";
+                case "endGameSocial": return "Montaje redes";
+                case "endGameCoach": return "Partida + Coach IA";
+                case "endGameSkip": return "Omitir";
+                case "musicButton": return "Musica de fondo";
+                case "musicNone": return "Sin musica (silencio)";
+                case "audioButton": return "Audio multipista";
+                case "audioTitle": return "Audio multipista (partida completa)";
+                case "audioSystem": return "Audio del sistema / juego (dispositivo loopback):";
+                case "audioMic": return "Microfono:";
+                case "audioNone": return "Ninguno";
+                case "audioHint": return "Graba ambos en pistas separadas. El audio del sistema necesita un dispositivo loopback (Stereo Mix, VB-Cable, Voicemeeter).";
+                case "audioSave": return "Guardar";
+                case "audioCancel": return "Cancelar";
+                case "audioSaved": return "Dispositivos de audio guardados.";
+                case "clipsNeedConnect": return "Conecta primero tu cuenta WZPRO (pestana Free Access), luego desbloquea Premium para los clips automaticos.";
+                case "clipsNeedPremium": return "Los clips automaticos necesitan Premium. Desbloquealo en el sitio y pulsa 'Verificar acceso Premium'. Verificando...";
+                case "fmtVertical": return "Formato: Vertical 9:16";
+                case "fmtSquare": return "Formato: Cuadrado 1:1";
+                case "fmtHorizontal": return "Formato: Horizontal 16:9";
+                case "montageSaved": return "Montaje guardado: ";
+                case "montageFailed": return "Error de montaje: ";
+                case "fullGameSaved": return "Partida completa guardada: ";
+                case "coachTitle": return "Analisis coach de la partida";
+                case "coachAdviceTitle": return "Consejos:";
+                case "coachWin": return "Victoria - sigue cerrando los combates de final de partida con esa calma.";
+                case "coachLowKills": return "Pocas bajas - busca mas peleas al inicio para cash y confianza.";
+                case "coachHighKills": return "Partida con muchas bajas - sobrevive mas para convertirlo en victorias.";
+                case "coachDamageNoFinish": return "Mucho dano sin rematar - juega los angulos, evita el campo abierto.";
+                case "coachEarlyDeath": return "Muerte temprana - juega mas seguro al inicio y rota antes de la zona.";
+                case "coachGeneric": return "Revisa esta grabacion y anota una decision que cambiarias.";
                 case "journal": return "Registro";
                 case "ready": return "Listo. Inicia cuando Warzone este abierto.";
                 case "site": return "Sitio WZPRO: ";
@@ -683,8 +1013,10 @@ public sealed class WzproCompanionApp : Form
                 case "trayWaitingFocus": return "WZPRO Companion - Esperando foco";
                 case "trayWatching": return "WZPRO Companion - Vigilando Warzone";
                 case "minimizeTitle": return "WZprometa";
-                case "minimizeNotice": return "WZprometa esta minimizado en la bandeja.";
+                case "minimizeNotice": return "WZprometa esta minimizado en el area de notificaciones.";
                 case "minimizeBody": return "La app puede seguir funcionando en segundo plano. Tambien puedes cerrarla totalmente.";
+                case "engineExited": return "El motor Companion se detuvo. Codigo de salida: ";
+                case "crashLogged": return "Informe de crash guardado en ";
                 case "reduce": return "MINIMIZAR";
                 case "quitDialog": return "CERRAR TOTALMENTE";
                 case "gamePrefix": return "Partida ";
@@ -727,11 +1059,82 @@ public sealed class WzproCompanionApp : Form
             case "hint": return "La connexion ouvre ton navigateur. Une fois autorisee sur le site, la cle reste cachee dans cette app.";
             case "highlightsTitle": return "Highlights Pro";
             case "highlightsToggle": return "CLIPS AUTO";
-            case "highlightsDesc": return "Module payant prevu: buffer de game, sauvegarde seulement les kills/morts, puis genere un best-of a la fin de chaque partie.";
-            case "highlightsStatusOn": return "Prepare pour l acces Pro. L enregistrement reste inactif tant que le module payant n est pas publie.";
+            case "highlightsDesc": return "Enregistre tes moments forts (victoire, multi-kill, top 3) dans ton dossier de clips automatiquement, via un enregistreur integre leger.";
+            case "gameBar": return "XBOX GAME BAR";
+            case "highlightsStatusOn": return "Pret pour l acces Pro. Choisis le dossier des clips, puis debloque Premium sur le site.";
             case "highlightsStatusOff": return "Option payante non obligatoire. Le tracking gratuit continue sans elle.";
-            case "highlightsQueued": return "Option Highlights Pro selectionnee. La capture video est payante et inactive dans cette build.";
+            case "highlightsQueued": return "Highlights Pro selectionne. Dossier des clips : ";
+            case "clipsFolderTitle": return "Dossier d enregistrement des clips";
+            case "clipsFolderUnset": return "Aucun dossier choisi. Par defaut les clips iront dans Videos\\WZPRO Clips.";
+            case "clipsFolderChoose": return "CHOISIR";
+            case "clipsFolderOpen": return "OUVRIR";
+            case "clipsFolderSaved": return "Dossier des clips enregistre : ";
+            case "clipsFolderError": return "Impossible d utiliser ce dossier : ";
+            case "premiumCheckout": return "DEBLOQUER PREMIUM SUR LE SITE";
+            case "premiumCheckoutHint": return "Le premium se paie sur wzprometa.com. Le tracking de stats reste gratuit.";
+            case "premiumRefresh": return "VERIFIER L ACCES PREMIUM";
+            case "premiumChecking": return "Verification de l acces Premium...";
+            case "premiumActive": return "Premium actif sur ce compte WZPRO.";
+            case "premiumInactive": return "Premium pas encore actif. Paie sur le site, puis verifie a nouveau.";
+            case "premiumCheckFailed": return "Verification Premium impossible : ";
+            case "premiumRequired": return "L acces Premium est requis pour les clips automatiques.";
+            case "clipsFolderReady": return "Les clips Premium seront enregistres dans ";
             case "imports": return "Imports";
+            case "metaToday": return "Meta du jour : ";
+            case "tipPrefix": return "Astuce : ";
+            case "patchPrefix": return "Patch : ";
+            case "sessionSummary": return "Recap session : ";
+            case "sessionGamesSuffix": return " parties en ";
+            case "statsButton": return "MES STATS";
+            case "statsLoading": return "Chargement stats...";
+            case "statsFailed": return "Stats indisponibles.";
+            case "statsLevel": return "Niveau : ";
+            case "overlayButton": return "SUPERPOSITION";
+            case "overlayGames": return "Parties : ";
+            case "highlightDetected": return "Moment fort : ";
+            case "highlightWin": return "Victoire";
+            case "highlightTop3": return "Top 3";
+            case "highlightMultikill": return "Multi-kill";
+            case "highlightSaved": return "Moment fort enregistre dans ";
+            case "highlightClip": return "Capture Game Bar declenchee (Win+Alt+G).";
+            case "recorderUnavailable": return "Enregistreur de clips indisponible : ";
+            case "clipSaving": return "Enregistrement du clip : ";
+            case "clipFailed": return "Echec d enregistrement du clip : ";
+            case "modeSocial": return "Sortie : Reseaux (montage)";
+            case "modeRaw": return "Sortie : Brut (pro)";
+            case "modeFull": return "Sortie : Game complete + Coach IA";
+            case "modeAsk": return "Sortie : Demander apres chaque game";
+            case "endGameTitle": return "Fin de game - enregistrer en :";
+            case "endGameSocial": return "Montage reseaux";
+            case "endGameCoach": return "Game + Coach IA";
+            case "endGameSkip": return "Ignorer";
+            case "musicButton": return "Musique de fond";
+            case "musicNone": return "Aucune musique (muet)";
+            case "audioButton": return "Audio multipiste";
+            case "audioTitle": return "Audio multipiste (game complete)";
+            case "audioSystem": return "Audio systeme / jeu (peripherique loopback) :";
+            case "audioMic": return "Microphone :";
+            case "audioNone": return "Aucun";
+            case "audioHint": return "Enregistre les deux en pistes separees. L audio systeme requiert un peripherique loopback (Stereo Mix, VB-Cable, Voicemeeter).";
+            case "audioSave": return "Enregistrer";
+            case "audioCancel": return "Annuler";
+            case "audioSaved": return "Peripheriques audio enregistres.";
+            case "clipsNeedConnect": return "Connecte d abord ton compte WZPRO (onglet Free Access), puis active le Premium pour les clips auto.";
+            case "clipsNeedPremium": return "Les clips auto necessitent le Premium. Active-le sur le site, puis clique 'Verifier l acces Premium'. Verification en cours...";
+            case "fmtVertical": return "Format : Vertical 9:16";
+            case "fmtSquare": return "Format : Carre 1:1";
+            case "fmtHorizontal": return "Format : Horizontal 16:9";
+            case "montageSaved": return "Montage enregistre : ";
+            case "montageFailed": return "Echec du montage : ";
+            case "fullGameSaved": return "Game complete enregistree : ";
+            case "coachTitle": return "Analyse coach de la game";
+            case "coachAdviceTitle": return "Conseils :";
+            case "coachWin": return "Victoire - continue a fermer les combats de fin de game avec ce calme.";
+            case "coachLowKills": return "Peu de kills - prends plus de combats tot pour le cash et la confiance.";
+            case "coachHighKills": return "Game a gros kills - travaille la survie pour transformer en victoires.";
+            case "coachDamageNoFinish": return "Beaucoup de degats sans finir - joue les angles, evite le decouvert.";
+            case "coachEarlyDeath": return "Mort tot - joue plus safe au debut et rote avant la zone.";
+            case "coachGeneric": return "Revois cet enregistrement et note une decision que tu changerais.";
             case "journal": return "Journal";
             case "ready": return "Pret. Lance quand Warzone est ouvert.";
             case "site": return "Site WZPRO: ";
@@ -760,8 +1163,10 @@ public sealed class WzproCompanionApp : Form
             case "trayWaitingFocus": return "WZPRO Companion - En attente du focus";
             case "trayWatching": return "WZPRO Companion - Surveillance Warzone";
             case "minimizeTitle": return "WZprometa";
-            case "minimizeNotice": return "WZprometa est reduit dans les applications.";
+            case "minimizeNotice": return "WZprometa est reduit dans la zone de notification.";
             case "minimizeBody": return "L app peut continuer en arriere-plan. Tu peux aussi fermer totalement l application.";
+            case "engineExited": return "Le moteur Companion s est arrete. Code de sortie : ";
+            case "crashLogged": return "Rapport de crash enregistre dans ";
             case "reduce": return "REDUIRE";
             case "quitDialog": return "FERMER TOTALEMENT";
             case "gamePrefix": return "Game ";
@@ -837,18 +1242,1081 @@ public sealed class WzproCompanionApp : Form
         premiumPageTitleLabel.Visible = premium;
         premiumPageDescLabel.Visible = premium;
         highlightsToggle.Visible = premium;
-        highlightsDescLabel.Visible = false;
+        highlightsDescLabel.Visible = premium;
         highlightsStatusLabel.Visible = premium;
+        clipsFolderTitleLabel.Visible = premium;
+        clipsFolderValueLabel.Visible = premium;
+        clipsFolderButton.Visible = premium;
+        clipsOpenFolderButton.Visible = premium;
+        premiumCheckoutHintLabel.Visible = premium;
+        premiumAccessStatusLabel.Visible = premium;
+        premiumCheckoutButton.Visible = premium;
+        premiumRefreshButton.Visible = premium;
+        if (statsButton != null) statsButton.Visible = premium;
+        if (gameBarButton != null) gameBarButton.Visible = premium;
+        if (statsBox != null) statsBox.Visible = premium;
+        if (clipModeCombo != null) clipModeCombo.Visible = premium;
+        if (socialFormatCombo != null) socialFormatCombo.Visible = premium;
+        if (musicButton != null) musicButton.Visible = premium;
+        if (musicLabel != null) musicLabel.Visible = premium;
+        if (audioButton != null) audioButton.Visible = premium;
 
         StylePageButtons(Theme);
+        if (premium && !string.IsNullOrWhiteSpace(deviceToken) && DateTime.UtcNow.Subtract(lastPremiumCheckUtc).TotalSeconds > 45)
+        {
+            backgroundPremiumCheck = CheckPremiumAccess(false);
+        }
+    }
+
+    private bool populatingCombos;
+
+    private void PopulateClipCombos()
+    {
+        populatingCombos = true;
+        try
+        {
+            if (clipModeCombo != null)
+            {
+                clipModeCombo.Items.Clear();
+                clipModeCombo.Items.Add(T("modeSocial"));
+                clipModeCombo.Items.Add(T("modeRaw"));
+                clipModeCombo.Items.Add(T("modeFull"));
+                clipModeCombo.Items.Add(T("modeAsk"));
+                clipModeCombo.SelectedIndex = clipMode == "raw" ? 1 : clipMode == "full" ? 2 : clipMode == "ask" ? 3 : 0;
+            }
+            if (socialFormatCombo != null)
+            {
+                socialFormatCombo.Items.Clear();
+                socialFormatCombo.Items.Add(T("fmtVertical"));
+                socialFormatCombo.Items.Add(T("fmtSquare"));
+                socialFormatCombo.Items.Add(T("fmtHorizontal"));
+                socialFormatCombo.SelectedIndex = socialFormat == "square" ? 1 : socialFormat == "horizontal" ? 2 : 0;
+                socialFormatCombo.Enabled = clipMode == "social" || clipMode == "ask";
+            }
+        }
+        finally
+        {
+            populatingCombos = false;
+        }
+    }
+
+    private void OnClipModeChanged()
+    {
+        if (populatingCombos || clipModeCombo == null) return;
+        int i = clipModeCombo.SelectedIndex;
+        clipMode = i == 1 ? "raw" : i == 2 ? "full" : i == 3 ? "ask" : "social";
+        if (socialFormatCombo != null) socialFormatCombo.Enabled = clipMode == "social" || clipMode == "ask";
+        SaveSession();
+    }
+
+    private void OnSocialFormatChanged()
+    {
+        if (populatingCombos || socialFormatCombo == null) return;
+        int i = socialFormatCombo.SelectedIndex;
+        socialFormat = i == 1 ? "square" : i == 2 ? "horizontal" : "vertical";
+        SaveSession();
     }
 
     private void OnHighlightsChanged()
     {
+        // Premium gate: only paid accounts can enable the premium auto-clips feature.
+        if (highlightsToggle.Checked && !premiumAccessActive)
+        {
+            highlightsToggle.Checked = false; // re-enters this handler with Checked == false
+            premiumAccessStatusLabel.Text = T("premiumInactive");
+            premiumAccessStatusLabel.ForeColor = Theme.Muted;
+            // Clear feedback (the log is hidden on this page) + re-check access in case it is active.
+            if (string.IsNullOrWhiteSpace(deviceToken))
+            {
+                MessageBox.Show(T("clipsNeedConnect"), "WZPRO Companion");
+            }
+            else
+            {
+                MessageBox.Show(T("clipsNeedPremium"), "WZPRO Companion");
+                backgroundPremiumCheck = CheckPremiumAccess(true);
+            }
+            return;
+        }
+
         highlightsProEnabled = highlightsToggle.Checked;
         highlightsStatusLabel.Text = highlightsProEnabled ? T("highlightsStatusOn") : T("highlightsStatusOff");
         highlightsStatusLabel.ForeColor = highlightsProEnabled ? Theme.Warn : Theme.Muted;
+        RefreshClipsFolderUi();
         SaveSession();
+    }
+
+    private string DefaultClipsFolder()
+    {
+        string videos = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+        if (string.IsNullOrWhiteSpace(videos)) videos = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        return Path.Combine(videos, "WZPRO Clips");
+    }
+
+    private string EffectiveClipsFolder()
+    {
+        return string.IsNullOrWhiteSpace(clipsFolderPath) ? DefaultClipsFolder() : clipsFolderPath;
+    }
+
+    private void RefreshClipsFolderUi()
+    {
+        if (clipsFolderValueLabel == null) return;
+        clipsFolderValueLabel.Text = string.IsNullOrWhiteSpace(clipsFolderPath) ? T("clipsFolderUnset") : clipsFolderPath;
+        if (clipsOpenFolderButton != null) clipsOpenFolderButton.Enabled = true;
+    }
+
+    private void ChooseClipsFolder()
+    {
+        using (var dialog = new FolderBrowserDialog())
+        {
+            dialog.Description = T("clipsFolderTitle");
+            dialog.SelectedPath = EffectiveClipsFolder();
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+            try
+            {
+                Directory.CreateDirectory(dialog.SelectedPath);
+                clipsFolderPath = dialog.SelectedPath;
+                RefreshClipsFolderUi();
+                SaveSession();
+                AddLogLine(T("clipsFolderSaved") + clipsFolderPath);
+            }
+            catch (Exception ex)
+            {
+                AddLogLine(T("clipsFolderError") + ex.Message);
+                MessageBox.Show(T("clipsFolderError") + ex.Message, "WZPRO Companion");
+            }
+        }
+    }
+
+    private void ChooseMusic()
+    {
+        using (var dialog = new OpenFileDialog())
+        {
+            dialog.Filter = "Audio|*.mp3;*.m4a;*.aac;*.wav;*.ogg;*.flac|All files|*.*";
+            if (!string.IsNullOrWhiteSpace(musicPath)) { try { dialog.InitialDirectory = Path.GetDirectoryName(musicPath); } catch { } }
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+            musicPath = dialog.FileName;
+            RefreshMusicUi();
+            SaveSession();
+        }
+    }
+
+    private void RefreshMusicUi()
+    {
+        if (musicLabel == null) return;
+        musicLabel.Text = string.IsNullOrWhiteSpace(musicPath) ? T("musicNone") : Path.GetFileName(musicPath);
+    }
+
+    private void RefreshAudioUi()
+    {
+        if (audioButton == null) return;
+        bool on = !string.IsNullOrEmpty(systemAudioDevice) || !string.IsNullOrEmpty(micAudioDevice);
+        audioButton.Text = T("audioButton") + (on ? " *" : "");
+    }
+
+    private System.Collections.Generic.List<string> EnumerateAudioDevices()
+    {
+        var list = new System.Collections.Generic.List<string>();
+        ResolveFfmpeg();
+        if (string.IsNullOrEmpty(ffmpegPath)) return list;
+        try
+        {
+            var p = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = ffmpegPath,
+                    Arguments = "-hide_banner -list_devices true -f dshow -i dummy",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true
+                }
+            };
+            p.Start();
+            string err = p.StandardError.ReadToEnd();
+            p.WaitForExit(8000);
+            foreach (Match m in Regex.Matches(err, "\"([^\"]+)\"\\s*\\(audio\\)"))
+            {
+                string name = m.Groups[1].Value;
+                if (!list.Contains(name)) list.Add(name);
+            }
+        }
+        catch { }
+        return list;
+    }
+
+    // Multitrack audio for full-game recordings: pick a system-audio (loopback) device and a mic.
+    private void OpenAudioSettings()
+    {
+        System.Collections.Generic.List<string> devices = EnumerateAudioDevices();
+        using (var dlg = new Form
+        {
+            Text = T("audioTitle"),
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            StartPosition = FormStartPosition.CenterParent,
+            Size = new Size(470, 246),
+            MaximizeBox = false,
+            MinimizeBox = false,
+            BackColor = Color.FromArgb(12, 14, 22)
+        })
+        {
+            var lblSys = new Label { Text = T("audioSystem"), Location = new Point(16, 16), Size = new Size(424, 18), ForeColor = Color.White, Font = AppFont(8, FontStyle.Bold) };
+            var cbSys = new ComboBox { Location = new Point(16, 38), Size = new Size(424, 24), DropDownStyle = ComboBoxStyle.DropDownList, BackColor = Color.FromArgb(14, 18, 45), ForeColor = Color.White };
+            var lblMic = new Label { Text = T("audioMic"), Location = new Point(16, 76), Size = new Size(424, 18), ForeColor = Color.White, Font = AppFont(8, FontStyle.Bold) };
+            var cbMic = new ComboBox { Location = new Point(16, 98), Size = new Size(424, 24), DropDownStyle = ComboBoxStyle.DropDownList, BackColor = Color.FromArgb(14, 18, 45), ForeColor = Color.White };
+            cbSys.Items.Add(T("audioNone"));
+            cbMic.Items.Add(T("audioNone"));
+            foreach (string d in devices) { cbSys.Items.Add(d); cbMic.Items.Add(d); }
+            int si = cbSys.Items.IndexOf(systemAudioDevice);
+            cbSys.SelectedIndex = si > 0 ? si : 0;
+            int mi = cbMic.Items.IndexOf(micAudioDevice);
+            cbMic.SelectedIndex = mi > 0 ? mi : 0;
+            var hint = new Label { Text = T("audioHint"), Location = new Point(16, 132), Size = new Size(424, 32), ForeColor = Color.FromArgb(150, 150, 155), Font = AppFont(7, FontStyle.Regular) };
+            var ok = new Button { Text = T("audioSave"), Location = new Point(232, 174), Size = new Size(104, 32), DialogResult = DialogResult.OK, BackColor = Color.FromArgb(22, 60, 255), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+            var cancel = new Button { Text = T("audioCancel"), Location = new Point(344, 174), Size = new Size(96, 32), DialogResult = DialogResult.Cancel, BackColor = Color.FromArgb(42, 42, 48), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+            dlg.Controls.Add(lblSys);
+            dlg.Controls.Add(cbSys);
+            dlg.Controls.Add(lblMic);
+            dlg.Controls.Add(cbMic);
+            dlg.Controls.Add(hint);
+            dlg.Controls.Add(ok);
+            dlg.Controls.Add(cancel);
+            dlg.AcceptButton = ok;
+            dlg.CancelButton = cancel;
+            if (dlg.ShowDialog(this) == DialogResult.OK)
+            {
+                systemAudioDevice = cbSys.SelectedIndex <= 0 ? "" : (string)cbSys.SelectedItem;
+                micAudioDevice = cbMic.SelectedIndex <= 0 ? "" : (string)cbMic.SelectedItem;
+                RefreshAudioUi();
+                SaveSession();
+                AddLogLine(T("audioSaved"));
+            }
+        }
+    }
+
+    private void OpenClipsFolder()
+    {
+        try
+        {
+            string folder = EffectiveClipsFolder();
+            Directory.CreateDirectory(folder);
+            OpenUrl(folder);
+        }
+        catch (Exception ex)
+        {
+            AddLogLine(T("clipsFolderError") + ex.Message);
+            MessageBox.Show(T("clipsFolderError") + ex.Message, "WZPRO Companion");
+        }
+    }
+
+    private void OpenPremiumAccessPage()
+    {
+        OpenUrl(site + "/companion/premium");
+    }
+
+    private void SafeUi(Action action)
+    {
+        if (IsDisposed) return;
+        try
+        {
+            if (InvokeRequired) BeginInvoke(action);
+            else action();
+        }
+        catch
+        {
+            // The form may be closing while a network check finishes.
+        }
+    }
+
+    private void RefreshPremiumAccessUi()
+    {
+        if (premiumAccessStatusLabel == null) return;
+        premiumAccessStatusLabel.Text = premiumAccessActive ? T("premiumActive") : T("premiumInactive");
+        premiumAccessStatusLabel.ForeColor = premiumAccessActive ? Theme.Success : Theme.Muted;
+        highlightsStatusLabel.Text = premiumAccessActive ? T("premiumActive") : highlightsProEnabled ? T("highlightsStatusOn") : T("highlightsStatusOff");
+        highlightsStatusLabel.ForeColor = premiumAccessActive ? Theme.Success : highlightsProEnabled ? Theme.Warn : Theme.Muted;
+    }
+
+    private async Task CheckPremiumAccess(bool userRequested)
+    {
+        if (premiumCheckRunning || string.IsNullOrWhiteSpace(deviceToken)) return;
+        premiumCheckRunning = true;
+        if (premiumAccessStatusLabel != null)
+        {
+            premiumAccessStatusLabel.Text = T("premiumChecking");
+            premiumAccessStatusLabel.ForeColor = Theme.Info;
+        }
+        if (premiumRefreshButton != null) premiumRefreshButton.Enabled = false;
+
+        try
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, site + "/api/companion/premium/status"))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", deviceToken);
+                using (HttpResponseMessage response = await http.SendAsync(request).ConfigureAwait(false))
+                {
+                    string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode) throw new Exception(body);
+                    premiumAccessActive = JsonBool(body, "premium");
+                    lastPremiumCheckUtc = DateTime.UtcNow;
+                    SafeUi(delegate
+                    {
+                        // Premium lost/never granted: turn off any premium feature left enabled.
+                        if (!premiumAccessActive && highlightsProEnabled)
+                        {
+                            highlightsProEnabled = false;
+                            if (highlightsToggle != null) highlightsToggle.Checked = false;
+                            SaveSession();
+                        }
+                        RefreshPremiumAccessUi();
+                        if (userRequested) AddLogLine(premiumAccessActive ? T("premiumActive") : T("premiumInactive"));
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            SafeUi(delegate
+            {
+                if (premiumAccessStatusLabel != null)
+                {
+                    premiumAccessStatusLabel.Text = T("premiumCheckFailed") + ex.Message;
+                    premiumAccessStatusLabel.ForeColor = Theme.Warn;
+                }
+                if (userRequested) AddLogLine(T("premiumCheckFailed") + ex.Message);
+            });
+        }
+        finally
+        {
+            premiumCheckRunning = false;
+            SafeUi(delegate { if (premiumRefreshButton != null) premiumRefreshButton.Enabled = true; });
+        }
+    }
+
+    // Free home data: meta of the day, daily settings tip and latest patch note.
+    private async Task FetchHomeData()
+    {
+        if (string.IsNullOrWhiteSpace(deviceToken)) return;
+        try
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, site + "/api/companion/home"))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", deviceToken);
+                using (HttpResponseMessage response = await http.SendAsync(request).ConfigureAwait(false))
+                {
+                    string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    if (!response.IsSuccessStatusCode) return;
+
+                    string weapon = JsonString(body, "weapon");
+                    string tier = JsonString(body, "tier");
+                    string category = JsonString(body, "category");
+                    string tip = JsonString(body, "tip");
+                    string patch = JsonString(body, "summary");
+                    string patchDate = JsonString(body, "date");
+
+                    SafeUi(delegate
+                    {
+                        if (!string.IsNullOrWhiteSpace(weapon)) metaTodayWeapon = weapon;
+                        if (metaTodayLabel != null && !string.IsNullOrWhiteSpace(weapon))
+                        {
+                            string line = T("metaToday") + weapon;
+                            if (!string.IsNullOrWhiteSpace(tier)) line += " (" + tier + ")";
+                            if (!string.IsNullOrWhiteSpace(category)) line += " - " + category;
+                            metaTodayLabel.Text = line;
+                        }
+                        if (!homeFetched)
+                        {
+                            homeFetched = true;
+                            if (!string.IsNullOrWhiteSpace(tip)) AddLogLine(T("tipPrefix") + tip);
+                            if (!string.IsNullOrWhiteSpace(patch))
+                            {
+                                string patchLine = T("patchPrefix") + patch;
+                                if (!string.IsNullOrWhiteSpace(patchDate)) patchLine += " (" + patchDate + ")";
+                                AddLogLine(patchLine);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        catch
+        {
+            // Home data is best-effort; ignore network/parse failures.
+        }
+    }
+
+    // Premium advanced tracker + AI coach (gated server-side; 403 if not premium).
+    private async Task FetchStats()
+    {
+        if (string.IsNullOrWhiteSpace(deviceToken)) return;
+        SafeUi(delegate { if (statsBox != null) statsBox.Text = T("statsLoading"); });
+        try
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, site + "/api/companion/stats"))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", deviceToken);
+                using (HttpResponseMessage response = await http.SendAsync(request).ConfigureAwait(false))
+                {
+                    string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        SafeUi(delegate { if (statsBox != null) statsBox.Text = T("premiumInactive"); });
+                        return;
+                    }
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        SafeUi(delegate { if (statsBox != null) statsBox.Text = T("statsFailed"); });
+                        return;
+                    }
+
+                    string level = JsonString(body, "level");
+                    string kd = JsonNumber(body, "kd");
+                    string kills = JsonNumber(body, "kills");
+                    string dmg = JsonNumber(body, "damage");
+                    string wr = JsonNumber(body, "winRate");
+                    string pct = JsonNumber(body, "percentile");
+                    System.Collections.Generic.List<string> coach = JsonStringArray(body, "coach");
+
+                    SafeUi(delegate
+                    {
+                        if (statsBox == null) return;
+                        var sb = new System.Text.StringBuilder();
+                        sb.AppendLine(T("statsLevel") + level + " (top " + pct + "%)");
+                        sb.AppendLine("K/D " + kd + "  -  " + kills + " kills  -  " + dmg + " dmg  -  " + wr + "% win");
+                        sb.AppendLine("");
+                        foreach (string tip in coach) sb.AppendLine("- " + tip);
+                        statsBox.Text = sb.ToString();
+                    });
+                }
+            }
+        }
+        catch
+        {
+            SafeUi(delegate { if (statsBox != null) statsBox.Text = T("statsFailed"); });
+        }
+    }
+
+    private static string JsonNumber(string json, string key)
+    {
+        Match match = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*(-?[0-9]+(?:\\.[0-9]+)?)");
+        return match.Success ? match.Groups[1].Value : "";
+    }
+
+    private static System.Collections.Generic.List<string> JsonStringArray(string json, string key)
+    {
+        var list = new System.Collections.Generic.List<string>();
+        Match arr = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*\\[(.*?)\\]", RegexOptions.Singleline);
+        if (!arr.Success) return list;
+        foreach (Match m in Regex.Matches(arr.Groups[1].Value, "\"((?:\\\\.|[^\"])*)\""))
+        {
+            list.Add(Regex.Unescape(m.Groups[1].Value));
+        }
+        return list;
+    }
+
+    // In-game overlay HUD (free): draggable, topmost, shows session totals + meta of the day.
+    private void ToggleOverlay()
+    {
+        EnsureOverlay();
+        if (overlayForm.Visible)
+        {
+            overlayForm.Hide();
+        }
+        else
+        {
+            UpdateOverlay();
+            overlayForm.Show();
+        }
+    }
+
+    private void EnsureOverlay()
+    {
+        if (overlayForm != null) return;
+        overlayForm = new Form
+        {
+            FormBorderStyle = FormBorderStyle.None,
+            StartPosition = FormStartPosition.Manual,
+            TopMost = true,
+            ShowInTaskbar = false,
+            BackColor = Color.Black,
+            Opacity = 0.78,
+            Size = new Size(240, 96),
+            Location = new Point(24, 24)
+        };
+        overlayLabel = new Label
+        {
+            Dock = DockStyle.Fill,
+            ForeColor = Color.White,
+            Font = AppFont(9, FontStyle.Bold),
+            TextAlign = ContentAlignment.MiddleLeft,
+            Padding = new Padding(12, 8, 12, 8)
+        };
+        overlayLabel.MouseDown += delegate(object s, MouseEventArgs e) { overlayDragStart = e.Location; overlayDragging = true; };
+        overlayLabel.MouseUp += delegate { overlayDragging = false; };
+        overlayLabel.MouseMove += delegate(object s, MouseEventArgs e)
+        {
+            if (overlayDragging)
+            {
+                overlayForm.Location = new Point(overlayForm.Location.X + e.X - overlayDragStart.X, overlayForm.Location.Y + e.Y - overlayDragStart.Y);
+            }
+        };
+        overlayForm.Controls.Add(overlayLabel);
+    }
+
+    private void UpdateOverlay()
+    {
+        if (overlayLabel == null) return;
+        int mins = sessionStartUtc == default(DateTime)
+            ? 0
+            : Math.Max(0, (int)Math.Round(DateTime.UtcNow.Subtract(sessionStartUtc).TotalMinutes));
+        string meta = string.IsNullOrWhiteSpace(metaTodayWeapon) ? "" : Environment.NewLine + T("metaToday") + metaTodayWeapon;
+        overlayLabel.Text = "WZPRO" + Environment.NewLine + T("overlayGames") + sessionGameCount + "  /  " + mins + " min" + meta;
+    }
+
+    // Highlight emitted by the Node engine ("HIGHLIGHT {json}"): log it, and on premium
+    // with clips enabled, write a marker and trigger a Windows Game Bar capture.
+    private void HandleHighlight(string json)
+    {
+        string reason = JsonString(json, "reason");
+        string kills = JsonNumber(json, "kills");
+        string place = JsonNumber(json, "placement");
+        bool won = JsonBool(json, "won");
+
+        string label = reason == "win" ? T("highlightWin") : reason == "top3" ? T("highlightTop3") : T("highlightMultikill");
+        string detail = T("highlightDetected") + label + " (" + kills + " kills"
+            + (!string.IsNullOrWhiteSpace(place) && place != "0" ? ", #" + place : "") + ")";
+        if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] * " + detail + Environment.NewLine);
+
+        if (!premiumAccessActive || !highlightsProEnabled) return;
+
+        try
+        {
+            string dir = EffectiveClipsFolder();
+            Directory.CreateDirectory(dir);
+            File.AppendAllText(
+                Path.Combine(dir, "highlights.log"),
+                DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  " + reason + "  kills=" + kills + "  place=" + place + "  won=" + (won ? "1" : "0") + Environment.NewLine);
+            if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("highlightSaved") + dir + Environment.NewLine);
+        }
+        catch (Exception ex)
+        {
+            if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("clipsFolderError") + ex.Message + Environment.NewLine);
+        }
+
+        // Prefer our own recorder buffer; fall back to Game Bar if it is not running.
+        if (recorderActive && !string.IsNullOrEmpty(ffmpegPath))
+        {
+            // Full-game mode exports the whole match on "Uploaded game" instead of short clips.
+            if (clipMode != "full")
+            {
+                string clip = SaveClip(reason);
+                if (!string.IsNullOrEmpty(clip))
+                {
+                    if (clipMode == "social") sessionClips.Add(clip);
+                    if (clipMode == "ask") pendingGameClips.Add(clip);
+                }
+            }
+        }
+        else
+        {
+            TriggerGameBarClip();
+        }
+    }
+
+    private void TriggerGameBarClip()
+    {
+        // Win + Alt + G captures the last seconds via Game Bar (needs background recording on).
+        try
+        {
+            const byte VK_LWIN = 0x5B, VK_MENU = 0x12, VK_G = 0x47;
+            const uint KEYUP = 0x0002;
+            keybd_event(VK_LWIN, 0, 0, UIntPtr.Zero);
+            keybd_event(VK_MENU, 0, 0, UIntPtr.Zero);
+            keybd_event(VK_G, 0, 0, UIntPtr.Zero);
+            keybd_event(VK_G, 0, KEYUP, UIntPtr.Zero);
+            keybd_event(VK_MENU, 0, KEYUP, UIntPtr.Zero);
+            keybd_event(VK_LWIN, 0, KEYUP, UIntPtr.Zero);
+            if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("highlightClip") + Environment.NewLine);
+        }
+        catch
+        {
+            // Capture is best-effort; Game Bar may be disabled.
+        }
+    }
+
+    [DllImport("user32.dll")]
+    private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(IntPtr hWnd, out NativeRect rect);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect { public int Left; public int Top; public int Right; public int Bottom; }
+
+    // Native in-process capture of the focused game window (no PowerShell spawn).
+    // Writes to the temp PNG the Node engine reads, so OCR has a fresh frame without
+    // the engine launching PowerShell for screenshots.
+    private void NativeCaptureTick()
+    {
+        try
+        {
+            IntPtr handle = GetForegroundWindow();
+            bool gameFocused = false;
+            NativeRect r = new NativeRect();
+            if (handle != IntPtr.Zero)
+            {
+                uint pid;
+                GetWindowThreadProcessId(handle, out pid);
+                string pname = "";
+                try { pname = Process.GetProcessById((int)pid).ProcessName.ToLowerInvariant(); }
+                catch { pname = ""; }
+                if (GameProcessNames.Contains(pname) && GetWindowRect(handle, out r)
+                    && (r.Right - r.Left) >= 640 && (r.Bottom - r.Top) >= 360)
+                {
+                    gameFocused = true;
+                }
+            }
+
+            if (!gameFocused)
+            {
+                // Stop recording after a few ticks without the game in focus.
+                if (recorderActive && ++noGameTicks >= 3) StopRecorder();
+                return;
+            }
+            noGameTicks = 0;
+
+            int w = r.Right - r.Left;
+            int h = r.Bottom - r.Top;
+            using (var bmp = new Bitmap(w, h))
+            using (var g = Graphics.FromImage(bmp))
+            {
+                g.CopyFromScreen(r.Left, r.Top, 0, 0, new Size(w, h));
+                bmp.Save(NativeScreenshotPath, System.Drawing.Imaging.ImageFormat.Png);
+            }
+
+            // Premium + clips: keep the rolling clip buffer running while in game.
+            if (premiumAccessActive && highlightsProEnabled && !recorderActive)
+            {
+                StartRecorder();
+            }
+        }
+        catch
+        {
+            // Best-effort; the engine falls back to its own capture if this frame is stale.
+        }
+    }
+
+    private void ResolveFfmpeg()
+    {
+        if (!string.IsNullOrEmpty(ffmpegPath)) return;
+        try
+        {
+            string exeDir = Path.GetDirectoryName(Application.ExecutablePath) ?? "";
+            string[] candidates =
+            {
+                Path.Combine(exeDir, "node_modules", "ffmpeg-static", "ffmpeg.exe"),
+                Path.Combine(engineWorkingDirectory ?? exeDir, "node_modules", "ffmpeg-static", "ffmpeg.exe"),
+            };
+            foreach (string c in candidates)
+            {
+                if (File.Exists(c)) { ffmpegPath = c; return; }
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+        ffmpegPath = "ffmpeg"; // fall back to PATH; start will disable it if missing.
+    }
+
+    private void StartRecorder()
+    {
+        ResolveFfmpeg();
+        if (string.IsNullOrEmpty(ffmpegPath)) return;
+        if (recorderProcess != null && !recorderProcess.HasExited) return;
+
+        recorderRecipeIndex = 0;
+        recorderAudioDisabled = false;
+        try
+        {
+            Directory.CreateDirectory(BufferDir);
+            foreach (string f in Directory.GetFiles(BufferDir, "seg_*.ts")) { try { File.Delete(f); } catch { } }
+        }
+        catch { }
+        StartRecorderWithEncoder();
+    }
+
+    private void StartRecorderWithEncoder()
+    {
+        if (recorderRecipeIndex >= CaptureRecipes.Length) { recorderActive = false; return; }
+
+        // Full-game and ask modes keep the whole match; social/raw keep a short rolling buffer.
+        int wrap = (clipMode == "full" || clipMode == "ask") ? 600 : 24;
+
+        // Optional multitrack audio (system + mic) as separate tracks, before the video input.
+        string audioInputs = "";
+        string audioMaps = "";
+        if (!recorderAudioDisabled)
+        {
+            var devs = new System.Collections.Generic.List<string>();
+            if (!string.IsNullOrEmpty(systemAudioDevice)) devs.Add(systemAudioDevice);
+            if (!string.IsNullOrEmpty(micAudioDevice)) devs.Add(micAudioDevice);
+            if (devs.Count > 0)
+            {
+                for (int k = 0; k < devs.Count; k++) audioInputs += "-f dshow -i audio=\"" + devs[k] + "\" ";
+                audioMaps = "-map " + devs.Count + ":v";
+                for (int k = 0; k < devs.Count; k++) audioMaps += " -map " + k + ":a";
+                audioMaps += " -c:a aac -ac 2 ";
+            }
+        }
+
+        string args = "-y -hide_banner -loglevel error "
+            + audioInputs + CaptureRecipes[recorderRecipeIndex] + " " + audioMaps + "-g 60 "
+            + "-f segment -segment_time 3 -segment_wrap " + wrap + " -reset_timestamps 1 -segment_format mpegts "
+            + "\"" + Path.Combine(BufferDir, "seg_%03d.ts") + "\"";
+
+        try
+        {
+            recorderProcess = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = ffmpegPath,
+                    Arguments = args,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    WorkingDirectory = BufferDir
+                },
+                EnableRaisingEvents = true
+            };
+            recorderStartedUtc = DateTime.UtcNow;
+            recorderProcess.ErrorDataReceived += delegate { };
+            recorderProcess.OutputDataReceived += delegate { };
+            recorderProcess.Exited += delegate
+            {
+                // Recipe failed fast (unsupported encoder/capture) -> try the next recipe.
+                if (recorderActive && DateTime.UtcNow.Subtract(recorderStartedUtc).TotalSeconds < 3)
+                {
+                    if (recorderRecipeIndex < CaptureRecipes.Length - 1)
+                    {
+                        recorderRecipeIndex++;
+                        SafeUi(delegate { StartRecorderWithEncoder(); });
+                    }
+                    else if (!recorderAudioDisabled && (!string.IsNullOrEmpty(systemAudioDevice) || !string.IsNullOrEmpty(micAudioDevice)))
+                    {
+                        // All recipes failed WITH audio -> a device is likely busy; retry video-only.
+                        recorderAudioDisabled = true;
+                        recorderRecipeIndex = 0;
+                        SafeUi(delegate { StartRecorderWithEncoder(); });
+                    }
+                    else
+                    {
+                        recorderActive = false; // all recipes failed; highlights fall back to Game Bar
+                    }
+                }
+            };
+            recorderProcess.Start();
+            recorderProcess.BeginErrorReadLine();
+            recorderProcess.BeginOutputReadLine();
+            recorderActive = true;
+            try { recorderProcess.PriorityClass = ProcessPriorityClass.BelowNormal; } catch { }
+        }
+        catch (Exception ex)
+        {
+            ffmpegPath = "";
+            recorderActive = false;
+            if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("recorderUnavailable") + ex.Message + Environment.NewLine);
+        }
+    }
+
+    private void StopRecorder()
+    {
+        recorderActive = false;
+        noGameTicks = 0;
+        if (recorderProcess != null && !recorderProcess.HasExited)
+        {
+            try { recorderProcess.Kill(); recorderProcess.WaitForExit(1500); } catch { }
+        }
+    }
+
+    // Save the recent rolling-buffer segments as a clip (premium highlight). Returns the path.
+    private string SaveClip(string reason)
+    {
+        if (string.IsNullOrEmpty(ffmpegPath)) return "";
+        try
+        {
+            FileInfo[] segs = new DirectoryInfo(BufferDir).GetFiles("seg_*.ts");
+            if (segs.Length < 2) return ""; // need some buffered footage
+            Array.Sort(segs, delegate(FileInfo a, FileInfo b) { return a.LastWriteTimeUtc.CompareTo(b.LastWriteTimeUtc); });
+
+            // Exclude the newest segment (still being written), keep up to ~30s before it.
+            int end = segs.Length - 1;
+            int start = Math.Max(0, end - 10);
+            string listPath = Path.Combine(BufferDir, "concat_" + DateTime.Now.ToString("HHmmss") + ".txt");
+            var sb = new System.Text.StringBuilder();
+            for (int i = start; i < end; i++)
+            {
+                sb.AppendLine("file '" + segs[i].FullName.Replace("\\", "/").Replace("'", "'\\''") + "'");
+            }
+            File.WriteAllText(listPath, sb.ToString());
+
+            string clipDir = EffectiveClipsFolder();
+            Directory.CreateDirectory(clipDir);
+            string outPath = Path.Combine(clipDir, "highlight_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_" + reason + ".mp4");
+
+            var p = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = ffmpegPath,
+                    Arguments = "-y -hide_banner -loglevel error -f concat -safe 0 -i \"" + listPath + "\" -map 0 -c copy \"" + outPath + "\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            p.Start();
+            if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("clipSaving") + outPath + Environment.NewLine);
+            return outPath;
+        }
+        catch (Exception ex)
+        {
+            if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("clipFailed") + ex.Message + Environment.NewLine);
+            return "";
+        }
+    }
+
+    // Build a publishable best-of montage (fades, social format) from the session clips.
+    private void BuildMontage(System.Collections.Generic.List<string> clips, string format)
+    {
+        if (string.IsNullOrEmpty(ffmpegPath) || clips == null || clips.Count == 0) return;
+        string fmt;
+        if (format == "square") fmt = "scale=1080:1080:force_original_aspect_ratio=decrease,pad=1080:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p";
+        else if (format == "horizontal") fmt = "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p";
+        else fmt = "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,format=yuv420p";
+
+        try
+        {
+            string work = Path.Combine(BufferDir, "montage");
+            Directory.CreateDirectory(work);
+            foreach (string f in Directory.GetFiles(work)) { try { File.Delete(f); } catch { } }
+
+            var normalized = new System.Collections.Generic.List<string>();
+            int idx = 0;
+            foreach (string clip in clips)
+            {
+                if (!File.Exists(clip)) continue;
+                string n = Path.Combine(work, "n" + idx + ".mp4");
+                // Keep the last 8s of each clip (the action), apply format + fade in/out.
+                string args = "-y -hide_banner -loglevel error -sseof -8 -i \"" + clip + "\" "
+                    + "-vf \"" + fmt + ",fade=t=in:st=0:d=0.4,fade=t=out:st=7.6:d=0.4\" -an "
+                    + "-c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p \"" + n + "\"";
+                var pn = new Process { StartInfo = new ProcessStartInfo { FileName = ffmpegPath, Arguments = args, UseShellExecute = false, CreateNoWindow = true } };
+                pn.Start();
+                pn.WaitForExit(30000);
+                if (File.Exists(n)) normalized.Add(n);
+                idx++;
+            }
+            if (normalized.Count == 0) return;
+
+            string listPath = Path.Combine(work, "list.txt");
+            var sb = new System.Text.StringBuilder();
+            foreach (string n in normalized) sb.AppendLine("file '" + n.Replace("\\", "/").Replace("'", "'\\''") + "'");
+            File.WriteAllText(listPath, sb.ToString());
+
+            string clipDir = EffectiveClipsFolder();
+            Directory.CreateDirectory(clipDir);
+            string outPath = Path.Combine(clipDir, "montage_" + format + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".mp4");
+
+            bool useMusic = !string.IsNullOrWhiteSpace(musicPath) && File.Exists(musicPath);
+            string concatTarget = useMusic ? Path.Combine(work, "silent.mp4") : outPath;
+            var p = new Process { StartInfo = new ProcessStartInfo { FileName = ffmpegPath, Arguments = "-y -hide_banner -loglevel error -f concat -safe 0 -i \"" + listPath + "\" -c copy \"" + concatTarget + "\"", UseShellExecute = false, CreateNoWindow = true } };
+            p.Start();
+            p.WaitForExit(30000);
+
+            if (useMusic)
+            {
+                // Add the chosen track as the montage soundtrack, trimmed to the video length.
+                string muxArgs = "-y -hide_banner -loglevel error -i \"" + concatTarget + "\" -i \"" + musicPath + "\" "
+                    + "-map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -af afade=t=in:st=0:d=1 -shortest \"" + outPath + "\"";
+                var pm = new Process { StartInfo = new ProcessStartInfo { FileName = ffmpegPath, Arguments = muxArgs, UseShellExecute = false, CreateNoWindow = true } };
+                pm.Start();
+                pm.WaitForExit(60000);
+            }
+            string saved = outPath;
+            SafeUi(delegate { if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("montageSaved") + saved + Environment.NewLine); });
+        }
+        catch (Exception ex)
+        {
+            string msg = ex.Message;
+            SafeUi(delegate { if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("montageFailed") + msg + Environment.NewLine); });
+        }
+    }
+
+    // Full-game mode: export the whole match (all buffered segments) + an AI coach text.
+    private void ExportFullGame(string uploadedLine)
+    {
+        if (string.IsNullOrEmpty(ffmpegPath)) return;
+        try
+        {
+            FileInfo[] segs = new DirectoryInfo(BufferDir).GetFiles("seg_*.ts");
+            if (segs.Length < 1) return;
+            Array.Sort(segs, delegate(FileInfo a, FileInfo b) { return a.LastWriteTimeUtc.CompareTo(b.LastWriteTimeUtc); });
+
+            string listPath = Path.Combine(BufferDir, "fullgame_" + DateTime.Now.ToString("HHmmss") + ".txt");
+            var sb = new System.Text.StringBuilder();
+            // Skip the newest (still being written) segment.
+            for (int i = 0; i < segs.Length - 1; i++)
+            {
+                sb.AppendLine("file '" + segs[i].FullName.Replace("\\", "/").Replace("'", "'\\''") + "'");
+            }
+            File.WriteAllText(listPath, sb.ToString());
+
+            string clipDir = EffectiveClipsFolder();
+            Directory.CreateDirectory(clipDir);
+            string stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string outPath = Path.Combine(clipDir, "game_" + stamp + ".mp4");
+            var p = new Process { StartInfo = new ProcessStartInfo { FileName = ffmpegPath, Arguments = "-y -hide_banner -loglevel error -f concat -safe 0 -i \"" + listPath + "\" -map 0 -c copy \"" + outPath + "\"", UseShellExecute = false, CreateNoWindow = true } };
+            p.Start();
+
+            // AI coach summary derived from the game numbers (honest: stats-based, not video analysis).
+            string coachPath = Path.Combine(clipDir, "game_" + stamp + "_coach.txt");
+            File.WriteAllText(coachPath, BuildCoachText(uploadedLine));
+
+            if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("fullGameSaved") + outPath + Environment.NewLine);
+
+            // Fresh buffer for the next game.
+            foreach (FileInfo f in segs) { try { f.Delete(); } catch { } }
+        }
+        catch (Exception ex)
+        {
+            if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("clipFailed") + ex.Message + Environment.NewLine);
+        }
+    }
+
+    private string BuildCoachText(string uploadedLine)
+    {
+        int kills = ParseIntAfter(uploadedLine, "kills", -1);
+        // "Uploaded game #N: X kills, Y damage, place #Z"
+        Match dmgM = Regex.Match(uploadedLine, "([0-9]+)\\s*damage", RegexOptions.IgnoreCase);
+        Match placeM = Regex.Match(uploadedLine, "place\\s*#?\\s*([0-9]+)", RegexOptions.IgnoreCase);
+        int damage = dmgM.Success ? int.Parse(dmgM.Groups[1].Value) : -1;
+        int place = placeM.Success ? int.Parse(placeM.Groups[1].Value) : -1;
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("WZPRO - " + T("coachTitle"));
+        sb.AppendLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+        sb.AppendLine("");
+        sb.AppendLine((kills >= 0 ? "Kills: " + kills : "") + (damage >= 0 ? "   Damage: " + damage : "") + (place > 0 ? "   Place: #" + place : ""));
+        sb.AppendLine("");
+        sb.AppendLine(T("coachAdviceTitle"));
+        if (place == 1) sb.AppendLine("- " + T("coachWin"));
+        if (kills >= 0 && kills < 2) sb.AppendLine("- " + T("coachLowKills"));
+        if (kills >= 6) sb.AppendLine("- " + T("coachHighKills"));
+        if (damage >= 0 && kills > 0 && damage / Math.Max(1, kills) > 350) sb.AppendLine("- " + T("coachDamageNoFinish"));
+        if (place > 10) sb.AppendLine("- " + T("coachEarlyDeath"));
+        sb.AppendLine("- " + T("coachGeneric"));
+        return sb.ToString();
+    }
+
+    private static int ParseIntAfter(string text, string keyword, int fallback)
+    {
+        Match m = Regex.Match(text, "([0-9]+)\\s*" + Regex.Escape(keyword), RegexOptions.IgnoreCase);
+        return m.Success ? int.Parse(m.Groups[1].Value) : fallback;
+    }
+
+    // End-of-game overlay (ask mode): the player picks a social montage or a coach export.
+    private void ShowEndGameChoice(string uploadedLine)
+    {
+        pendingUploadedLine = uploadedLine;
+        EnsureEndGameForm();
+        Rectangle wa = Screen.PrimaryScreen.WorkingArea;
+        endGameForm.Location = new Point(wa.Right - endGameForm.Width - 24, wa.Bottom - endGameForm.Height - 24);
+        endGameForm.Show();
+        endGameForm.BringToFront();
+        if (endGameTimer == null)
+        {
+            endGameTimer = new Timer { Interval = 25000 };
+            endGameTimer.Tick += delegate { ChooseEndGame("skip"); };
+        }
+        endGameTimer.Stop();
+        endGameTimer.Start();
+    }
+
+    private void EnsureEndGameForm()
+    {
+        if (endGameForm != null) { RefreshEndGameTexts(); return; }
+        endGameForm = new Form
+        {
+            FormBorderStyle = FormBorderStyle.None,
+            StartPosition = FormStartPosition.Manual,
+            TopMost = true,
+            ShowInTaskbar = false,
+            BackColor = Color.FromArgb(12, 14, 22),
+            Size = new Size(330, 152)
+        };
+        var title = new Label { Name = "egTitle", Location = new Point(16, 12), Size = new Size(298, 40), ForeColor = Color.White, Font = AppFont(9, FontStyle.Bold) };
+        var social = new Button { Name = "egSocial", Location = new Point(16, 60), Size = new Size(146, 40), FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(22, 60, 255), ForeColor = Color.White, Font = AppFont(8, FontStyle.Bold) };
+        social.Click += delegate { ChooseEndGame("social"); };
+        var coach = new Button { Name = "egCoach", Location = new Point(168, 60), Size = new Size(146, 40), FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(42, 42, 48), ForeColor = Color.White, Font = AppFont(8, FontStyle.Bold) };
+        coach.Click += delegate { ChooseEndGame("coach"); };
+        var skip = new Button { Name = "egSkip", Location = new Point(16, 110), Size = new Size(298, 28), FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(20, 20, 26), ForeColor = Color.FromArgb(170, 170, 175), Font = AppFont(7, FontStyle.Regular) };
+        skip.Click += delegate { ChooseEndGame("skip"); };
+        endGameForm.Controls.Add(title);
+        endGameForm.Controls.Add(social);
+        endGameForm.Controls.Add(coach);
+        endGameForm.Controls.Add(skip);
+        RefreshEndGameTexts();
+    }
+
+    private void RefreshEndGameTexts()
+    {
+        if (endGameForm == null) return;
+        foreach (Control c in endGameForm.Controls)
+        {
+            if (c.Name == "egTitle") c.Text = T("endGameTitle");
+            else if (c.Name == "egSocial") c.Text = T("endGameSocial");
+            else if (c.Name == "egCoach") c.Text = T("endGameCoach");
+            else if (c.Name == "egSkip") c.Text = T("endGameSkip");
+        }
+    }
+
+    private void ChooseEndGame(string kind)
+    {
+        if (endGameTimer != null) endGameTimer.Stop();
+        HideEndGameChoice();
+        if (kind == "social")
+        {
+            if (pendingGameClips.Count > 0)
+            {
+                var clipsCopy = new System.Collections.Generic.List<string>(pendingGameClips);
+                string fmt = socialFormat;
+                System.Threading.Tasks.Task.Run(delegate { BuildMontage(clipsCopy, fmt); });
+            }
+        }
+        else if (kind == "coach")
+        {
+            ExportFullGame(pendingUploadedLine);
+        }
+        pendingGameClips.Clear();
+        ClearBuffer();
+    }
+
+    private void HideEndGameChoice()
+    {
+        if (endGameForm != null) endGameForm.Hide();
+    }
+
+    private void ClearBuffer()
+    {
+        try { foreach (string f in Directory.GetFiles(BufferDir, "seg_*.ts")) { try { File.Delete(f); } catch { } } } catch { }
     }
 
     private void ShowProfileMenu()
@@ -949,7 +2417,7 @@ public sealed class WzproCompanionApp : Form
 
     private void ApplyLanguage()
     {
-        Text = "WZPRO Companion";
+        Text = "WZPRO Companion v" + AppVersion;
         titleLabel.Text = T("title");
         leadLabel.Text = T("lead");
         freeAccessButton.Text = T("freeAccess");
@@ -978,6 +2446,21 @@ public sealed class WzproCompanionApp : Form
         highlightsToggle.Text = T("highlightsToggle");
         highlightsDescLabel.Text = T("highlightsDesc");
         highlightsStatusLabel.Text = highlightsProEnabled ? T("highlightsStatusOn") : T("highlightsStatusOff");
+        clipsFolderTitleLabel.Text = T("clipsFolderTitle");
+        clipsFolderButton.Text = T("clipsFolderChoose");
+        clipsOpenFolderButton.Text = T("clipsFolderOpen");
+        premiumCheckoutHintLabel.Text = T("premiumCheckoutHint");
+        premiumCheckoutButton.Text = T("premiumCheckout");
+        premiumRefreshButton.Text = T("premiumRefresh");
+        if (statsButton != null) statsButton.Text = T("statsButton");
+        if (gameBarButton != null) gameBarButton.Text = T("gameBar");
+        if (overlayButton != null) overlayButton.Text = T("overlayButton");
+        if (musicButton != null) musicButton.Text = T("musicButton");
+        RefreshMusicUi();
+        RefreshAudioUi();
+        PopulateClipCombos();
+        RefreshPremiumAccessUi();
+        RefreshClipsFolderUi();
         importsLabel.Text = T("imports");
         journalLabel.Text = T("journal");
         themeButton.Text = themeMode == "light" ? T("themeDark") : T("themeLight");
@@ -1046,6 +2529,10 @@ public sealed class WzproCompanionApp : Form
         highlightsTitleLabel.ForeColor = theme.Blue;
         highlightsDescLabel.ForeColor = theme.Muted;
         highlightsStatusLabel.ForeColor = highlightsProEnabled ? theme.Warn : theme.Muted;
+        clipsFolderTitleLabel.ForeColor = theme.Blue;
+        clipsFolderValueLabel.ForeColor = theme.Muted;
+        premiumCheckoutHintLabel.ForeColor = theme.Muted;
+        premiumAccessStatusLabel.ForeColor = premiumAccessActive ? theme.Success : theme.Muted;
         importsLabel.ForeColor = theme.Blue;
         journalLabel.ForeColor = theme.Blue;
 
@@ -1054,6 +2541,10 @@ public sealed class WzproCompanionApp : Form
         StyleSecondaryButton(welcomeSiteButton, theme);
         StylePrimaryButton(startButton, theme);
         StyleSecondaryButton(stopButton, theme);
+        StylePrimaryButton(clipsFolderButton, theme);
+        StyleSecondaryButton(clipsOpenFolderButton, theme);
+        StylePrimaryButton(premiumCheckoutButton, theme);
+        StyleSecondaryButton(premiumRefreshButton, theme);
         StyleSecondaryButton(themeButton, theme);
         StyleComboBox(languageBox, theme);
         StyleCheckBox(highlightsToggle, theme);
@@ -1186,6 +2677,7 @@ public sealed class WzproCompanionApp : Form
             string line;
             while (pendingLines.TryDequeue(out line)) AddLogLine(line);
             if (companionProcess != null && companionProcess.HasExited) SetRunningState(false);
+            if (overlayForm != null && overlayForm.Visible) UpdateOverlay();
         };
         outputTimer.Start();
 
@@ -1208,6 +2700,8 @@ public sealed class WzproCompanionApp : Form
                     StopCompanion();
                     loginPollTimer.Stop();
                     outputTimer.Stop();
+                    if (captureTimer != null) captureTimer.Dispose();
+                    if (overlayForm != null) overlayForm.Dispose();
                     tray.Visible = false;
                     tray.Dispose();
                 }
@@ -1221,6 +2715,11 @@ public sealed class WzproCompanionApp : Form
             StopCompanion();
             loginPollTimer.Stop();
             outputTimer.Stop();
+            StopRecorder();
+            if (captureTimer != null) captureTimer.Dispose();
+            if (endGameTimer != null) endGameTimer.Dispose();
+            if (endGameForm != null) endGameForm.Dispose();
+            if (overlayForm != null) overlayForm.Dispose();
             tray.Visible = false;
             tray.Dispose();
         };
@@ -1240,7 +2739,16 @@ public sealed class WzproCompanionApp : Form
             string savedLanguage = ExtractLine(text, "language");
             if (savedLanguage == "fr" || savedLanguage == "en" || savedLanguage == "es") languageCode = savedLanguage;
             highlightsProEnabled = ExtractLine(text, "highlightsPro") == "1";
+            clipsFolderPath = ExtractLine(text, "clipsFolder");
+            string savedMode = ExtractLine(text, "clipMode");
+            if (savedMode == "raw" || savedMode == "full" || savedMode == "social" || savedMode == "ask") clipMode = savedMode;
+            string savedFormat = ExtractLine(text, "socialFormat");
+            if (savedFormat == "vertical" || savedFormat == "square" || savedFormat == "horizontal") socialFormat = savedFormat;
+            musicPath = ExtractLine(text, "music");
+            systemAudioDevice = ExtractLine(text, "sysAudio");
+            micAudioDevice = ExtractLine(text, "micAudio");
             if (highlightsToggle != null) highlightsToggle.Checked = highlightsProEnabled;
+            RefreshClipsFolderUi();
         }
         catch
         {
@@ -1253,7 +2761,7 @@ public sealed class WzproCompanionApp : Form
     private void SaveSession()
     {
         Directory.CreateDirectory(sessionDir);
-        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0"), Encoding.UTF8);
+        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice, Encoding.UTF8);
     }
 
     private static string ExtractLine(string text, string key)
@@ -1293,6 +2801,12 @@ public sealed class WzproCompanionApp : Form
     {
         Match match = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*\"((?:\\\\.|[^\"])*)\"");
         return match.Success ? Regex.Unescape(match.Groups[1].Value) : "";
+    }
+
+    private static bool JsonBool(string json, string key)
+    {
+        Match match = Regex.Match(json, "\"" + Regex.Escape(key) + "\"\\s*:\\s*(true|false)", RegexOptions.IgnoreCase);
+        return match.Success && string.Equals(match.Groups[1].Value, "true", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void OpenUrl(string url)
@@ -1355,6 +2869,7 @@ public sealed class WzproCompanionApp : Form
                 RefreshProfileUi();
                 ShowAppShell();
                 AddLogLine(T("connectedAs") + connectedName);
+                backgroundHome = FetchHomeData();
             }
             else if (status == "expired")
             {
@@ -1417,7 +2932,34 @@ public sealed class WzproCompanionApp : Form
         statusLabel.Text = T("starting");
         statusLabel.ForeColor = Theme.Info;
         AddLogLine(T("startingFor") + site);
-        if (highlightsProEnabled) AddLogLine(T("highlightsQueued"));
+        if (highlightsProEnabled)
+        {
+            if (!premiumAccessActive && DateTime.UtcNow.Subtract(lastPremiumCheckUtc).TotalSeconds > 45)
+            {
+                CheckPremiumAccess(false).GetAwaiter().GetResult();
+            }
+            if (!premiumAccessActive)
+            {
+                // Block the premium feature for accounts that have not paid.
+                highlightsProEnabled = false;
+                if (highlightsToggle != null) highlightsToggle.Checked = false;
+                AddLogLine(T("premiumRequired"));
+                SaveSession();
+            }
+            else
+            {
+                try
+                {
+                    Directory.CreateDirectory(EffectiveClipsFolder());
+                    AddLogLine(T("highlightsQueued") + EffectiveClipsFolder());
+                    AddLogLine(T("clipsFolderReady") + EffectiveClipsFolder());
+                }
+                catch (Exception ex)
+                {
+                    AddLogLine(T("clipsFolderError") + ex.Message);
+                }
+            }
+        }
 
         var start = new ProcessStartInfo
         {
@@ -1432,11 +2974,36 @@ public sealed class WzproCompanionApp : Form
         companionProcess = new Process { StartInfo = start, EnableRaisingEvents = true };
         companionProcess.OutputDataReceived += delegate(object sender, DataReceivedEventArgs e) { if (!string.IsNullOrWhiteSpace(e.Data)) pendingLines.Enqueue(e.Data); };
         companionProcess.ErrorDataReceived += delegate(object sender, DataReceivedEventArgs e) { if (!string.IsNullOrWhiteSpace(e.Data)) pendingLines.Enqueue(e.Data); };
-        companionProcess.Exited += delegate { pendingLines.Enqueue(T("stopped")); };
+        companionProcess.Exited += delegate
+        {
+            int exitCode = -1;
+            try { exitCode = companionProcess.ExitCode; } catch { }
+            pendingLines.Enqueue(T("engineExited") + exitCode);
+        };
         companionProcess.Start();
+        try
+        {
+            // Keep the engine off the game's CPU budget.
+            companionProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+        }
+        catch
+        {
+            // Priority is best-effort; ignore if the OS denies it.
+        }
         companionProcess.BeginOutputReadLine();
         companionProcess.BeginErrorReadLine();
+        sessionStartUtc = DateTime.UtcNow;
+        sessionGameCount = 0;
+        sessionClips.Clear();
+        if (captureTimer == null)
+        {
+            captureTimer = new Timer();
+            captureTimer.Tick += delegate { NativeCaptureTick(); };
+        }
+        captureTimer.Interval = Math.Max(3000, (int)pollBox.Value * 1000);
+        captureTimer.Start();
         SetRunningState(true);
+        backgroundHome = FetchHomeData();
     }
 
     private void StopCompanion()
@@ -1453,6 +3020,23 @@ public sealed class WzproCompanionApp : Form
             {
                 AddLogLine(T("stopFailed") + ex.Message);
             }
+        }
+        if (captureTimer != null) captureTimer.Stop();
+        if (endGameTimer != null) endGameTimer.Stop();
+        HideEndGameChoice();
+        StopRecorder();
+        if (clipMode == "social" && sessionClips.Count > 0)
+        {
+            var clipsCopy = new System.Collections.Generic.List<string>(sessionClips);
+            string fmt = socialFormat;
+            System.Threading.Tasks.Task.Run(delegate { BuildMontage(clipsCopy, fmt); });
+        }
+        sessionClips.Clear();
+        if (sessionStartUtc != default(DateTime))
+        {
+            int minutes = Math.Max(0, (int)Math.Round(DateTime.UtcNow.Subtract(sessionStartUtc).TotalMinutes));
+            AddLogLine(T("sessionSummary") + sessionGameCount + T("sessionGamesSuffix") + minutes + " min");
+            sessionStartUtc = default(DateTime);
         }
         SetRunningState(false);
     }
@@ -1476,11 +3060,22 @@ public sealed class WzproCompanionApp : Form
     {
         var theme = Theme;
         if (string.IsNullOrWhiteSpace(line) || logBox == null) return;
+        if (line.StartsWith("HIGHLIGHT "))
+        {
+            HandleHighlight(line.Substring("HIGHLIGHT ".Length));
+            return;
+        }
         logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + line + Environment.NewLine);
         if (line.Contains("Uploaded game"))
         {
             historyCount++;
+            sessionGameCount++;
             historyList.Items.Insert(0, T("gamePrefix") + historyCount + " - " + line);
+            if (premiumAccessActive && highlightsProEnabled && recorderActive)
+            {
+                if (clipMode == "full") ExportFullGame(line);
+                else if (clipMode == "ask") ShowEndGameChoice(line);
+            }
         }
         if (line.Contains("Waiting for Call of Duty"))
         {

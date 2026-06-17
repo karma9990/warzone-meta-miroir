@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import LocalizedLink from '@/components/LocalizedLink';
 import LocalizedSafariBar from '@/components/LocalizedSafariBar';
 import type { CommunityPost, CommunityPostType } from '@/lib/communityStore';
@@ -104,6 +104,7 @@ const labels: Record<Locale, Record<string, string>> = {
     playerPseudo: 'Player pseudo', sending: 'Sending...', sendPrivate: 'Send private message', noPrivate: 'No private conversations yet.',
     hot: 'Hot', news: 'New', profileLink: 'Profile', report: 'Report', joinRequests: 'join requests', hotScore: 'Hot score',
     askJoin: 'Ask to join', reply: 'Reply', noThread: 'No thread found', noThreadBody: 'Change the filters or start the first post for this search.',
+    autoTranslated: 'Auto-translated', originalLanguage: 'Original language',
   },
   fr: {
     all: 'Tous', lfg: 'Trouver des mates', discussion: 'Discussions', tip: 'Conseils', patch: 'Patch notes',
@@ -116,6 +117,7 @@ const labels: Record<Locale, Record<string, string>> = {
     playerPseudo: 'Pseudo joueur', sending: 'Envoi...', sendPrivate: 'Envoyer un message prive', noPrivate: 'Aucune conversation privee.',
     hot: 'Hot', news: 'Nouveau', profileLink: 'Profil', report: 'Signaler', joinRequests: 'demandes pour rejoindre', hotScore: 'Score hot',
     askJoin: 'Demander a rejoindre', reply: 'Repondre', noThread: 'Aucun sujet trouve', noThreadBody: 'Change les filtres ou cree le premier post pour cette recherche.',
+    autoTranslated: 'Traduit auto', originalLanguage: 'Langue originale',
   },
   es: {
     all: 'Todo', lfg: 'Encontrar equipo', discussion: 'Debates', tip: 'Consejos', patch: 'Parches',
@@ -128,6 +130,7 @@ const labels: Record<Locale, Record<string, string>> = {
     playerPseudo: 'Pseudo del jugador', sending: 'Enviando...', sendPrivate: 'Enviar mensaje privado', noPrivate: 'No hay conversaciones privadas.',
     hot: 'Hot', news: 'Nuevo', profileLink: 'Perfil', report: 'Denunciar', joinRequests: 'solicitudes para unirse', hotScore: 'Puntuacion hot',
     askJoin: 'Pedir unirse', reply: 'Responder', noThread: 'No se encontro ningun tema', noThreadBody: 'Cambia los filtros o crea el primer post para esta busqueda.',
+    autoTranslated: 'Traducido auto', originalLanguage: 'Idioma original',
   },
   de: {
     all: 'Alle', lfg: 'Mitspieler finden', discussion: 'Diskussionen', tip: 'Tipps', patch: 'Patch Talk',
@@ -235,6 +238,20 @@ function normalizeTags(value: string) {
     .map((tag) => tag.trim())
     .filter(Boolean)
     .slice(0, 4);
+}
+
+function languageToLocale(language: string | undefined): Locale | null {
+  const normalized = (language || '').trim().toLowerCase();
+  if (normalized === 'english') return 'en';
+  if (normalized === 'french') return 'fr';
+  if (normalized === 'spanish') return 'es';
+  if (normalized === 'german') return 'de';
+  if (normalized === 'italian') return 'it';
+  if (normalized === 'portuguese') return 'pt';
+  if (normalized === 'dutch') return 'nl';
+  if (normalized === 'polish') return 'pl';
+  if (normalized === 'japanese') return 'ja';
+  return null;
 }
 
 function localizeCommunityText(value: string, locale: Locale) {
@@ -387,6 +404,7 @@ export default function CommunityClient({
   const [joinDrafts, setJoinDrafts] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<MessageConversation[]>(initialMessages);
   const [messageForm, setMessageForm] = useState({ recipientPseudo: initialPlayer, body: '' });
+  const [translations, setTranslations] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [messageBusy, setMessageBusy] = useState(false);
   const [error, setError] = useState('');
@@ -454,6 +472,59 @@ export default function CommunityClient({
     inputFilter === ALL_FILTER ? t('allInputs') : localizeCommunityOption(inputFilter, locale),
     query.trim() ? `${t('searchPrefix')}: ${query.trim()}` : t('noSearch'),
   ];
+
+  useEffect(() => {
+    const items = filteredPosts.flatMap((post) => {
+      const sourceLocale = languageToLocale(post.language);
+      if (sourceLocale === locale) return [];
+
+      return [
+        { id: `${post.id}:title`, text: post.title, sourceLanguage: post.language || 'auto' },
+        { id: `${post.id}:body`, text: post.body, sourceLanguage: post.language || 'auto' },
+        ...post.replies.map((reply) => ({
+          id: `${post.id}:reply:${reply.id}`,
+          text: reply.body,
+          sourceLanguage: post.language || 'auto',
+        })),
+      ];
+    }).filter((item) => item.text && !translations[item.id]);
+
+    if (items.length === 0) return;
+
+    const controller = new AbortController();
+    fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetLocale: locale, items }),
+      signal: controller.signal,
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data: { translations?: Array<{ id: string; text: string }> } | null) => {
+        if (!data?.translations?.length) return;
+        setTranslations((current) => {
+          const next = { ...current };
+          for (const item of data.translations || []) {
+            if (item.id && item.text) next[item.id] = item.text;
+          }
+          return next;
+        });
+      })
+      .catch((error) => {
+        if ((error as Error).name !== 'AbortError') {
+          console.warn('Community auto-translation unavailable:', error);
+        }
+      });
+
+    return () => controller.abort();
+  }, [filteredPosts, locale, translations]);
+
+  function communityText(id: string, text: string) {
+    return translations[id] || localizeCommunityText(text, locale);
+  }
+
+  function isTranslated(id: string) {
+    return Boolean(translations[id]);
+  }
 
   async function publishPost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -824,6 +895,8 @@ export default function CommunityClient({
             <div className="community-posts">
               {filteredPosts.map((post) => {
                 const canContactAuthor = Boolean(post.authorId && post.authorPseudo);
+                const titleId = `${post.id}:title`;
+                const bodyId = `${post.id}:body`;
 
                 return (
                 <article className="community-post" key={post.id}>
@@ -837,8 +910,12 @@ export default function CommunityClient({
                       <span>{typeLabels[post.type]}</span>
                       <small>{post.author} / {post.region} / {formatTime(post.createdAt, locale)}</small>
                     </div>
-                    <h2>{localizeCommunityText(post.title, locale)}</h2>
-                    <p>{localizeCommunityText(post.body, locale)}</p>
+                    <div className="community-language-row">
+                      {post.language && <span>{t('originalLanguage')}: {localizeCommunityOption(post.language, locale)}</span>}
+                      {(isTranslated(titleId) || isTranslated(bodyId)) && <span>{t('autoTranslated')}</span>}
+                    </div>
+                    <h2>{communityText(titleId, post.title)}</h2>
+                    <p>{communityText(bodyId, post.body)}</p>
                     <div className="community-tags">
                       <span>{localizeCommunityOption(post.platform, locale)}</span>
                       <span>{localizeCommunityOption(post.mode, locale)}</span>
@@ -876,7 +953,7 @@ export default function CommunityClient({
                         <div key={reply.id}>
                           <strong>{reply.author}</strong>
                           <span>{formatTime(reply.createdAt, locale)}</span>
-                          <p>{localizeCommunityText(reply.body, locale)}</p>
+                          <p>{communityText(`${post.id}:reply:${reply.id}`, reply.body)}</p>
                         </div>
                       ))}
                     </div>

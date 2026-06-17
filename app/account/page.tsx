@@ -4,9 +4,14 @@ import AccountActions from '@/components/AccountActions';
 import AccountLoadoutPrefs from '@/components/AccountLoadoutPrefs';
 import AccountProfileForm from '@/components/AccountProfileForm';
 import CompanionDeviceList from '@/components/CompanionDeviceList';
+import CompanionFeatureTabs from '@/components/CompanionFeatureTabs';
+import ManageSubscriptionButton from '@/components/ManageSubscriptionButton';
 import StatsTracker from '@/components/StatsTracker';
 import { listCompanionDevices } from '@/lib/companionDeviceStore';
 import { getLoadouts } from '@/lib/data';
+import { getStatsSummary } from '@/lib/statsSummary';
+import { buildCoachReport } from '@/lib/coachReport';
+import { calculateMetaScore } from '@/lib/loadoutUtils';
 import { getEntitlements, type EntitlementRecord } from '@/lib/entitlementStore';
 import { emptyProfile, getProfile } from '@/lib/profileStore';
 import { PRO_TOOL_IDS, type ProToolId } from '@/lib/toolAccess';
@@ -101,6 +106,45 @@ const copy = {
     individualTools: 'Individual tools',
     unlockedTools: 'Unlocked tools',
     noToolsLinked: 'No paid tools linked yet',
+    companionPremium: 'Companion Premium',
+    manageSubscription: 'Manage subscription',
+    manageSubLoading: 'Opening portal...',
+    manageSubNone: 'No billing account found for this user. Manage or cancel here:',
+    manageSubError: 'Billing portal temporarily unavailable. Manage or cancel here:',
+    manageSubLink: 'Cancellation page',
+    formKicker: 'FORM',
+    formTitle: 'Your recent form',
+    formDesc: 'Based on the games imported by WZPRO Companion (last 20).',
+    formGames: 'games',
+    formWinRate: 'Win rate',
+    formTop10: 'Top 10',
+    formAvgKills: 'Avg kills',
+    formAvgDamage: 'Avg damage',
+    formMainPrefix: 'Your main weapon: ',
+    formMetaNow: 'Try the current meta: ',
+    formNoMain: 'Pick a main loadout to compare it with the current meta.',
+    formUpsell: 'Get a weekly coaching report with Premium',
+    formEmpty: 'Connect WZPRO Companion and play a game to see your form here.',
+    coachKicker: 'COACH',
+    coachTitle: 'Weekly coach report',
+    coachDesc: 'Trends and targeted advice from your imported games (Pro).',
+    coachKdTrend: 'K/D trend',
+    coachGamesAnalyzed: 'Games analyzed',
+    coachLast20: 'Last 20 imported',
+    coachAdvice: 'Advice',
+    coachEmpty: 'Import a few games with WZPRO Companion to generate your coach report.',
+    coachLocked: 'The weekly coach report is a Pro feature: trends, weak points and targeted advice.',
+    coachUnlock: 'Unlock with Pro',
+    coachUp: 'Improving',
+    coachDown: 'Dropping',
+    coachFlat: 'Stable',
+    coachLowKd: 'Win more 1v1s: pre-aim head level and lower your sensitivity.',
+    coachKdDown: 'Your K/D is dropping - review recent deaths and play more deliberately.',
+    coachLowWin: 'Rotate earlier, before the zone closes, to reach more finishes.',
+    coachDamageNoFinish: 'Lots of damage without finishing - push angles, avoid open ground.',
+    coachEarlyDeath: 'You die early too often - play the opening safer and reposition.',
+    coachImproving: 'Your K/D is trending up - keep the same routine and pace.',
+    coachConsistent: 'Solid and consistent - set one new goal per session to keep progressing.',
     loadouts: 'LOADOUTS',
     favAndNotes: 'Favorites and private notes',
     favDesc: 'Favorite builds for quick access and keep account-synced notes only you can see.',
@@ -120,10 +164,15 @@ const copy = {
     companionDesc: 'Run the tool on your PC during Warzone. It waits for the game to be open and active, captures only the game window, detects end-game screens, reads stats with OCR and sends them to this profile.',
     companionDownload: 'Download WZPRO Companion (.zip)',
     companionPrivacy: 'Connection opens the browser with a temporary code. No private key is displayed.',
+    companionFreeTitle: 'Free tracker',
+    companionFreeDesc: 'Launch WZPRO Companion while you play. It reads end-game stats locally, then sends the match summary to this profile.',
     companionHighlights: 'Highlights Pro',
     companionHighlightsDesc: 'Planned paid add-on inside the same .exe: rolling recording buffer, kill/death clips only, and an automatic best-of after each game.',
     companionBase: 'Free tracker',
     companionPro: 'Paid option',
+    companionCheckout: 'Pay premium option',
+    companionCheckoutLoading: 'Opening checkout...',
+    companionCheckoutError: 'Payment is unavailable right now.',
     companionDevices: 'Connected devices',
     googleOAuth: 'Google OAuth',
     bnOAuth: 'Battle.net OAuth',
@@ -177,6 +226,45 @@ const copy = {
     individualTools: 'Outils individuels',
     unlockedTools: 'Outils debloques',
     noToolsLinked: 'Aucun outil payant lie',
+    companionPremium: 'Companion Premium',
+    manageSubscription: 'Gerer mon abonnement',
+    manageSubLoading: 'Ouverture du portail...',
+    manageSubNone: 'Aucun compte de facturation trouve pour cet utilisateur. Gere ou annule ici :',
+    manageSubError: 'Portail de facturation temporairement indisponible. Gere ou annule ici :',
+    manageSubLink: 'Page d annulation',
+    formKicker: 'FORME',
+    formTitle: 'Ta forme recente',
+    formDesc: 'Basee sur les parties importees par WZPRO Companion (20 dernieres).',
+    formGames: 'parties',
+    formWinRate: 'Taux de victoire',
+    formTop10: 'Top 10',
+    formAvgKills: 'Kills moyens',
+    formAvgDamage: 'Degats moyens',
+    formMainPrefix: 'Ton arme principale : ',
+    formMetaNow: 'Teste la meta du moment : ',
+    formNoMain: 'Choisis une classe principale pour la comparer a la meta du moment.',
+    formUpsell: 'Recois un rapport coach hebdo avec Premium',
+    formEmpty: 'Connecte WZPRO Companion et joue une partie pour voir ta forme ici.',
+    coachKicker: 'COACH',
+    coachTitle: 'Rapport coach hebdo',
+    coachDesc: 'Tendances et conseils cibles depuis tes parties importees (Pro).',
+    coachKdTrend: 'Tendance K/D',
+    coachGamesAnalyzed: 'Parties analysees',
+    coachLast20: '20 dernieres importees',
+    coachAdvice: 'Conseils',
+    coachEmpty: 'Importe quelques parties avec WZPRO Companion pour generer ton rapport coach.',
+    coachLocked: 'Le rapport coach hebdo est une fonction Pro : tendances, points faibles et conseils cibles.',
+    coachUnlock: 'Debloquer avec Pro',
+    coachUp: 'En progres',
+    coachDown: 'En baisse',
+    coachFlat: 'Stable',
+    coachLowKd: 'Gagne plus de 1v1 : pre-aim hauteur de tete et baisse ta sensibilite.',
+    coachKdDown: 'Ton K/D baisse - revois tes morts recentes et joue plus posement.',
+    coachLowWin: 'Rote plus tot, avant la fermeture de zone, pour aller plus loin.',
+    coachDamageNoFinish: 'Beaucoup de degats sans finir - joue les angles, evite le decouvert.',
+    coachEarlyDeath: 'Tu meurs trop tot - joue le debut plus safe et repositionne-toi.',
+    coachImproving: 'Ton K/D remonte - garde la meme routine et le meme rythme.',
+    coachConsistent: 'Solide et regulier - fixe un nouvel objectif par session pour progresser.',
     loadouts: 'CLASSES',
     favAndNotes: 'Favoris et notes privees',
     favDesc: 'Builds favoris pour un acces rapide et notes synchronisees visibles uniquement par vous.',
@@ -196,10 +284,15 @@ const copy = {
     companionDesc: 'Lance l outil sur ton PC pendant Warzone. Il attend que le jeu soit ouvert et actif, capture uniquement la fenetre du jeu, detecte les ecrans de fin de game, lit les stats par OCR et les envoie sur ce profil.',
     companionDownload: 'Telecharger WZPRO Companion (.zip)',
     companionPrivacy: 'La connexion se fait dans le navigateur avec un code temporaire. Aucune cle privee n est affichee.',
-    companionHighlights: 'Highlights Pro',
-    companionHighlightsDesc: 'Add-on payant prevu dans le meme .exe: buffer d enregistrement, clips seulement sur kill/mort, puis best-of automatique a la fin de chaque game.',
+    companionFreeTitle: 'Tracker gratuit',
+    companionFreeDesc: 'Lance WZPRO Companion pendant tes sessions. Il lit les stats de fin de game en local, puis envoie le resume du match sur ce profil.',
+    companionHighlights: 'Temps forts Pro',
+    companionHighlightsDesc: 'Module payant prevu dans le meme .exe: tampon d enregistrement, clips seulement sur elimination/mort, puis recap automatique des meilleurs moments a la fin de chaque partie.',
     companionBase: 'Tracker gratuit',
     companionPro: 'Option payante',
+    companionCheckout: 'Payer l option premium',
+    companionCheckoutLoading: 'Ouverture du paiement...',
+    companionCheckoutError: 'Le paiement est indisponible pour le moment.',
     companionDevices: 'Appareils connectes',
     googleOAuth: 'Google OAuth',
     bnOAuth: 'Battle.net OAuth',
@@ -253,6 +346,45 @@ const copy = {
     individualTools: 'Herramientas individuales',
     unlockedTools: 'Herramientas desbloqueadas',
     noToolsLinked: 'Sin herramientas de pago vinculadas',
+    companionPremium: 'Companion Premium',
+    manageSubscription: 'Gestionar suscripcion',
+    manageSubLoading: 'Abriendo portal...',
+    manageSubNone: 'No se encontro cuenta de facturacion para este usuario. Gestiona o cancela aqui:',
+    manageSubError: 'Portal de facturacion no disponible temporalmente. Gestiona o cancela aqui:',
+    manageSubLink: 'Pagina de cancelacion',
+    formKicker: 'FORMA',
+    formTitle: 'Tu forma reciente',
+    formDesc: 'Basado en las partidas importadas por WZPRO Companion (ultimas 20).',
+    formGames: 'partidas',
+    formWinRate: 'Tasa de victoria',
+    formTop10: 'Top 10',
+    formAvgKills: 'Bajas medias',
+    formAvgDamage: 'Dano medio',
+    formMainPrefix: 'Tu arma principal: ',
+    formMetaNow: 'Prueba la meta actual: ',
+    formNoMain: 'Elige una clase principal para compararla con la meta actual.',
+    formUpsell: 'Recibe un informe de coach semanal con Premium',
+    formEmpty: 'Conecta WZPRO Companion y juega una partida para ver tu forma aqui.',
+    coachKicker: 'COACH',
+    coachTitle: 'Informe de coach semanal',
+    coachDesc: 'Tendencias y consejos desde tus partidas importadas (Pro).',
+    coachKdTrend: 'Tendencia K/D',
+    coachGamesAnalyzed: 'Partidas analizadas',
+    coachLast20: 'Ultimas 20 importadas',
+    coachAdvice: 'Consejos',
+    coachEmpty: 'Importa algunas partidas con WZPRO Companion para generar tu informe de coach.',
+    coachLocked: 'El informe de coach semanal es una funcion Pro: tendencias, puntos debiles y consejos.',
+    coachUnlock: 'Desbloquear con Pro',
+    coachUp: 'Mejorando',
+    coachDown: 'Bajando',
+    coachFlat: 'Estable',
+    coachLowKd: 'Gana mas 1v1: pre-apunta a la altura de la cabeza y baja la sensibilidad.',
+    coachKdDown: 'Tu K/D baja - revisa tus muertes recientes y juega mas tranquilo.',
+    coachLowWin: 'Rota antes del cierre de zona para llegar mas lejos.',
+    coachDamageNoFinish: 'Mucho dano sin rematar - juega los angulos, evita el campo abierto.',
+    coachEarlyDeath: 'Mueres demasiado pronto - juega el inicio mas seguro y reposiciona.',
+    coachImproving: 'Tu K/D sube - manten la misma rutina y ritmo.',
+    coachConsistent: 'Solido y constante - fija un objetivo nuevo por sesion para seguir mejorando.',
     loadouts: 'LOADOUTS',
     favAndNotes: 'Favoritos y notas privadas',
     favDesc: 'Builds favoritos para acceso rapido y notas sincronizadas visibles solo para ti.',
@@ -272,10 +404,15 @@ const copy = {
     companionDesc: 'Ejecuta la herramienta en tu PC durante Warzone. Espera a que el juego este abierto y activo, captura solo la ventana del juego, detecta pantallas de fin de partida, lee las stats por OCR y las envia a este perfil.',
     companionDownload: 'Descargar WZPRO Companion (.zip)',
     companionPrivacy: 'La conexion se hace en el navegador con un codigo temporal. No se muestra ninguna clave privada.',
+    companionFreeTitle: 'Tracker gratis',
+    companionFreeDesc: 'Abre WZPRO Companion durante tus sesiones. Lee las stats de final de partida localmente y envia el resumen del match a este perfil.',
     companionHighlights: 'Highlights Pro',
     companionHighlightsDesc: 'Add-on de pago previsto en el mismo .exe: buffer de grabacion, clips solo en kills/muertes y best-of automatico al final de cada partida.',
     companionBase: 'Tracker gratis',
     companionPro: 'Opcion de pago',
+    companionCheckout: 'Pagar opcion premium',
+    companionCheckoutLoading: 'Abriendo pago...',
+    companionCheckoutError: 'El pago no esta disponible ahora.',
     companionDevices: 'Dispositivos conectados',
     googleOAuth: 'Google OAuth',
     bnOAuth: 'Battle.net OAuth',
@@ -289,17 +426,20 @@ const copy = {
 function mergeEntitlements(records: Array<EntitlementRecord | null>) {
   const tools = new Set<ProToolId>();
   let pro = false;
+  let companion = false;
   let updatedAt = '';
 
   for (const record of records) {
     if (!record) continue;
     if (record.pro) pro = true;
+    if (record.companion) companion = true;
     for (const tool of record.tools) tools.add(tool);
     if (record.updatedAt > updatedAt) updatedAt = record.updatedAt;
   }
 
   return {
     pro,
+    companion,
     tools: Array.from(tools),
     updatedAt,
   };
@@ -361,9 +501,58 @@ export default async function AccountPage() {
   const profileCompletion = Math.round((profileSteps.filter(Boolean).length / profileSteps.length) * 100);
   const mainLoadout = loadouts.find((loadout) => loadout.id === profile.featuredLoadoutId)
     || loadouts.find((loadout) => profile.favoriteLoadouts.includes(loadout.id));
-  const companionDevices = await listCompanionDevices(user.sub);
+  const companionDevices = (await listCompanionDevices(user.sub)).filter((device) => !device.revoked);
+
+  // Free personal dashboard: recent form from imported games + main weapon vs current meta.
+  const formStats = getStatsSummary(profile.statsEntries);
+  const hasForm = formStats.games > 0;
+  const topMetaLoadout = loadouts
+    .slice()
+    .sort((a, b) => calculateMetaScore(b) - calculateMetaScore(a))[0] || null;
+  const form = {
+    kd: formStats.kd.toFixed(2),
+    games: formStats.games,
+    winRate: Math.round(formStats.winRate),
+    topTenRate: Math.round(formStats.topTenRate),
+    kills: formStats.kills.toFixed(1),
+    damage: Math.round(formStats.damage),
+  };
+  const formInsight = mainLoadout
+    ? `${t.formMainPrefix}${mainLoadout.weapon} — Tier ${mainLoadout.tier}.`
+      + (topMetaLoadout && mainLoadout.tier !== 'S'
+        ? ` ${t.formMetaNow}${topMetaLoadout.weapon} (Tier ${topMetaLoadout.tier}).`
+        : '')
+    : t.formNoMain;
+
+  // Premium weekly coach report (Pro subscription). Free/companion users see a locked teaser.
+  const coach = buildCoachReport(profile.statsEntries);
+  const coachTipLabels: Record<string, string> = {
+    lowKd: t.coachLowKd,
+    kdDown: t.coachKdDown,
+    lowWin: t.coachLowWin,
+    damageNoFinish: t.coachDamageNoFinish,
+    earlyDeath: t.coachEarlyDeath,
+    improving: t.coachImproving,
+    consistent: t.coachConsistent,
+  };
+  const coachTrendLabel = coach.kdTrend === 'up' ? `▲ ${t.coachUp}` : coach.kdTrend === 'down' ? `▼ ${t.coachDown}` : `→ ${t.coachFlat}`;
 
   const purchaseDate = entitlements.updatedAt ? formatDate(entitlements.updatedAt, locale) : t.noPurchase;
+  const planLabel = entitlements.pro
+    ? t.fullPro
+    : entitlements.companion
+      ? t.companionPremium
+      : unlockedCount > 0
+        ? `${unlockedCount} ${t.toolUnlocked}`
+        : t.freeAccount;
+  const billingPlanLabel = entitlements.pro
+    ? t.fullPro
+    : entitlements.companion
+      ? t.companionPremium
+      : unlockedCount > 0
+        ? t.individualTools
+        : t.freeAccount;
+  const hasSubscription = entitlements.pro || entitlements.companion;
 
   return (
     <>
@@ -396,7 +585,7 @@ export default async function AccountPage() {
               </div>
               <div>
                 <dt>{t.access}</dt>
-                <dd>{entitlements.pro ? t.fullPro : unlockedCount > 0 ? `${unlockedCount} ${t.toolUnlocked}` : t.freeAccount}</dd>
+                <dd>{planLabel}</dd>
               </div>
               <div>
                 <dt>{t.lastUpdate}</dt>
@@ -437,9 +626,98 @@ export default async function AccountPage() {
             {profile.pseudo && profile.privacy.publicProfile ? (
               <Link href={href(`/profile/${profile.pseudo}`)}>{t.viewProfile}</Link>
             ) : (
-              <Link href="#public-profile-settings">{t.setUpProfile}</Link>
+              <Link href={`${href('/account')}#public-profile-settings`}>{t.setUpProfile}</Link>
             )}
           </article>
+        </section>
+
+        <section className="account-section">
+          <div className="account-section-head">
+            <span>{t.formKicker}</span>
+            <h2>{t.formTitle}</h2>
+            <p>{t.formDesc}</p>
+          </div>
+          {hasForm ? (
+            <>
+              <div className="account-dashboard account-dashboard--form">
+                <article>
+                  <span>K/D</span>
+                  <strong>{form.kd}</strong>
+                  <p>{form.games} {t.formGames}</p>
+                </article>
+                <article>
+                  <span>{t.formWinRate}</span>
+                  <strong>{form.winRate}%</strong>
+                  <p>{t.formTop10}: {form.topTenRate}%</p>
+                </article>
+                <article>
+                  <span>{t.formAvgKills}</span>
+                  <strong>{form.kills}</strong>
+                  <p>{t.formAvgDamage}: {form.damage}</p>
+                </article>
+              </div>
+              <div className="account-form-insight">
+                <p>{formInsight}</p>
+                {!entitlements.pro ? (
+                  <Link href={href('/pro-access')}>{t.formUpsell}</Link>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div className="account-form-empty">
+              <p>{t.formEmpty}</p>
+              <a href="/api/companion/download" download>{t.companionDownload}</a>
+            </div>
+          )}
+        </section>
+
+        <section className="account-section">
+          <div className="account-section-head">
+            <span>{t.coachKicker}</span>
+            <h2>{t.coachTitle}</h2>
+            <p>{t.coachDesc}</p>
+          </div>
+          {entitlements.pro ? (
+            coach.hasData ? (
+              <>
+                <div className="account-dashboard account-dashboard--form">
+                  <article>
+                    <span>{t.coachKdTrend}</span>
+                    <strong>{coach.kd.toFixed(2)}</strong>
+                    <p>{coachTrendLabel}</p>
+                  </article>
+                  <article>
+                    <span>{t.formWinRate}</span>
+                    <strong>{coach.winRate}%</strong>
+                    <p>{t.formTop10}: {coach.topTenRate}%</p>
+                  </article>
+                  <article>
+                    <span>{t.coachGamesAnalyzed}</span>
+                    <strong>{coach.games}</strong>
+                    <p>{t.coachLast20}</p>
+                  </article>
+                </div>
+                <div className="account-coach-tips">
+                  <span>{t.coachAdvice}</span>
+                  <ul>
+                    {coach.tips.map((code) => (
+                      <li key={code}>{coachTipLabels[code] ?? code}</li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <div className="account-form-empty">
+                <p>{t.coachEmpty}</p>
+                <a href="/api/companion/download" download>{t.companionDownload}</a>
+              </div>
+            )
+          ) : (
+            <div className="account-coach-locked">
+              <p>{t.coachLocked}</p>
+              <Link href={href('/pro-access')}>{t.coachUnlock}</Link>
+            </div>
+          )}
         </section>
 
         <section className="account-section">
@@ -471,7 +749,7 @@ export default async function AccountPage() {
           <div className="account-history">
             <article>
               <span>{t.status}</span>
-              <strong>{entitlements.pro ? t.fullPro : unlockedCount > 0 ? t.individualTools : t.freeAccount}</strong>
+              <strong>{billingPlanLabel}</strong>
               <small>{purchaseDate}</small>
             </article>
             <article>
@@ -480,6 +758,19 @@ export default async function AccountPage() {
               <small>{unlockedTools.length ? unlockedTools.map((toolId) => locale === 'fr' ? TOOL_LABELS[toolId].nameFr : TOOL_LABELS[toolId].name).join(', ') : t.noToolsLinked}</small>
             </article>
           </div>
+          {hasSubscription ? (
+            <ManageSubscriptionButton
+              className="account-manage-sub"
+              fallbackHref={href('/cancellation')}
+              labels={{
+                manage: t.manageSubscription,
+                loading: t.manageSubLoading,
+                none: t.manageSubNone,
+                error: t.manageSubError,
+                linkLabel: t.manageSubLink,
+              }}
+            />
+          ) : null}
         </section>
 
         <section className="account-section" id="public-profile-settings">
@@ -497,6 +788,7 @@ export default async function AccountPage() {
             initialFeaturedLoadoutId={profile.featuredLoadoutId}
             initialFavorites={profile.favoriteLoadouts}
             initialNotes={profile.loadoutNotes}
+            locale={locale}
           />
         </section>
 
@@ -541,24 +833,28 @@ export default async function AccountPage() {
                 {t.openShare}
               </Link>
             ) : (
-              <Link className="account-share-stats account-share-stats--setup" href="#public-profile-settings">
+              <Link className="account-share-stats account-share-stats--setup" href={`${href('/account')}#public-profile-settings`}>
                 {t.setPseudo}
               </Link>
             )}
           </div>
-          <StatsTracker initialEntries={profile.statsEntries} syncToAccount initialActivisionId={profile.activisionId} />
+          <StatsTracker initialEntries={profile.statsEntries} syncToAccount initialActivisionId={profile.activisionId} locale={locale} />
           <aside className="account-companion-panel">
             <span>{t.companionKicker}</span>
             <h3>{t.companionTitle}</h3>
             <p>{t.companionDesc}</p>
-            <div className="account-companion-feature-row" aria-label="Companion feature modes">
-              <strong>{t.companionBase}</strong>
-              <strong>{t.companionPro}</strong>
-            </div>
-            <div className="account-companion-highlight">
-              <b>{t.companionHighlights}</b>
-              <small>{t.companionHighlightsDesc}</small>
-            </div>
+            <CompanionFeatureTabs
+              freeLabel={t.companionBase}
+              freeTitle={t.companionFreeTitle}
+              freeDescription={t.companionFreeDesc}
+              proLabel={t.companionPro}
+              proTitle={t.companionHighlights}
+              proDescription={t.companionHighlightsDesc}
+              proCheckoutEmail={user.email || ''}
+              proCheckoutLabel={t.companionCheckout}
+              proCheckoutLoadingLabel={t.companionCheckoutLoading}
+              proCheckoutError={t.companionCheckoutError}
+            />
             <a className="account-companion-download" href="/api/companion/download" download>
               {t.companionDownload}
             </a>
@@ -687,23 +983,35 @@ export default async function AccountPage() {
           line-height: 1.6;
         }
 
+        .account-companion-tabs {
+          display: grid;
+          gap: 0.65rem;
+        }
+
         .account-companion-feature-row {
           display: flex;
           flex-wrap: wrap;
           gap: 0.5rem;
         }
 
-        .account-companion-feature-row strong {
+        .account-companion-feature-row button {
           display: inline-flex;
           align-items: center;
           min-height: 30px;
           border: 1px solid rgba(22,60,255,0.34);
-          background: rgba(22,60,255,0.08);
+          background: transparent;
           color: #163cff;
+          cursor: pointer;
+          font-family: var(--font-mono, monospace);
           font-size: 0.62rem;
           font-weight: 950;
           padding: 0 0.65rem;
           text-transform: uppercase;
+        }
+
+        .account-companion-feature-row button.is-active {
+          background: #163cff;
+          color: #fff;
         }
 
         .account-companion-highlight {
@@ -719,6 +1027,33 @@ export default async function AccountPage() {
           font-size: 0.78rem;
           letter-spacing: 0.08em;
           text-transform: uppercase;
+        }
+
+        .account-companion-checkout {
+          display: inline-grid;
+          width: fit-content;
+          min-height: 36px;
+          place-items: center;
+          border: 1px solid rgba(22,60,255,0.45);
+          background: #163cff;
+          color: #fff;
+          cursor: pointer;
+          font-family: var(--font-mono, monospace);
+          font-size: 0.62rem;
+          font-weight: 950;
+          letter-spacing: 0.1em;
+          margin-top: 0.35rem;
+          padding: 0 0.85rem;
+          text-transform: uppercase;
+        }
+
+        .account-companion-checkout:disabled {
+          cursor: default;
+          opacity: 0.58;
+        }
+
+        .account-companion-highlight .is-error {
+          color: #ff6644;
         }
 
         .account-companion-download {
@@ -786,10 +1121,6 @@ export default async function AccountPage() {
           border: 1px solid rgba(0,0,0,0.12);
           background: rgba(255,255,255,0.3);
           padding: 0.65rem;
-        }
-
-        .account-companion-devices article.is-revoked {
-          opacity: 0.56;
         }
 
         .account-companion-devices article div {
@@ -1249,6 +1580,167 @@ export default async function AccountPage() {
           border: 1px solid rgba(0,0,0,0.12);
           background: rgba(0,0,0,0.12);
           font-family: var(--font-mono, monospace);
+        }
+
+        .account-manage-sub {
+          margin-top: 1rem;
+          display: grid;
+          gap: 0.5rem;
+          font-family: var(--font-mono, monospace);
+        }
+
+        .account-manage-sub button {
+          justify-self: start;
+          padding: 0.7rem 1.2rem;
+          border: none;
+          background: #163cff;
+          color: #fff;
+          font: inherit;
+          font-size: 0.66rem;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          cursor: pointer;
+          transition: opacity 0.15s;
+        }
+
+        .account-manage-sub button:hover:not(:disabled) { opacity: 0.82; }
+        .account-manage-sub button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .account-manage-sub small {
+          color: inherit;
+          opacity: 0.66;
+          font-size: 0.66rem;
+          line-height: 1.5;
+        }
+
+        .account-manage-sub small a {
+          color: #163cff;
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+
+        .account-dashboard--form {
+          margin-bottom: 0;
+        }
+
+        .account-form-insight {
+          margin-top: 1px;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+          padding: 1.1rem;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(240,240,235,0.74);
+          font-family: var(--font-mono, monospace);
+        }
+
+        .account-form-insight p {
+          margin: 0;
+          font-size: 0.74rem;
+          line-height: 1.5;
+          flex: 1;
+          min-width: 220px;
+        }
+
+        .account-form-insight a {
+          color: #fff;
+          background: #163cff;
+          padding: 0.6rem 1rem;
+          font-size: 0.62rem;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          text-decoration: none;
+          white-space: nowrap;
+        }
+
+        .account-form-empty {
+          display: grid;
+          gap: 0.7rem;
+          justify-items: start;
+          padding: 1.1rem;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(240,240,235,0.74);
+          font-family: var(--font-mono, monospace);
+        }
+
+        .account-form-empty p {
+          margin: 0;
+          font-size: 0.74rem;
+          line-height: 1.5;
+          opacity: 0.8;
+        }
+
+        .account-form-empty a {
+          color: #fff;
+          background: #163cff;
+          padding: 0.6rem 1rem;
+          font-size: 0.62rem;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          text-decoration: none;
+        }
+
+        .account-coach-tips {
+          margin-top: 1px;
+          display: grid;
+          gap: 0.6rem;
+          padding: 1.1rem;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(240,240,235,0.74);
+          font-family: var(--font-mono, monospace);
+        }
+
+        .account-coach-tips > span {
+          color: #163cff;
+          font-size: 0.62rem;
+          font-weight: 950;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+
+        .account-coach-tips ul {
+          margin: 0;
+          padding-left: 1.1rem;
+          display: grid;
+          gap: 0.4rem;
+        }
+
+        .account-coach-tips li {
+          font-size: 0.74rem;
+          line-height: 1.5;
+        }
+
+        .account-coach-locked {
+          display: grid;
+          gap: 0.7rem;
+          justify-items: start;
+          padding: 1.1rem;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(240,240,235,0.74);
+          font-family: var(--font-mono, monospace);
+        }
+
+        .account-coach-locked p {
+          margin: 0;
+          font-size: 0.74rem;
+          line-height: 1.5;
+          opacity: 0.8;
+        }
+
+        .account-coach-locked a {
+          color: #fff;
+          background: #163cff;
+          padding: 0.6rem 1rem;
+          font-size: 0.62rem;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          text-decoration: none;
         }
 
         .account-history article {

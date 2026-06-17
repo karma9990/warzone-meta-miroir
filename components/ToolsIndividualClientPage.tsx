@@ -69,6 +69,19 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
     tag: copy.modulesCopy[tool.id]?.tag.toUpperCase() ?? tool.tag,
     desc: copy.modulesCopy[tool.id]?.preview ?? tool.desc,
   }));
+  const premiumCard = {
+    id: 'companion-premium',
+    name: locale === 'es' ? 'App Premium' : locale === 'fr' ? 'Application Premium' : 'App Premium',
+    tag: 'PREMIUM',
+    desc:
+      locale === 'es'
+        ? 'Acceso completo a la app WZPRO Companion: overlay en partida, seguimiento en tiempo real y todas las funciones premium.'
+        : locale === 'fr'
+          ? "Acces complet a l'application WZPRO Companion : overlay en partie, suivi en temps reel et toutes les fonctions premium."
+          : 'Full access to the WZPRO Companion app: in-game overlay, real-time tracking and every premium feature.',
+    price: '9 €',
+  };
+  const gridCards = [premiumCard, ...tools];
   const [buying, setBuying] = useState<string | null>(null);
   const [emailFor, setEmailFor] = useState<string | null>(null);
   const [email, setEmail] = useState('');
@@ -126,7 +139,7 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
         <div className="ti-divider" />
 
         <div className="ti-grid">
-          {tools.map((tool) => (
+          {gridCards.map((tool) => (
             <div key={tool.id} className="ti-card">
               <div className="ti-card-header">
                 <span className="ti-card-tag">{tool.tag}</span>
@@ -161,6 +174,15 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
                   <button type="submit" className="ti-card-btn" disabled={buying === tool.id}>{locale === 'es' ? 'CONFIRMAR Y PAGAR >' : locale === 'fr' ? 'CONFIRMER ET PAYER >' : 'CONFIRM & PAY >'}</button>
                   <button type="button" className="ti-cancel-btn" onClick={() => setEmailFor(null)}>{locale === 'es' ? 'Cancelar' : locale === 'fr' ? 'Annuler' : 'Cancel'}</button>
                 </form>
+              ) : tool.id === 'companion-premium' ? (
+                <button
+                  type="button"
+                  className="ti-card-btn"
+                  onClick={() => handleBuy(tool.id)}
+                  disabled={buying === tool.id}
+                >
+                  {`${locale === 'es' ? 'OBTENER' : locale === 'fr' ? 'OBTENIR' : 'GET'} ${tool.name.toUpperCase()} - ${tool.price}`}
+                </button>
               ) : (
                 <Link
                   href={href('/pro-access')}

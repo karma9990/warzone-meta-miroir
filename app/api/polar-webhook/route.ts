@@ -56,7 +56,8 @@ async function sendAccessEmail(purchase: Purchase, email: string) {
 
   const token = await createAccessToken(purchase, email);
   const productName = purchase.name;
-  const accessNoun = purchase.type === 'pro' ? 'subscription access' : 'monthly tool access';
+  const accessNoun = purchase.type === 'pro' ? 'subscription access' : purchase.type === 'companion' ? 'app premium access' : 'monthly tool access';
+  const headerLabel = purchase.type === 'pro' ? 'PRO ACCESS' : purchase.type === 'companion' ? 'COMPANION PREMIUM' : purchase.id.toUpperCase();
   const accessUrl = buildAccessUrl(purchase, token);
   const proToolLinks = purchase.type === 'pro'
     ? `
@@ -74,7 +75,7 @@ async function sendAccessEmail(purchase: Purchase, email: string) {
     subject: `Your access to ${productName} - WZ Meta`,
     html: `
       <div style="font-family:monospace;max-width:520px;margin:0 auto;padding:40px 24px;background:#f5f5f0;color:#0a0a08">
-        <p style="font-size:11px;letter-spacing:0.2em;opacity:0.4;margin:0 0 32px">WZ META / ${purchase.type === 'pro' ? 'PRO ACCESS' : purchase.id.toUpperCase()}</p>
+        <p style="font-size:11px;letter-spacing:0.2em;opacity:0.4;margin:0 0 32px">WZ META / ${headerLabel}</p>
         <h1 style="font-size:24px;letter-spacing:0.08em;margin:0 0 16px">ACCESS ACTIVE - ${productName.toUpperCase()}</h1>
         <p style="font-size:13px;line-height:1.7;opacity:0.65;margin:0 0 32px">
           Your payment was confirmed through Polar. Click below to claim <strong>${productName}</strong> on your account.
@@ -131,6 +132,7 @@ export async function POST(req: NextRequest) {
     userId: metadataString(data.metadata, 'userId') || data.customer?.externalId || email.toLowerCase(),
     email,
     pro: purchase.type === 'pro',
+    companion: purchase.type === 'companion',
     toolId: purchase.type === 'tool' ? purchase.id : undefined,
   });
 

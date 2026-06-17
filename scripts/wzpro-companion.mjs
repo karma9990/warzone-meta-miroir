@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { tmpdir, setPriority, constants as osConstants } from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -101,6 +101,18 @@ Get-Process -ErrorAction SilentlyContinue |
   const result = parseJsonOutput(await powershell(script), []);
   if (!result) return [];
   return Array.isArray(result) ? result : [result];
+}
+
+// The desktop app captures the focused game window natively (no PowerShell) and
+// writes it here. Prefer that fresh frame to avoid spawning PowerShell each poll.
+function nativeScreenshotIfFresh(maxAgeMs) {
+  try {
+    if (!existsSync(SCREENSHOT_PATH)) return '';
+    if (Date.now() - statSync(SCREENSHOT_PATH).mtimeMs <= maxAgeMs) return SCREENSHOT_PATH;
+  } catch {
+    // ignore
+  }
+  return '';
 }
 
 async function captureActiveGameWindow(context) {
@@ -223,6 +235,15 @@ async function uploadEntry(site, token, entry) {
 const site = argValue('site', 'http://localhost:3000');
 const token = argValue('token');
 const pollMs = Math.max(3000, Number(argValue('poll_ms', String(DEFAULT_POLL_MS))) || DEFAULT_POLL_MS);
+const highlightKills = Math.max(1, Number(argValue('highlight_kills', '4')) || 4);
+
+// Decide whether an end-game entry is a "highlight" worth clipping.
+function highlightReason(entry) {
+  if (entry.won) return 'win';
+  if (entry.kills >= highlightKills) return 'multikill';
+  if (entry.placement > 0 && entry.placement <= 3) return 'top3';
+  return '';
+}
 
 if (!token) {
   console.error('Missing companion token. Copy the command from your WZPRO account page.');
@@ -236,9 +257,17 @@ console.log('It uploads stats only when OCR detects a Warzone end-of-game summar
 console.log(`Site: ${site}`);
 console.log(`Interval: ${pollMs}ms`);
 
+// Run below normal priority so the engine never steals CPU from the game.
+try {
+  setPriority(osConstants?.priority?.PRIORITY_BELOW_NORMAL ?? 10);
+} catch {
+  // setPriority may be unavailable/denied; ignore.
+}
+
 const worker = await createWorker('eng');
 let lastUploadedKey = '';
-let lastImageHash = '';
+let lastOcrHash = '';
+let prevFrameHash = '';
 let state = 'waiting-game';
 let lastStatus = '';
 
@@ -261,12 +290,15 @@ try {
           ? `Warzone is open, waiting for the game window to be active. Current window: ${activeName || 'unknown'}`
           : 'Waiting for Call of Duty / Warzone to open.'
         );
-        await sleep(pollMs);
+        // No game at all: poll slower to stay light in the background.
+        await sleep(runningGames.length ? pollMs : pollMs * 2);
         continue;
       }
 
       status(`Watching active game window: ${activeName}${activeWindow.title ? ` - ${activeWindow.title}` : ''}`);
-      const screenshot = await captureActiveGameWindow(activeWindow);
+      // Prefer the app's native capture; fall back to PowerShell only if it is stale.
+      let screenshot = nativeScreenshotIfFresh(pollMs * 1.5);
+      if (!screenshot) screenshot = await captureActiveGameWindow(activeWindow);
       if (!screenshot) {
         await sleep(pollMs);
         continue;
@@ -274,11 +306,20 @@ try {
 
       const bytes = readFileSync(screenshot);
       const imageHash = createHash('sha256').update(bytes).digest('hex');
-      if (imageHash === lastImageHash) {
+      if (imageHash === lastOcrHash) {
+        // Same screen already analyzed (e.g. a static menu): no OCR.
         await sleep(pollMs);
         continue;
       }
-      lastImageHash = imageHash;
+      if (imageHash !== prevFrameHash) {
+        // Screen still changing (active gameplay): skip the heavy OCR entirely.
+        prevFrameHash = imageHash;
+        process.stdout.write('~');
+        await sleep(pollMs);
+        continue;
+      }
+      // Frame stable across two polls -> likely a menu / end-game screen: safe to OCR.
+      lastOcrHash = imageHash;
 
       const { data } = await worker.recognize(screenshot);
       const text = data.text || '';
@@ -308,6 +349,12 @@ try {
       const result = await uploadEntry(site, token, entry);
       state = 'uploaded-summary';
       console.log(`\nUploaded game #${result.count}: ${entry.kills} kills, ${entry.damage} damage, place #${entry.placement}`);
+
+      const reason = highlightReason(entry);
+      if (reason) {
+        // Structured line consumed by the desktop app to trigger a clip (premium).
+        console.log(`HIGHLIGHT ${JSON.stringify({ reason, kills: entry.kills, placement: entry.placement, won: entry.won })}`);
+      }
     } catch (error) {
       console.log(`\nCompanion waiting: ${error instanceof Error ? error.message : 'unknown error'}`);
     }

@@ -10,12 +10,45 @@ export default function AccountLoadoutPrefs({
   initialFeaturedLoadoutId,
   initialFavorites,
   initialNotes,
+  locale = 'en',
 }: {
   loadouts: Loadout[];
   initialFeaturedLoadoutId: string;
   initialFavorites: string[];
   initialNotes: Record<string, string>;
+  locale?: string;
 }) {
+  const copy = locale === 'fr'
+    ? {
+        saving: 'Sauvegarde...',
+        unableSave: 'Sauvegarde impossible.',
+        saved: 'Sauvegarde.',
+        noLoadouts: 'Aucune classe disponible pour le moment.',
+        noFavorite: 'Aucune classe favorite pour le moment.',
+        featuredWeapon: 'Arme mise en avant',
+        tier: 'Tier',
+        favorited: 'En favori',
+        favorite: 'Ajouter aux favoris',
+        mainLoadout: 'Classe principale',
+        setMain: 'Definir principale',
+        privateNote: 'Note privee pour cette classe...',
+        chooseAnother: 'Choisir une autre arme',
+      }
+    : {
+        saving: 'Saving...',
+        unableSave: 'Unable to save.',
+        saved: 'Saved.',
+        noLoadouts: 'No loadouts available yet.',
+        noFavorite: 'No favorite loadout yet.',
+        featuredWeapon: 'Featured weapon',
+        tier: 'Tier',
+        favorited: 'Favorited',
+        favorite: 'Favorite',
+        mainLoadout: 'Main loadout',
+        setMain: 'Set main',
+        privateNote: 'Private note for this loadout...',
+        chooseAnother: 'Choose another weapon',
+      };
   const [favorites, setFavorites] = useState(initialFavorites);
   const [featuredLoadoutId, setFeaturedLoadoutId] = useState(initialFeaturedLoadoutId);
   const [notes, setNotes] = useState(initialNotes);
@@ -33,7 +66,7 @@ export default function AccountLoadoutPrefs({
   ), [loadouts, selectedLoadout]);
 
   async function save(nextFavorites: string[], nextNotes: Record<string, string>, nextFeaturedLoadoutId = featuredLoadoutId) {
-    setStatus('Saving...');
+    setStatus(copy.saving);
     const res = await fetch('/api/account/loadout-prefs', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -45,13 +78,13 @@ export default function AccountLoadoutPrefs({
     });
     const data = await res.json();
     if (!res.ok) {
-      setStatus(data.error || 'Unable to save.');
+      setStatus(data.error || copy.unableSave);
       return;
     }
     setFeaturedLoadoutId(data.featuredLoadoutId || '');
     setFavorites(data.favoriteLoadouts);
     setNotes(data.loadoutNotes);
-    setStatus('Saved.');
+    setStatus(copy.saved);
   }
 
   function toggleFavorite(loadoutId: string) {
@@ -80,7 +113,7 @@ export default function AccountLoadoutPrefs({
   if (!selectedLoadout) {
     return (
       <div className="account-loadout-prefs">
-        <p className="account-loadout-status">No loadouts available yet.</p>
+        <p className="account-loadout-status">{copy.noLoadouts}</p>
       </div>
     );
   }
@@ -93,39 +126,39 @@ export default function AccountLoadoutPrefs({
             <span>{loadout.tier}</span>
             <strong>{loadout.weapon}</strong>
           </Link>
-        )) : <p>No favorite loadout yet.</p>}
+        )) : <p>{copy.noFavorite}</p>}
       </div>
 
       <article className="account-loadout-featured">
         <div className="account-loadout-featured-head">
           <div>
-            <span>Featured weapon</span>
+            <span>{copy.featuredWeapon}</span>
             <Link href={getLoadoutPath(selectedLoadout)}>{selectedLoadout.weapon}</Link>
-            <small>{selectedLoadout.category} / Tier {selectedLoadout.tier}</small>
+            <small>{selectedLoadout.category} / {copy.tier} {selectedLoadout.tier}</small>
           </div>
           <button type="button" onClick={() => toggleFavorite(selectedLoadout.id)}>
-            {favorites.includes(selectedLoadout.id) ? 'Favorited' : 'Favorite'}
+            {favorites.includes(selectedLoadout.id) ? copy.favorited : copy.favorite}
           </button>
           <button type="button" onClick={() => setMainLoadout(selectedLoadout.id)}>
-            {featuredLoadoutId === selectedLoadout.id ? 'Main loadout' : 'Set main'}
+            {featuredLoadoutId === selectedLoadout.id ? copy.mainLoadout : copy.setMain}
           </button>
         </div>
         <textarea aria-label="Textarea"
           maxLength={1200}
           onBlur={() => saveNote(selectedLoadout.id)}
           onChange={(event) => updateNote(selectedLoadout.id, event.target.value)}
-          placeholder="Private note for this loadout..."
+          placeholder={copy.privateNote}
           value={notes[selectedLoadout.id] || ''}
         />
       </article>
 
       <details className="account-loadout-picker">
-        <summary>Choose another weapon</summary>
+        <summary>{copy.chooseAnother}</summary>
         <div>
           {otherLoadouts.map((loadout) => (
             <button key={loadout.id} type="button" onClick={() => setSelectedLoadoutId(loadout.id)}>
               <strong>{loadout.weapon}</strong>
-              <small>{loadout.category} / Tier {loadout.tier}</small>
+              <small>{loadout.category} / {copy.tier} {loadout.tier}</small>
             </button>
           ))}
         </div>

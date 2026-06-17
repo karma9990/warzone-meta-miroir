@@ -12,6 +12,7 @@ export type EntitlementRecord = {
   userId: string;
   email?: string;
   pro: boolean;
+  companion: boolean;
   tools: ProToolId[];
   updatedAt: string;
 };
@@ -61,6 +62,7 @@ export async function getEntitlements(userId: string): Promise<EntitlementRecord
         userId,
         email: fields.email || undefined,
         pro: fields.pro === '1',
+        companion: fields.companion === '1',
         tools,
         updatedAt: fields.updatedAt || '',
       };
@@ -77,6 +79,7 @@ export async function grantEntitlement(input: {
   userId: string;
   email?: string;
   pro?: boolean;
+  companion?: boolean;
   toolId?: ProToolId;
 }) {
   const existing = await getEntitlements(input.userId);
@@ -87,13 +90,14 @@ export async function grantEntitlement(input: {
     userId: input.userId,
     email: input.email || existing?.email,
     pro: Boolean(existing?.pro || input.pro),
+    companion: Boolean(existing?.companion || input.companion),
     tools: Array.from(tools),
     updatedAt: new Date().toISOString(),
   };
 
   if (hasUpstash()) {
     const commands: unknown[][] = [
-      ['HSET', `${ENTITLEMENT_KEY_PREFIX}${record.userId}`, 'updatedAt', record.updatedAt, 'pro', record.pro ? '1' : '0'],
+      ['HSET', `${ENTITLEMENT_KEY_PREFIX}${record.userId}`, 'updatedAt', record.updatedAt, 'pro', record.pro ? '1' : '0', 'companion', record.companion ? '1' : '0'],
     ];
     if (record.email) {
       commands.push(['HSET', `${ENTITLEMENT_KEY_PREFIX}${record.userId}`, 'email', record.email]);
