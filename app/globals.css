@@ -8260,6 +8260,30 @@ body:has(.ai-classes-page) .legal-footer {
   height: auto !important;
 }
 
+.hero-leaderboard-cta {
+  position: relative !important;
+  z-index: 4 !important;
+  display: grid !important;
+  width: fit-content !important;
+  min-height: 44px !important;
+  margin: clamp(10px, 1.8vh, 18px) auto 0 !important;
+  place-items: center !important;
+  padding: 0 26px !important;
+  border: 1px solid var(--tm-ink) !important;
+  color: var(--tm-ink) !important;
+  font-family: var(--tm-mono) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+  text-transform: uppercase !important;
+}
+
+.hero-leaderboard-cta:hover,
+.hero-leaderboard-cta:focus-visible {
+  background: var(--tm-ink) !important;
+  color: var(--tm-paper) !important;
+}
+
 /* Black source logo -> white on dark theme. */
 :root[data-theme="dark"] .hero-title .hero-logo {
   filter: invert(1) !important;

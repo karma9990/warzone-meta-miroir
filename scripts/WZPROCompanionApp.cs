@@ -124,6 +124,11 @@ public sealed class WzproCompanionApp : Form
     private Panel freeInfoCard;
     private Panel freeConnectionCard;
     private Panel freeControlsCard;
+    private Panel premiumInfoCard;
+    private Panel premiumHighlightsCard;
+    private Panel premiumClipsCard;
+    private Panel premiumAccessCard;
+    private Panel premiumAdvancedCard;
     private Panel profilePanel;
     private PictureBox profilePictureBox;
     private Label profileNameLabel;
@@ -496,68 +501,113 @@ public sealed class WzproCompanionApp : Form
         hintLabel = Label("", 24, 66, 620, 34, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
         freeControlsCard.Controls.Add(hintLabel);
 
-        premiumPageTitleLabel = Label("", 34, 112, 420, 32, 16, FontStyle.Bold, Color.White);
-        mainPanel.Controls.Add(premiumPageTitleLabel);
+        premiumInfoCard = new Panel
+        {
+            Location = new Point(34, 92),
+            Size = new Size(690, 106),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(premiumInfoCard);
 
-        premiumPageDescLabel = Label("", 34, 150, 670, 42, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
-        mainPanel.Controls.Add(premiumPageDescLabel);
+        premiumPageTitleLabel = Label("", 24, 20, 420, 32, 16, FontStyle.Bold, Color.White);
+        premiumInfoCard.Controls.Add(premiumPageTitleLabel);
 
-        highlightsTitleLabel = Label("", 34, 220, 210, 22, 10, FontStyle.Bold, Color.White);
-        mainPanel.Controls.Add(highlightsTitleLabel);
+        premiumPageDescLabel = Label("", 24, 58, 620, 36, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        premiumInfoCard.Controls.Add(premiumPageDescLabel);
+
+        premiumHighlightsCard = new Panel
+        {
+            Location = new Point(34, 218),
+            Size = new Size(690, 126),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(premiumHighlightsCard);
+
+        highlightsTitleLabel = Label("", 24, 18, 210, 22, 10, FontStyle.Bold, Color.White);
+        premiumHighlightsCard.Controls.Add(highlightsTitleLabel);
 
         highlightsToggle = new CheckBox
         {
-            Location = new Point(430, 216),
-            Size = new Size(278, 28),
+            Location = new Point(426, 16),
+            Size = new Size(238, 28),
             FlatStyle = FlatStyle.Flat,
             Font = AppFont(8, FontStyle.Bold),
             ForeColor = Color.White
         };
         highlightsToggle.CheckedChanged += delegate { OnHighlightsChanged(); };
-        mainPanel.Controls.Add(highlightsToggle);
+        premiumHighlightsCard.Controls.Add(highlightsToggle);
 
-        highlightsDescLabel = Label("", 34, 258, 690, 50, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
-        mainPanel.Controls.Add(highlightsDescLabel);
+        highlightsDescLabel = Label("", 24, 52, 640, 42, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        premiumHighlightsCard.Controls.Add(highlightsDescLabel);
 
-        highlightsStatusLabel = Label("", 34, 320, 690, 30, 8, FontStyle.Bold, Color.FromArgb(255, 204, 0));
-        mainPanel.Controls.Add(highlightsStatusLabel);
+        highlightsStatusLabel = Label("", 24, 96, 640, 22, 8, FontStyle.Bold, Color.FromArgb(255, 204, 0));
+        premiumHighlightsCard.Controls.Add(highlightsStatusLabel);
 
-        clipsFolderTitleLabel = Label("", 34, 370, 260, 22, 10, FontStyle.Bold, Color.White);
-        mainPanel.Controls.Add(clipsFolderTitleLabel);
+        premiumClipsCard = new Panel
+        {
+            Location = new Point(34, 360),
+            Size = new Size(690, 94),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(premiumClipsCard);
 
-        clipsFolderValueLabel = Label("", 34, 400, 470, 38, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
-        mainPanel.Controls.Add(clipsFolderValueLabel);
+        clipsFolderTitleLabel = Label("", 24, 16, 260, 22, 10, FontStyle.Bold, Color.White);
+        premiumClipsCard.Controls.Add(clipsFolderTitleLabel);
 
-        clipsFolderButton = Button("", 520, 392, 100, 34, Color.FromArgb(22, 60, 255));
+        clipsFolderValueLabel = Label("", 24, 46, 444, 36, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        premiumClipsCard.Controls.Add(clipsFolderValueLabel);
+
+        clipsFolderButton = Button("", 500, 42, 82, 34, Color.FromArgb(22, 60, 255));
         clipsFolderButton.Click += delegate { ChooseClipsFolder(); };
-        mainPanel.Controls.Add(clipsFolderButton);
+        premiumClipsCard.Controls.Add(clipsFolderButton);
 
-        clipsOpenFolderButton = Button("", 632, 392, 92, 34, Color.FromArgb(42, 42, 48));
+        clipsOpenFolderButton = Button("", 592, 42, 74, 34, Color.FromArgb(42, 42, 48));
         clipsOpenFolderButton.Click += delegate { OpenClipsFolder(); };
-        mainPanel.Controls.Add(clipsOpenFolderButton);
+        premiumClipsCard.Controls.Add(clipsOpenFolderButton);
 
-        premiumCheckoutHintLabel = Label("", 34, 460, 360, 38, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
-        mainPanel.Controls.Add(premiumCheckoutHintLabel);
+        premiumAccessCard = new Panel
+        {
+            Location = new Point(34, 470),
+            Size = new Size(690, 106),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(premiumAccessCard);
 
-        premiumAccessStatusLabel = Label("", 34, 516, 360, 38, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
-        mainPanel.Controls.Add(premiumAccessStatusLabel);
+        premiumCheckoutHintLabel = Label("", 24, 16, 344, 38, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        premiumAccessCard.Controls.Add(premiumCheckoutHintLabel);
 
-        premiumCheckoutButton = Button("", 414, 456, 310, 38, Color.FromArgb(22, 60, 255));
+        premiumAccessStatusLabel = Label("", 24, 62, 344, 34, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
+        premiumAccessCard.Controls.Add(premiumAccessStatusLabel);
+
+        premiumCheckoutButton = Button("", 380, 16, 286, 38, Color.FromArgb(22, 60, 255));
         premiumCheckoutButton.Click += delegate { OpenPremiumAccessPage(); };
-        mainPanel.Controls.Add(premiumCheckoutButton);
+        premiumAccessCard.Controls.Add(premiumCheckoutButton);
 
-        premiumRefreshButton = Button("", 414, 512, 310, 34, Color.FromArgb(42, 42, 48));
+        premiumRefreshButton = Button("", 380, 62, 286, 34, Color.FromArgb(42, 42, 48));
         premiumRefreshButton.Click += async delegate { await CheckPremiumAccess(true); };
-        mainPanel.Controls.Add(premiumRefreshButton);
+        premiumAccessCard.Controls.Add(premiumRefreshButton);
 
-        statsButton = Button("", 34, 560, 200, 32, Color.FromArgb(22, 60, 255));
+        premiumAdvancedCard = new Panel
+        {
+            Location = new Point(34, 586),
+            Size = new Size(690, 96),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(premiumAdvancedCard);
+
+        statsButton = Button("", 12, 10, 200, 32, Color.FromArgb(22, 60, 255));
         statsButton.Click += async delegate { await FetchStats(); };
-        mainPanel.Controls.Add(statsButton);
+        premiumAdvancedCard.Controls.Add(statsButton);
 
         statsBox = new TextBox
         {
-            Location = new Point(244, 556),
-            Size = new Size(480, 88),
+            Location = new Point(222, 8),
+            Size = new Size(456, 76),
             Multiline = true,
             ReadOnly = true,
             ScrollBars = ScrollBars.Vertical,
@@ -565,11 +615,11 @@ public sealed class WzproCompanionApp : Form
             ForeColor = Color.White,
             BorderStyle = BorderStyle.FixedSingle
         };
-        mainPanel.Controls.Add(statsBox);
+        premiumAdvancedCard.Controls.Add(statsBox);
 
         clipModeCombo = new ComboBox
         {
-            Location = new Point(34, 598),
+            Location = new Point(12, 48),
             Size = new Size(210, 24),
             DropDownStyle = ComboBoxStyle.DropDownList,
             BackColor = Color.FromArgb(14, 18, 45),
@@ -578,11 +628,11 @@ public sealed class WzproCompanionApp : Form
             Font = AppFont(8, FontStyle.Bold)
         };
         clipModeCombo.SelectedIndexChanged += delegate { OnClipModeChanged(); };
-        mainPanel.Controls.Add(clipModeCombo);
+        premiumAdvancedCard.Controls.Add(clipModeCombo);
 
         socialFormatCombo = new ComboBox
         {
-            Location = new Point(34, 626),
+            Location = new Point(12, 74),
             Size = new Size(210, 24),
             DropDownStyle = ComboBoxStyle.DropDownList,
             BackColor = Color.FromArgb(14, 18, 45),
@@ -591,18 +641,18 @@ public sealed class WzproCompanionApp : Form
             Font = AppFont(8, FontStyle.Bold)
         };
         socialFormatCombo.SelectedIndexChanged += delegate { OnSocialFormatChanged(); };
-        mainPanel.Controls.Add(socialFormatCombo);
+        premiumAdvancedCard.Controls.Add(socialFormatCombo);
 
-        musicButton = Button("", 34, 654, 210, 24, Color.FromArgb(42, 42, 48));
+        musicButton = Button("", 222, 58, 136, 24, Color.FromArgb(42, 42, 48));
         musicButton.Click += delegate { ChooseMusic(); };
-        mainPanel.Controls.Add(musicButton);
+        premiumAdvancedCard.Controls.Add(musicButton);
 
-        musicLabel = Label("", 250, 658, 300, 16, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
-        mainPanel.Controls.Add(musicLabel);
+        musicLabel = Label("", 368, 62, 144, 16, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        premiumAdvancedCard.Controls.Add(musicLabel);
 
-        audioButton = Button("", 560, 652, 164, 26, Color.FromArgb(42, 42, 48));
+        audioButton = Button("", 522, 58, 156, 24, Color.FromArgb(42, 42, 48));
         audioButton.Click += delegate { OpenAudioSettings(); };
-        mainPanel.Controls.Add(audioButton);
+        premiumAdvancedCard.Controls.Add(audioButton);
 
         importsLabel = Label("", 34, 492, 160, 20, 9, FontStyle.Bold, Color.White);
         mainPanel.Controls.Add(importsLabel);
@@ -1238,6 +1288,11 @@ public sealed class WzproCompanionApp : Form
         journalLabel.Visible = !premium;
         logBox.Visible = !premium;
 
+        if (premiumInfoCard != null) premiumInfoCard.Visible = premium;
+        if (premiumHighlightsCard != null) premiumHighlightsCard.Visible = premium;
+        if (premiumClipsCard != null) premiumClipsCard.Visible = premium;
+        if (premiumAccessCard != null) premiumAccessCard.Visible = premium;
+        if (premiumAdvancedCard != null) premiumAdvancedCard.Visible = premium;
         highlightsTitleLabel.Visible = premium;
         premiumPageTitleLabel.Visible = premium;
         premiumPageDescLabel.Visible = premium;
@@ -2490,6 +2545,11 @@ public sealed class WzproCompanionApp : Form
         if (freeInfoCard != null) freeInfoCard.BackColor = theme.Surface;
         if (freeConnectionCard != null) freeConnectionCard.BackColor = theme.Surface;
         if (freeControlsCard != null) freeControlsCard.BackColor = theme.Surface;
+        if (premiumInfoCard != null) premiumInfoCard.BackColor = theme.Surface;
+        if (premiumHighlightsCard != null) premiumHighlightsCard.BackColor = theme.Surface;
+        if (premiumClipsCard != null) premiumClipsCard.BackColor = theme.Surface;
+        if (premiumAccessCard != null) premiumAccessCard.BackColor = theme.Surface;
+        if (premiumAdvancedCard != null) premiumAdvancedCard.BackColor = theme.Surface;
         if (profilePanel != null) profilePanel.BackColor = theme.SurfaceAlt;
         if (profileNameLabel != null) profileNameLabel.ForeColor = theme.Ink;
         if (profilePictureBox != null) profilePictureBox.BackColor = Color.Transparent;
@@ -2508,6 +2568,11 @@ public sealed class WzproCompanionApp : Form
         if (freeInfoCard != null) freeInfoCard.BackColor = theme.Surface;
         if (freeConnectionCard != null) freeConnectionCard.BackColor = theme.Surface;
         if (freeControlsCard != null) freeControlsCard.BackColor = theme.Surface;
+        if (premiumInfoCard != null) premiumInfoCard.BackColor = theme.Surface;
+        if (premiumHighlightsCard != null) premiumHighlightsCard.BackColor = theme.Surface;
+        if (premiumClipsCard != null) premiumClipsCard.BackColor = theme.Surface;
+        if (premiumAccessCard != null) premiumAccessCard.BackColor = theme.Surface;
+        if (premiumAdvancedCard != null) premiumAdvancedCard.BackColor = theme.Surface;
         if (profilePanel != null) profilePanel.BackColor = theme.SurfaceAlt;
         if (profileNameLabel != null) profileNameLabel.ForeColor = theme.Ink;
         if (profilePictureBox != null) profilePictureBox.BackColor = Color.Transparent;

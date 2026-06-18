@@ -75,6 +75,12 @@ export default async function LeaderboardPage() {
       : isEs
         ? `Minimo ${MIN_GAMES} partidas importadas. Actualizado en continuo.`
         : `Minimum ${MIN_GAMES} imported games. Continuously updated.`,
+    prizeTitle: isFr ? 'TOP 3 RECOMPENSE' : isEs ? 'TOP 3 PREMIADO' : 'TOP 3 REWARDED',
+    prizeText: isFr
+      ? 'Les 3 premiers du classement recevront des cadeaux exclusifs WZPRO.'
+      : isEs
+        ? 'Los 3 primeros del ranking recibiran regalos exclusivos WZPRO.'
+        : 'The top 3 players on the leaderboard will receive exclusive WZPRO prizes.',
   };
 
   const ranked = await getRankedPlayers();
@@ -90,6 +96,10 @@ export default async function LeaderboardPage() {
       <header className="lb-head">
         <h1 className="lb-title">{t.title}</h1>
         <p className="lb-sub">{t.sub}</p>
+        <aside className="lb-prize" aria-label={t.prizeTitle}>
+          <span>{t.prizeTitle}</span>
+          <strong>{t.prizeText}</strong>
+        </aside>
         <p className="lb-note">{t.minGames}</p>
       </header>
 
@@ -134,6 +144,17 @@ export default async function LeaderboardPage() {
       )}
 
       <style>{`
+        body:has(.lb-main) > div:has(> .lb-main) {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+        }
+        body:has(.lb-main) .lb-main {
+          flex: 1 0 auto;
+        }
+        body:has(.lb-main) .legal-footer {
+          margin-top: auto;
+        }
         .lb-main {
           width: min(1080px, calc(100% - 2rem));
           margin: 0 auto;
@@ -176,12 +197,34 @@ export default async function LeaderboardPage() {
           max-width: 720px;
         }
         .lb-note {
-          margin: 0.35rem 0 0;
+          margin: 0.75rem 0 0;
           font-family: var(--tm-mono, monospace);
           font-size: 0.62rem;
           letter-spacing: 0.14em;
           text-transform: uppercase;
           color: var(--tm-blue, #163cff);
+        }
+        .lb-prize {
+          display: grid;
+          gap: 0.4rem;
+          margin-top: 1rem;
+          padding: 1rem 1.1rem;
+          border: 1px solid var(--tm-blue, #163cff);
+          background: color-mix(in srgb, var(--tm-blue, #163cff) 10%, transparent);
+          font-family: var(--tm-mono, monospace);
+        }
+        .lb-prize span {
+          font-size: 0.62rem;
+          font-weight: 950;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: var(--tm-blue, #163cff);
+        }
+        .lb-prize strong {
+          max-width: 760px;
+          font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+          line-height: 1.25;
+          color: var(--tm-ink);
         }
         .lb-empty {
           font-family: var(--tm-mono, monospace);

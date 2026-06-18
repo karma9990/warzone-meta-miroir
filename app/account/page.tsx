@@ -145,6 +145,17 @@ const copy = {
     coachEarlyDeath: 'You die early too often - play the opening safer and reposition.',
     coachImproving: 'Your K/D is trending up - keep the same routine and pace.',
     coachConsistent: 'Solid and consistent - set one new goal per session to keep progressing.',
+    lbKicker: 'LEADERBOARD',
+    lbTitle: 'Appear on the leaderboard',
+    lbDescOn: 'You meet every requirement to be ranked.',
+    lbDescOff: 'Complete these to appear in the public ranking:',
+    lbOn: 'You qualify for the public leaderboard.',
+    lbReqPseudo: 'Set a pseudo',
+    lbReqPublic: 'Make your profile public',
+    lbReqStats: 'Keep stats public',
+    lbReqGames: 'Import at least 3 games',
+    lbView: 'View leaderboard',
+    lbFix: 'Profile settings',
     loadouts: 'LOADOUTS',
     favAndNotes: 'Favorites and private notes',
     favDesc: 'Favorite builds for quick access and keep account-synced notes only you can see.',
@@ -265,6 +276,17 @@ const copy = {
     coachEarlyDeath: 'Tu meurs trop tot - joue le debut plus safe et repositionne-toi.',
     coachImproving: 'Ton K/D remonte - garde la meme routine et le meme rythme.',
     coachConsistent: 'Solide et regulier - fixe un nouvel objectif par session pour progresser.',
+    lbKicker: 'CLASSEMENT',
+    lbTitle: 'Apparais dans le classement',
+    lbDescOn: 'Tu remplis toutes les conditions du classement.',
+    lbDescOff: 'Complete ceci pour apparaitre dans le classement public :',
+    lbOn: 'Tu es eligible au classement public.',
+    lbReqPseudo: 'Definis un pseudo',
+    lbReqPublic: 'Rends ton profil public',
+    lbReqStats: 'Garde tes stats publiques',
+    lbReqGames: 'Importe au moins 3 parties',
+    lbView: 'Voir le classement',
+    lbFix: 'Reglages du profil',
     loadouts: 'CLASSES',
     favAndNotes: 'Favoris et notes privees',
     favDesc: 'Builds favoris pour un acces rapide et notes synchronisees visibles uniquement par vous.',
@@ -385,6 +407,17 @@ const copy = {
     coachEarlyDeath: 'Mueres demasiado pronto - juega el inicio mas seguro y reposiciona.',
     coachImproving: 'Tu K/D sube - manten la misma rutina y ritmo.',
     coachConsistent: 'Solido y constante - fija un objetivo nuevo por sesion para seguir mejorando.',
+    lbKicker: 'CLASIFICACION',
+    lbTitle: 'Aparece en la clasificacion',
+    lbDescOn: 'Cumples todos los requisitos de la clasificacion.',
+    lbDescOff: 'Completa esto para aparecer en el ranking publico:',
+    lbOn: 'Cumples para aparecer en la clasificacion publica.',
+    lbReqPseudo: 'Define un pseudo',
+    lbReqPublic: 'Haz tu perfil publico',
+    lbReqStats: 'Manten tus estadisticas publicas',
+    lbReqGames: 'Importa al menos 3 partidas',
+    lbView: 'Ver clasificacion',
+    lbFix: 'Ajustes del perfil',
     loadouts: 'LOADOUTS',
     favAndNotes: 'Favoritos y notas privadas',
     favDesc: 'Builds favoritos para acceso rapido y notas sincronizadas visibles solo para ti.',
@@ -523,6 +556,15 @@ export default async function AccountPage() {
         ? ` ${t.formMetaNow}${topMetaLoadout.weapon} (Tier ${topMetaLoadout.tier}).`
         : '')
     : t.formNoMain;
+
+  // Leaderboard eligibility (drives public-profile adoption -> richer ranking).
+  const lbReqs = {
+    pseudo: Boolean(profile.pseudo),
+    publicProfile: profile.privacy.publicProfile,
+    stats: profile.privacy.stats,
+    games: profile.statsEntries.length >= 3,
+  };
+  const onLeaderboard = lbReqs.pseudo && lbReqs.publicProfile && lbReqs.stats && lbReqs.games;
 
   // Premium weekly coach report (Pro subscription). Free/companion users see a locked teaser.
   const coach = buildCoachReport(profile.statsEntries);
@@ -667,6 +709,33 @@ export default async function AccountPage() {
             <div className="account-form-empty">
               <p>{t.formEmpty}</p>
               <a href="/api/companion/download" download>{t.companionDownload}</a>
+            </div>
+          )}
+        </section>
+
+        <section className="account-section">
+          <div className="account-section-head">
+            <span>{t.lbKicker}</span>
+            <h2>{t.lbTitle}</h2>
+            <p>{onLeaderboard ? t.lbDescOn : t.lbDescOff}</p>
+          </div>
+          {onLeaderboard ? (
+            <div className="account-form-insight">
+              <p>✓ {t.lbOn}</p>
+              <Link href={href('/leaderboard')}>{t.lbView}</Link>
+            </div>
+          ) : (
+            <div className="account-lb-checklist">
+              <ul>
+                <li data-done={lbReqs.pseudo ? 'yes' : 'no'}>{t.lbReqPseudo}</li>
+                <li data-done={lbReqs.publicProfile ? 'yes' : 'no'}>{t.lbReqPublic}</li>
+                <li data-done={lbReqs.stats ? 'yes' : 'no'}>{t.lbReqStats}</li>
+                <li data-done={lbReqs.games ? 'yes' : 'no'}>{t.lbReqGames}</li>
+              </ul>
+              <div className="account-lb-actions">
+                <Link href={`${href('/account')}#public-profile-settings`}>{t.lbFix}</Link>
+                <Link href={href('/leaderboard')}>{t.lbView}</Link>
+              </div>
             </div>
           )}
         </section>
@@ -1741,6 +1810,59 @@ export default async function AccountPage() {
           letter-spacing: 0.1em;
           text-transform: uppercase;
           text-decoration: none;
+        }
+
+        .account-lb-checklist {
+          display: grid;
+          gap: 0.9rem;
+          padding: 1.1rem;
+          border: 1px solid rgba(0,0,0,0.12);
+          background: rgba(240,240,235,0.74);
+          font-family: var(--font-mono, monospace);
+        }
+        .account-lb-checklist ul {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          display: grid;
+          gap: 0.45rem;
+        }
+        .account-lb-checklist li {
+          display: grid;
+          grid-template-columns: 1.2rem 1fr;
+          align-items: start;
+          font-size: 0.74rem;
+          line-height: 1.4;
+        }
+        .account-lb-checklist li::before {
+          content: '\\2022';
+          color: rgba(0,0,0,0.4);
+          font-weight: 900;
+        }
+        .account-lb-checklist li[data-done="yes"]::before {
+          content: '\\2713';
+          color: #1aa363;
+        }
+        .account-lb-checklist li[data-done="yes"] { opacity: 0.7; }
+        .account-lb-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.6rem;
+        }
+        .account-lb-actions a {
+          color: #fff;
+          background: #163cff;
+          padding: 0.6rem 1rem;
+          font-size: 0.62rem;
+          font-weight: 900;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          text-decoration: none;
+        }
+        .account-lb-actions a + a {
+          background: transparent;
+          color: #163cff;
+          border: 1px solid #163cff;
         }
 
         .account-history article {

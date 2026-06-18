@@ -8,7 +8,7 @@ import AuthButton from '@/components/AuthButton';
 import LoadoutCard from '@/components/LoadoutCard';
 import type { Loadout } from '@/lib/data';
 import type { HomeUiCopy, Locale } from '@/lib/i18n';
-import { DEFAULT_LOCALE, HOME_UI_COPY, localizeLoadoutNote, translateTerm, withLocalePath } from '@/lib/i18n';
+import { DEFAULT_LOCALE, HOME_UI_COPY, translateTerm, withLocalePath } from '@/lib/i18n';
 import { calculateMetaScore, formatMetaDate, getLoadoutSlug } from '@/lib/loadoutUtils';
 import { getLoadoutPath } from '@/lib/seo';
 import type { SiteContent } from '@/lib/siteContent';
@@ -52,33 +52,6 @@ const CONFIDENCE_COPY = {
   es: ['Parche verificado', 'Alta confianza', 'Seguimiento', 'Revisar tras parche'],
 } as const;
 
-const COMPARE_VERDICT_COPY = {
-  en: {
-    title: 'Verdict',
-    balanced: 'These two builds are close. Pick the one that fits your role and map pace.',
-    takeControl: (weapon: string) => `Pick ${weapon} if you want the calmer recoil and cleaner held angles.`,
-    takeMobility: (weapon: string) => `Pick ${weapon} if you need faster resets, entry speed and close-range pressure.`,
-    takeDamage: (weapon: string) => `Pick ${weapon} if your priority is raw damage and faster downs when shots are clean.`,
-    takeRange: (weapon: string) => `Pick ${weapon} if you are anchoring longer lanes or pairing with a close-range secondary.`,
-  },
-  fr: {
-    title: 'Verdict',
-    balanced: 'Les deux classes sont proches. Choisis selon ton role et le rythme de la map.',
-    takeControl: (weapon: string) => `Prends ${weapon} si tu veux un recul plus calme et des angles tenus plus propres.`,
-    takeMobility: (weapon: string) => `Prends ${weapon} si tu veux reset plus vite, entry plus fort et mettre de la pression en close.`,
-    takeDamage: (weapon: string) => `Prends ${weapon} si ta priorite est le degat brut et les downs rapides quand tes balles sont propres.`,
-    takeRange: (weapon: string) => `Prends ${weapon} si tu joues les longues lignes ou si tu le couples avec une arme courte portee.`,
-  },
-  es: {
-    title: 'Veredicto',
-    balanced: 'Las dos clases estan cerca. Elige segun tu rol y el ritmo del mapa.',
-    takeControl: (weapon: string) => `Elige ${weapon} si quieres menos retroceso y angulos mantenidos mas limpios.`,
-    takeMobility: (weapon: string) => `Elige ${weapon} si necesitas resets rapidos, velocidad de entry y presion en corta distancia.`,
-    takeDamage: (weapon: string) => `Elige ${weapon} si priorizas dano bruto y bajas rapidas cuando aciertas limpio.`,
-    takeRange: (weapon: string) => `Elige ${weapon} si juegas lineas largas o lo combinas con un arma de corta distancia.`,
-  },
-} as const;
-
 function confidenceLabel(loadout: Loadout, locale: Locale) {
   const labels = locale === 'fr' || locale === 'es' ? CONFIDENCE_COPY[locale] : CONFIDENCE_COPY.en;
   const daysSinceUpdate = Math.max(0, Math.round((Date.now() - new Date(loadout.updatedAt).getTime()) / 86400000));
@@ -111,45 +84,6 @@ function orderedByIds(loadouts: Loadout[], ids: string[]) {
     });
 
   return [...picked, ...loadouts.filter((loadout) => !used.has(loadout.id))];
-}
-
-function compareVerdict(compared: Array<{ loadout: Loadout }>, locale: Locale) {
-  const copy = locale === 'fr' || locale === 'es' ? COMPARE_VERDICT_COPY[locale] : COMPARE_VERDICT_COPY.en;
-  const [left, right] = compared.map((entry) => entry.loadout);
-  if (!left || !right) return null;
-
-  const controlGap = left.stats.control - right.stats.control;
-  const mobilityGap = left.stats.mobility - right.stats.mobility;
-  const damageGap = left.stats.damage - right.stats.damage;
-  const rangeGap = left.stats.range - right.stats.range;
-  const candidates = [
-    {
-      key: 'control',
-      gap: Math.abs(controlGap),
-      text: copy.takeControl(controlGap >= 0 ? left.weapon : right.weapon),
-    },
-    {
-      key: 'mobility',
-      gap: Math.abs(mobilityGap),
-      text: copy.takeMobility(mobilityGap >= 0 ? left.weapon : right.weapon),
-    },
-    {
-      key: 'damage',
-      gap: Math.abs(damageGap),
-      text: copy.takeDamage(damageGap >= 0 ? left.weapon : right.weapon),
-    },
-    {
-      key: 'range',
-      gap: Math.abs(rangeGap),
-      text: copy.takeRange(rangeGap >= 0 ? left.weapon : right.weapon),
-    },
-  ].sort((a, b) => b.gap - a.gap);
-
-  if (candidates[0].gap < 8) {
-    return { title: copy.title, text: copy.balanced, tone: 'balanced' };
-  }
-
-  return { title: copy.title, text: candidates[0].text, tone: candidates[0].key };
 }
 
 function RankingWeaponImage({ loadout }: { loadout: Loadout }) {
@@ -387,7 +321,6 @@ export default function HomeClient({
     { slot: 'a', loadout: pickLoadout(loadouts, compareA) },
     { slot: 'b', loadout: pickLoadout(loadouts, compareB) },
   ].filter((entry): entry is { slot: string; loadout: Loadout } => Boolean(entry.loadout));
-  const verdict = compareVerdict(compared, locale);
   const compareMax = Math.max(...compared.flatMap(({ loadout }) => [
     loadout.stats.damage,
     loadout.stats.range,
@@ -440,13 +373,17 @@ export default function HomeClient({
             sizes="(max-width: 720px) 280px, 44vw"
           />
         </h1>
+        <div className="hero-leaderboard-slot">
+          <Link className="hero-leaderboard-cta" href={href('/leaderboard')}>{locale === 'fr' ? 'Classement WZ' : locale === 'es' ? 'Clasificacion WZ' : 'WZ Leaderboard'}</Link>
+          <Link className="hero-leaderboard-cta" href={href('/tier-list')}>Tier List</Link>
+        </div>
         <div className="hero-brief">
           <span>{copy.eyebrow}</span>
           <p>{copy.description}</p>
           <span>[ {String(buildCount).padStart(2, '0')} BUILDS ]</span>
         </div>
         <div className="hero-actions">
-          <a href="#all-loadouts">{copy.primaryCta}</a>
+          <a href="#all-loadouts">{locale === 'fr' ? 'Outil Pro' : locale === 'es' ? 'Herramienta Pro' : 'Pro Tool'}</a>
           <Link href={href('/quiz')}>{locale === 'fr' ? 'Trouve ta classe' : locale === 'es' ? 'Encuentra tu clase' : 'Find your loadout'}</Link>
           <Link href={href('/pro-tools')}>{copy.secondaryCta}</Link>
         </div>
@@ -467,7 +404,6 @@ export default function HomeClient({
           <Link href={href('/tournois')}>{locale === 'fr' ? 'Tournois' : locale === 'es' ? 'Torneos' : 'Tournaments'}</Link>
           <Link href={href('/actualites')}>{locale === 'fr' ? 'Actualites' : locale === 'es' ? 'Noticias' : 'News'}</Link>
           <Link href={href('/createur')}>{locale === 'fr' ? 'Createur' : locale === 'es' ? 'Creador' : 'Creator'}</Link>
-          <Link href={href('/leaderboard')}>{locale === 'fr' ? 'Classement' : locale === 'es' ? 'Clasificacion' : 'Leaderboard'}</Link>
           <Link href={href('/community')}>{uiCopy.community}</Link>
         </nav>
         <div className="global-search-panel">
@@ -685,12 +621,6 @@ export default function HomeClient({
           </select>
           <button type="submit">{uiCopy.compare}</button>
         </form>
-        {verdict && (
-          <aside className="compare-verdict" data-tone={verdict.tone}>
-            <span>{verdict.title}</span>
-            <p>{verdict.text}</p>
-          </aside>
-        )}
         <div className="meta-compare-grid">
           {compared.map(({ slot, loadout }) => (
             <article key={`${slot}-${loadout.id}`}>
@@ -717,7 +647,6 @@ export default function HomeClient({
                   </div>
                 ))}
               </div>
-              <p>{localizeLoadoutNote(loadout.weapon, loadout.playstyle, loadout.notes, locale)}</p>
             </article>
           ))}
         </div>

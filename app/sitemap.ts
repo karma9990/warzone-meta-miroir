@@ -15,6 +15,7 @@ const staticRoutes = [
   "/free-preview",
   "/community",
   "/leaderboard",
+  "/tier-list",
   "/ai-classes",
   "/pro-classe",
   "/actualites",
