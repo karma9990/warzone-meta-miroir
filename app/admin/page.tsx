@@ -514,6 +514,30 @@ export default function AdminPage() {
     }
   };
 
+  const [alerting, setAlerting] = useState<string | null>(null);
+  const notifyWatchers = async (l: Loadout) => {
+    const weaponId = l.weaponId || l.id;
+    if (!confirm(`Email everyone watching ${l.weapon} about this updated build?`)) return;
+    setAlerting(l.id);
+    try {
+      const res = await fetch('/api/weapon-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weaponId }),
+      });
+      const result = await res.json() as { sent?: number; watchers?: number; error?: string };
+      if (!res.ok) {
+        flash(result.error || 'Error while sending alerts.');
+        return;
+      }
+      flash(result.watchers === 0 ? 'No watchers to notify yet.' : `Alert sent to ${result.sent}/${result.watchers} watchers.`);
+    } catch {
+      flash('Error while sending alerts.');
+    } finally {
+      setAlerting(null);
+    }
+  };
+
   const openToolPreview = async (toolId: string) => {
     setPreviewLoading(toolId);
     try {
@@ -1331,6 +1355,14 @@ export default function AdminPage() {
                         style={{ fontSize: '12px', padding: '5px 12px' }}
                       >
                         Edit
+                      </button>
+                      <button type="button"
+                        className="btn-ghost"
+                        onClick={() => notifyWatchers(l)}
+                        disabled={alerting === l.id}
+                        style={{ fontSize: '12px', padding: '5px 12px' }}
+                      >
+                        {alerting === l.id ? 'Sending…' : 'Notify'}
                       </button>
                       <button type="button"
                         className="btn-danger"
