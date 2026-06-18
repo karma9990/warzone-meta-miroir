@@ -152,6 +152,7 @@ export default async function SignUpPage({
   const [{ error, next }, locale] = await Promise.all([searchParams, getRequestLocale()]);
   const href = (path: string) => withLocalePath(path, locale);
   const nextPath = safeNextPath(next);
+  const signupRedirect = next ? nextPath : '/welcome';
   const t = (copy as Record<string, typeof copy.en>)[locale] || copy.en;
   const ec = (errorCopy as Record<string, typeof errorCopy.en>)[locale] || errorCopy.en;
 
@@ -174,12 +175,12 @@ export default async function SignUpPage({
             )}
 
             <div className="auth-actions">
-              <EmailSignInForm initialMode="signup" allowSwitch={false} redirectTo={nextPath} locale={locale} />
+              <EmailSignInForm initialMode="signup" allowSwitch={false} redirectTo={signupRedirect} locale={locale} />
               <p className="email-auth-switch">
                 {t.haveAccount} <Link href={href(`/sign-in${nextPath !== '/' ? `?next=${encodeURIComponent(nextPath)}` : ''}`)}>{t.signIn}</Link>
               </p>
               <div className="auth-separator">{t.or}</div>
-              <SupabaseOAuthButtons intent="signup" nextPath={nextPath} initialProviders={getOAuthProviderStatus()} />
+              <SupabaseOAuthButtons intent="signup" nextPath={signupRedirect} initialProviders={getOAuthProviderStatus()} />
             </div>
 
             <p className="auth-note">
