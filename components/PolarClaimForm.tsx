@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 function isSafeRelativePath(value: string) {
   return value.startsWith('/') && !value.startsWith('//') && !value.includes('\\');
 }
 
 export default function PolarClaimForm() {
+  const attemptedAutoClaim = useRef(false);
   const [checkoutId, setCheckoutId] = useState(() => {
     if (typeof window === 'undefined') return '';
     return new URLSearchParams(window.location.search).get('checkout_id') || '';
@@ -14,10 +15,15 @@ export default function PolarClaimForm() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [signInUrl, setSignInUrl] = useState('');
 
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
+  const claimAccess = useCallback(async () => {
     setStatus('');
+    setSignInUrl('');
+    if (!checkoutId.trim()) {
+      setStatus('Checkout id is required.');
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -26,7 +32,11 @@ export default function PolarClaimForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ checkoutId, email }),
       });
-      const result = await res.json() as { accessUrl?: string; error?: string };
+      const result = await res.json() as { accessUrl?: string; error?: string; requiresSignIn?: boolean; signInUrl?: string };
+      if (result.requiresSignIn && result.signInUrl) {
+        setSignInUrl(result.signInUrl);
+        throw new Error(result.error || 'Sign in to attach this purchase to your account.');
+      }
       if (!res.ok || !result.accessUrl) {
         throw new Error(result.error || 'Unable to open access.');
       }
@@ -38,7 +48,18 @@ export default function PolarClaimForm() {
       setStatus(error instanceof Error ? error.message : 'Unable to open access.');
       setSubmitting(false);
     }
+  }, [checkoutId, email]);
+
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    void claimAccess();
   }
+
+  useEffect(() => {
+    if (!checkoutId || attemptedAutoClaim.current) return;
+    attemptedAutoClaim.current = true;
+    void claimAccess();
+  }, [checkoutId, claimAccess]);
 
   return (
     <form className="claim-form" onSubmit={handleSubmit}>
@@ -54,7 +75,7 @@ export default function PolarClaimForm() {
         />
       </div>
       <div className="claim-row">
-        <label className="claim-label" htmlFor="claim-email">PURCHASE EMAIL</label>
+        <label className="claim-label" htmlFor="claim-email">PURCHASE EMAIL (OPTIONAL)</label>
         <input
           id="claim-email"
           className="claim-input"
@@ -62,12 +83,16 @@ export default function PolarClaimForm() {
           value={email}
           onChange={event => setEmail(event.target.value)}
           placeholder="you@example.com"
-          required
         />
       </div>
       {status && <p className="claim-status">{status}</p>}
+      {signInUrl && (
+        <a className="claim-btn claim-btn--link" href={signInUrl}>
+          SIGN IN TO ACTIVATE
+        </a>
+      )}
       <button className="claim-btn" type="submit" disabled={submitting}>
-        {submitting ? 'OPENING ACCESS...' : 'OPEN ACCESS'}
+        {submitting ? 'ACTIVATING...' : 'OPEN ACCESS'}
       </button>
     </form>
   );

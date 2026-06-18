@@ -130,19 +130,7 @@ function getOAuthProviderStatus() {
     ),
     battlenet: Boolean(process.env.BATTLE_NET_CLIENT_ID && process.env.BATTLE_NET_CLIENT_SECRET),
     apple: false,
-  es: {
-    provider: 'Este proveedor de inicio de sesion no esta disponible.',
-    google_config: 'El inicio de sesion con Google no esta configurado aun.',
-    battlenet_config: 'El inicio de sesion con Battle.net no esta configurado aun.',
-    apple_config: 'El inicio de sesion con Apple no esta configurado aun.',
-    state: 'La solicitud de inicio de sesion ha expirado. Intentalo de nuevo.',
-    token: 'El proveedor no devolvio un token de acceso valido.',
-    profile: 'No se pudo cargar el perfil del proveedor.',
-    google_email_unverified: 'Google no confirmo un correo verificado para esta cuenta.',
-    email_token: 'Este enlace de inicio de sesion por correo no es valido o ha expirado.',
-    fallback: 'Error al iniciar sesion. Intentalo de nuevo.',
-  },
-};
+  };
 }
 
 function safeNextPath(value?: string) {

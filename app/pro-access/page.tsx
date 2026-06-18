@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import ProAccessClientPage from '@/components/ProAccessClientPage';
 import { getSiteContent } from '@/lib/siteContent';
 import { getRequestLocale } from '@/lib/requestLocale';
+import { getUserSession } from '@/lib/userAuth';
 
 export const metadata: Metadata = {
   title: 'Pro Access | WZPRO Meta',
@@ -9,6 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const [siteContent, locale] = await Promise.all([getSiteContent(), getRequestLocale()]);
-  return <ProAccessClientPage initialCopy={siteContent.proAccess} locale={locale} />;
+  const [siteContent, locale, user] = await Promise.all([getSiteContent(), getRequestLocale(), getUserSession()]);
+  return <ProAccessClientPage initialCopy={siteContent.proAccess} locale={locale} initialUser={user} />;
 }

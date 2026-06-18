@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
   }
 
   const user = await getUserSession();
-  if ((purchase.type === 'tool' || purchase.type === 'companion') && !user) {
-    return NextResponse.json({ error: 'Sign in before buying a tool.' }, { status: 401 });
+  if (!user) {
+    return NextResponse.json({ error: 'Sign in before checkout.' }, { status: 401 });
   }
 
   const email = normalizeEmail(parsed.data.email || user?.email || '');

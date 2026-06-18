@@ -11,12 +11,11 @@ export default function PaymentSuccessPage() {
   return (
     <>
       <main className="ps-main">
-        <div className="ps-icon">✓</div>
+        <div className="ps-icon">OK</div>
         <p className="ps-tag">PAYMENT CONFIRMED</p>
-        <h1 className="ps-title">ACCESS GRANTED</h1>
+        <h1 className="ps-title">ACTIVATING ACCESS</h1>
         <p className="ps-desc">
-          Your payment was successful. Access stays active while the subscription is active.
-          Sign in with the purchase email, or open access with the Polar checkout ID.
+          Your payment was successful. We are attaching the purchase to your WZPRO account so access stays active while the subscription is active.
         </p>
 
         <div className="ps-divider" />
@@ -24,15 +23,15 @@ export default function PaymentSuccessPage() {
         <div className="ps-steps">
           <div className="ps-step">
             <span className="ps-step-num">01</span>
-            <p className="ps-step-text">Use the same email address used at checkout</p>
+            <p className="ps-step-text">Keep the same WZPRO account connected</p>
           </div>
           <div className="ps-step">
             <span className="ps-step-num">02</span>
-            <p className="ps-step-text">Paste the Polar checkout ID if access did not open automatically</p>
+            <p className="ps-step-text">Sign in if we need to attach the purchase</p>
           </div>
           <div className="ps-step">
             <span className="ps-step-num">03</span>
-            <p className="ps-step-text">Sign in with the same email to keep monthly access active</p>
+            <p className="ps-step-text">Open your Pro tool or account page once activation finishes</p>
           </div>
         </div>
 
@@ -203,6 +202,9 @@ export default function PaymentSuccessPage() {
         }
 
         .claim-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           min-height: 42px;
           border: none;
           background: blue;
@@ -211,6 +213,11 @@ export default function PaymentSuccessPage() {
           font-size: 0.65rem;
           letter-spacing: 0.14em;
           cursor: pointer;
+          text-decoration: none;
+        }
+
+        .claim-btn--link {
+          box-sizing: border-box;
         }
 
         .claim-btn:disabled {

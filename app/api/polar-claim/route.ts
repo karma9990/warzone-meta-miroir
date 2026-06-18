@@ -38,8 +38,13 @@ export async function POST(req: NextRequest) {
   }
 
   const user = await getUserSession();
-  if ((purchase.type === 'tool' || purchase.type === 'companion') && !user) {
-    return NextResponse.json({ error: 'Sign in before opening this tool.' }, { status: 401 });
+  if (!user) {
+    const next = `/payment-success?checkout_id=${encodeURIComponent(checkoutId)}`;
+    return NextResponse.json({
+      error: 'Sign in to attach this purchase to your account.',
+      requiresSignIn: true,
+      signInUrl: `/sign-in?next=${encodeURIComponent(next)}`,
+    }, { status: 401 });
   }
 
   const email = normalizeEmail(checkoutEmail(checkout, normalizeEmail(parsed.data.email)));
@@ -47,10 +52,13 @@ export async function POST(req: NextRequest) {
   if (emailError) {
     return NextResponse.json({ error: emailError }, { status: 400 });
   }
+  if (user.email && user.email.toLowerCase() !== email) {
+    return NextResponse.json({ error: 'Sign in with the same email used at checkout.' }, { status: 403 });
+  }
 
   await grantEntitlement({
-    userId: user?.sub || metadataString(checkout.metadata, 'userId') || email,
-    email: user?.email || email,
+    userId: user.sub,
+    email: user.email || email,
     pro: purchase.type === 'pro',
     companion: purchase.type === 'companion',
     toolId: purchase.type === 'tool' ? purchase.id : undefined,
