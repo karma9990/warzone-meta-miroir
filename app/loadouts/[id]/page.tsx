@@ -111,6 +111,16 @@ export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
   const jsonLd = getLoadoutJsonLd(loadout);
   const localizedSeason = locale === 'fr' ? CURRENT_WARZONE_SEASON : 'Season 04';
   const attachmentsList = loadout.attachments.map((attachment) => attachment.name).join(', ');
+  const relatedLoadouts = loadouts
+    .filter((entry) => entry.id !== loadout.id)
+    .sort((a, b) => {
+      const sameA = a.category === loadout.category ? 0 : 1;
+      const sameB = b.category === loadout.category ? 0 : 1;
+      if (sameA !== sameB) return sameA - sameB;
+      return calculateMetaScore(b) - calculateMetaScore(a);
+    })
+    .slice(0, 6);
+  const relatedCopy = locale === 'es' ? 'OTRAS CLASES META' : locale === 'fr' ? 'AUTRES CLASSES META' : 'OTHER META LOADOUTS';
 
   return (
     <main className="loadout-detail-page max-w-[980px] mx-auto px-8 py-20 pb-24 font-[var(--mono)]">
@@ -302,6 +312,29 @@ export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
           {localizeLoadoutText(loadout.sourceNote || 'WZPRO Meta is an independent fan site. Re-check major balance updates before ranked sessions.', locale, loadout.playstyle)}
         </p>
       </section>
+
+      {relatedLoadouts.length > 0 && (
+        <section className="mt-8 border-t border-[var(--tm-line,rgba(16,16,14,0.14))] pt-6">
+          <h2 className="m-0 mb-4 text-[1rem] tracking-normal">{relatedCopy}</h2>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+            {relatedLoadouts.map((entry) => (
+              <Link
+                key={entry.id}
+                href={href(getLoadoutPath(entry))}
+                className="block border border-[var(--tm-line,rgba(16,16,14,0.14))] p-4 no-underline text-[var(--tm-ink,#10100e)] bg-[var(--theme-panel,rgba(239,238,232,0.6))]"
+              >
+                <span className="block text-[var(--tm-blue,#163cff)] text-[0.7rem] font-black uppercase tracking-normal">
+                  {translateTerm(entry.category, locale)} / TIER {entry.tier}
+                </span>
+                <strong className="block mt-1 text-[1.05rem] uppercase tracking-normal">{entry.weapon}</strong>
+                <span className="block mt-2 text-[var(--tm-muted,rgba(16,16,14,0.55))] text-[0.7rem] font-black uppercase tracking-normal">
+                  {locale === 'es' ? 'Meta' : locale === 'fr' ? 'Score meta' : 'Meta score'} {calculateMetaScore(entry)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }
