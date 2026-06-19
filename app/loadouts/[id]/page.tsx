@@ -129,6 +129,7 @@ export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
       <script
         nonce={nonce}
         type="application/ld+json"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Link href={href('/#all-loadouts')} className="text-inherit opacity-50 no-underline text-[0.75rem] tracking-normal">

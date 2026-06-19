@@ -15,5 +15,5 @@ export default function ThemeScript({ nonce }: { nonce?: string }) {
 })();
 `;
 
-  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: script }} />;
+  return <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: script }} />;
 }
