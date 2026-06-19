@@ -1,6 +1,9 @@
+import fs from 'fs';
+import path from 'path';
+import sharp from 'sharp';
 import { ImageResponse } from 'next/og';
 import { getLoadouts } from '@/lib/data';
-import { calculateMetaScore } from '@/lib/loadoutUtils';
+import { calculateMetaScore, getLoadoutSlug } from '@/lib/loadoutUtils';
 import { findLoadoutByRouteId } from '@/lib/seo';
 
 export const runtime = 'nodejs';
@@ -20,6 +23,31 @@ const TIER_COLOR: Record<string, string> = {
 };
 
 type OgParams = { params: Promise<{ id: string }> };
+
+// Satori (next/og) cannot decode avif/webp, so convert the weapon render to a
+// PNG data URI at request time. Returns null when no usable source exists.
+async function weaponImageDataUri(slug: string): Promise<string | null> {
+  const dir = path.join(process.cwd(), 'public', 'assets', 'weapons');
+  const candidates = [
+    path.join(dir, 'wzstats', `${slug}.png`),
+    path.join(dir, `${slug}-hq.png`),
+    path.join(dir, 'wzstats', `${slug}.avif`),
+    path.join(dir, `${slug}.avif`),
+    path.join(dir, `${slug}-hq.avif`),
+    path.join(dir, `${slug}.webp`),
+  ];
+  for (const file of candidates) {
+    if (!fs.existsSync(file)) continue;
+    try {
+      // failOn: 'none' lets sharp decode avif/webp variants that only emit warnings.
+      const png = file.endsWith('.png') ? fs.readFileSync(file) : await sharp(file, { failOn: 'none' }).png().toBuffer();
+      return `data:image/png;base64,${png.toString('base64')}`;
+    } catch {
+      // Try the next candidate if decoding fails.
+    }
+  }
+  return null;
+}
 
 export default async function LoadoutOgImage({ params }: OgParams) {
   const [{ id }, loadouts] = await Promise.all([params, getLoadouts()]);
@@ -52,6 +80,7 @@ export default async function LoadoutOgImage({ params }: OgParams) {
   const score = calculateMetaScore(loadout);
   const tierColor = TIER_COLOR[loadout.tier] ?? BLUE;
   const attachments = loadout.attachments.slice(0, 5);
+  const weaponImg = await weaponImageDataUri(getLoadoutSlug(loadout));
 
   return new ImageResponse(
     (
@@ -93,40 +122,52 @@ export default async function LoadoutOgImage({ params }: OgParams) {
           </div>
         </div>
 
-        {/* weapon name */}
-        <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'auto', marginBottom: 'auto' }}>
-          <div style={{ display: 'flex', fontSize: 30, fontWeight: 800, color: BLUE, letterSpacing: '0.06em' }}>
-            BEST {loadout.playstyle.toUpperCase()} LOADOUT
+        {/* weapon name + render */}
+        <div style={{ display: 'flex', flex: 1, alignItems: 'center', gap: 40 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, maxWidth: weaponImg ? 640 : '100%' }}>
+            <div style={{ display: 'flex', fontSize: 30, fontWeight: 800, color: BLUE, letterSpacing: '0.06em' }}>
+              BEST {loadout.playstyle.toUpperCase()} LOADOUT
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 116,
+                fontWeight: 900,
+                lineHeight: 1,
+                letterSpacing: '-0.01em',
+                marginTop: 8,
+              }}
+            >
+              {loadout.weapon.toUpperCase()}
+            </div>
+            <div style={{ display: 'flex', gap: 12, marginTop: 28, flexWrap: 'wrap' }}>
+              {attachments.map((attachment) => (
+                <div
+                  key={`${attachment.slot}-${attachment.name}`}
+                  style={{
+                    display: 'flex',
+                    border: `2px solid rgba(16,16,14,0.16)`,
+                    padding: '8px 16px',
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: 'rgba(16,16,14,0.7)',
+                  }}
+                >
+                  {attachment.name}
+                </div>
+              ))}
+            </div>
           </div>
-          <div
-            style={{
-              display: 'flex',
-              fontSize: 116,
-              fontWeight: 900,
-              lineHeight: 1,
-              letterSpacing: '-0.01em',
-              marginTop: 8,
-            }}
-          >
-            {loadout.weapon.toUpperCase()}
-          </div>
-          <div style={{ display: 'flex', gap: 12, marginTop: 28, flexWrap: 'wrap' }}>
-            {attachments.map((attachment) => (
-              <div
-                key={`${attachment.slot}-${attachment.name}`}
-                style={{
-                  display: 'flex',
-                  border: `2px solid rgba(16,16,14,0.16)`,
-                  padding: '8px 16px',
-                  fontSize: 22,
-                  fontWeight: 700,
-                  color: 'rgba(16,16,14,0.7)',
-                }}
-              >
-                {attachment.name}
-              </div>
-            ))}
-          </div>
+          {weaponImg && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={weaponImg}
+              width={440}
+              height={248}
+              alt=""
+              style={{ objectFit: 'contain' }}
+            />
+          )}
         </div>
 
         {/* bottom stats */}
