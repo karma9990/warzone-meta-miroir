@@ -2,6 +2,10 @@ export function hasUpstash() {
   return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 }
 
+export function allowEphemeralSecurityFallback() {
+  return process.env.NODE_ENV !== 'production' || process.env.ALLOW_EPHEMERAL_SECURITY_FALLBACK === '1';
+}
+
 const warnedEphemeral = new Set<string>();
 
 /**

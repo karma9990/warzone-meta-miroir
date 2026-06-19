@@ -143,15 +143,17 @@ export default async function TierListPage() {
         }
         .tl-tier {
           display: grid;
-          grid-template-columns: 64px minmax(0, 1fr);
+          grid-template-columns: 72px minmax(0, 1fr);
           gap: 1rem;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1rem;
           align-items: start;
         }
         .tl-tier-badge {
           display: grid;
           place-items: center;
-          height: 64px;
+          position: sticky;
+          top: 1rem;
+          height: 72px;
           font-size: 2rem;
           font-weight: 950;
           color: #fff;
@@ -166,22 +168,21 @@ export default async function TierListPage() {
           margin: 0;
           padding: 0;
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
           gap: 1px;
           border: 1px solid var(--tm-line, rgba(16,16,14,0.18));
           background: var(--tm-line, rgba(16,16,14,0.18));
         }
         .tl-card {
           display: grid;
-          gap: 0.5rem;
-          padding: 0.9rem;
+          grid-template-columns: minmax(0, 1fr) 74px auto;
+          align-items: center;
+          gap: 1rem;
+          min-height: 72px;
+          padding: 0.85rem 1rem;
           background: var(--tm-paper, #efeee8);
         }
         .tl-card-head {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: 0.5rem;
+          display: contents;
         }
         .tl-card-head strong {
           font-size: 0.92rem;
@@ -194,6 +195,7 @@ export default async function TierListPage() {
           font-size: 1rem;
           font-weight: 950;
           color: var(--tm-blue, #163cff);
+          text-align: right;
         }
         .tl-meta {
           margin: 0;
@@ -202,10 +204,13 @@ export default async function TierListPage() {
           text-transform: uppercase;
           color: var(--tm-muted, rgba(16,16,14,0.6));
           line-height: 1.4;
+          grid-column: 1;
+          grid-row: 2;
         }
         .tl-open {
-          justify-self: start;
-          margin-top: 0.2rem;
+          justify-self: end;
+          grid-column: 3;
+          grid-row: 1 / span 2;
           font-size: 0.58rem;
           font-weight: 900;
           letter-spacing: 0.12em;
@@ -214,9 +219,20 @@ export default async function TierListPage() {
           color: var(--tm-blue, #163cff);
         }
         .tl-open:hover { text-decoration: underline; text-underline-offset: 3px; }
+        @media (max-width: 700px) {
+          .tl-card {
+            grid-template-columns: minmax(0, 1fr) 58px;
+            gap: 0.35rem 0.75rem;
+          }
+          .tl-open {
+            justify-self: start;
+            grid-column: 1 / -1;
+            grid-row: auto;
+          }
+        }
         @media (max-width: 560px) {
           .tl-tier { grid-template-columns: 48px minmax(0, 1fr); gap: 0.7rem; }
-          .tl-tier-badge { height: 48px; font-size: 1.5rem; }
+          .tl-tier-badge { top: 0.75rem; height: 48px; font-size: 1.5rem; }
         }
       `}</style>
     </main>

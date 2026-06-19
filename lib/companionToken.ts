@@ -6,7 +6,8 @@ import type { UserSession } from '@/lib/userAuth';
 const SECRET = getJwtSecret();
 const COMPANION_TOKEN_USE = 'companion-ingest';
 const COMPACT_PREFIX = 'wzc_';
-const COMPACT_TOKEN_TTL_SECONDS = 180 * 24 * 60 * 60;
+const COMPANION_TOKEN_TTL_DAYS = 30;
+const COMPACT_TOKEN_TTL_SECONDS = COMPANION_TOKEN_TTL_DAYS * 24 * 60 * 60;
 
 export type CompanionSession = {
   sub: string;
@@ -56,7 +57,7 @@ async function createLegacyCompanionToken(user: UserSession) {
     .setIssuer('wzpro-meta')
     .setAudience('wzpro-meta-companion')
     .setIssuedAt()
-    .setExpirationTime('180d')
+    .setExpirationTime(`${COMPANION_TOKEN_TTL_DAYS}d`)
     .sign(SECRET);
 }
 

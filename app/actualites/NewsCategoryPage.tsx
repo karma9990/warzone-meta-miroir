@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import LocalizedSafariBar from '@/components/LocalizedSafariBar';
 import { withLocalePath } from '@/lib/i18n';
@@ -115,7 +116,8 @@ const RECENT_CHANGES_COPY: Record<Locale, { title: string; eyebrow: string; empt
 };
 
 export default async function NewsCategoryPage({ slug }: { slug: NewsCategorySlug }) {
-  const [locale, news] = await Promise.all([getRequestLocale(), getNewsContent()]);
+  const [locale, news, requestHeaders] = await Promise.all([getRequestLocale(), getNewsContent(), headers()]);
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
   const category = NEWS_CATEGORIES.find((entry) => entry.slug === slug)!;
   const lang = (locale === 'fr' || locale === 'es' ? locale : 'en') as Locale;
   const items = news.categories[slug].items;
@@ -154,6 +156,7 @@ export default async function NewsCategoryPage({ slug }: { slug: NewsCategorySlu
     <>
       {articleJsonLd ? (
         <script
+          nonce={nonce}
           type="application/ld+json"
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}

@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import StatBar from '@/components/StatBar';
 import StatRadar from '@/components/StatRadar';
@@ -78,7 +79,8 @@ export async function generateMetadata({ params }: LoadoutPageProps): Promise<Me
 }
 
 export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
-  const [locale, { id }, loadouts] = await Promise.all([getRequestLocale(), params, getLoadouts()]);
+  const [locale, { id }, loadouts, requestHeaders] = await Promise.all([getRequestLocale(), params, getLoadouts(), headers()]);
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
   const uiCopy = getHomeUiCopy(locale);
   const href = (pathname: string) => withLocalePath(pathname, locale);
   const loadout = findLoadoutByRouteId(loadouts, id);
@@ -125,6 +127,7 @@ export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
   return (
     <main className="loadout-detail-page max-w-[980px] mx-auto px-8 py-20 pb-24 font-[var(--mono)]">
       <script
+        nonce={nonce}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />

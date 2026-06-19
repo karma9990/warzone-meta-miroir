@@ -13,6 +13,8 @@ import "./legal-pages.css";
 import "./home-priority.css";
 import "./design-enhancements.css";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "WZPRO Meta - Warzone Loadout Database",
@@ -62,12 +64,14 @@ export default async function RootLayout({
 }>) {
   const requestHeaders = await headers();
   const locale = normalizeLocale(requestHeaders.get(LOCALE_HEADER));
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <ThemeScript />
+        <ThemeScript nonce={nonce} />
         <script
+          nonce={nonce}
           type="application/ld+json"
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
