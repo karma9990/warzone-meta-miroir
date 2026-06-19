@@ -377,12 +377,14 @@ export default function CommunityClient({
   initialMessages = [],
   initialCopy,
   initialPlayer = '',
+  initialType,
 }: {
   initialPosts: CommunityPost[];
   initialUser?: UserSession | null;
   initialMessages?: MessageConversation[];
   initialCopy?: CommunityCopy;
   initialPlayer?: string;
+  initialType?: CommunityPostType | 'all';
 }) {
   const locale = useCurrentLocale();
   const t = (key: string) => labelFor(locale, key);
@@ -390,7 +392,7 @@ export default function CommunityClient({
   const copy = locale === 'en' ? (initialCopy ?? DEFAULT_COMMUNITY_COPY) : (communityCopy[locale] ?? DEFAULT_COMMUNITY_COPY);
   const [posts, setPosts] = useState(initialPosts);
   const [user] = useState<User | null>(initialUser ?? null);
-  const [activeType, setActiveType] = useState<CommunityPostType | 'all'>(initialPlayer ? 'lfg' : 'all');
+  const [activeType, setActiveType] = useState<CommunityPostType | 'all'>(initialType ?? (initialPlayer ? 'lfg' : 'all'));
   const [sortMode, setSortMode] = useState<SortMode>('hot');
   const query = initialPlayer;
   const [now] = useState(() => Date.now());
@@ -671,7 +673,7 @@ export default function CommunityClient({
       <div className="pt-technical-backdrop" aria-hidden="true" />
 
       <LocalizedSafariBar
-        active="community"
+        active={initialType === 'lfg' ? 'lfg' : 'community'}
         searchPlaceholder={locale === 'es' ? 'Mate, rango, clase' : locale === 'fr' ? 'Mate, rang, classe' : locale === 'ja' ? '味方、ランク、ロードアウト' : 'Mate, rank, loadout'}
         readout={[`${posts.length} POSTS`, `${lfgCount} LFG ACTIVE`, 'CHAT: LIVE']}
       />

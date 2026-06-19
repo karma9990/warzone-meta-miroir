@@ -6,7 +6,7 @@ import { getHomeUiCopy, withLocalePath } from '@/lib/i18n';
 import { useCurrentLocale } from '@/lib/useCurrentLocale';
 
 type LocalizedSafariBarProps = {
-  active?: 'pro-tools' | 'loadouts' | 'quiz' | 'meta-trends' | 'builds' | 'ai-classes' | 'set-up' | 'esport' | 'community' | 'actualites' | 'pro-classe' | 'tournois' | 'createur';
+  active?: 'pro-tools' | 'loadouts' | 'quiz' | 'meta-trends' | 'builds' | 'ai-classes' | 'set-up' | 'esport' | 'community' | 'lfg' | 'actualites' | 'pro-classe' | 'tournois' | 'createur';
   searchPlaceholder?: string;
   readout?: string[];
 };
@@ -42,6 +42,7 @@ export default function LocalizedSafariBar({
     ['actualites', href('/actualites'), locale === 'fr' ? 'Actualites' : locale === 'es' ? 'Noticias' : 'News'],
     ['createur', href('/createur'), locale === 'fr' ? 'Createur' : locale === 'es' ? 'Creador' : 'Creator'],
     ['community', href('/community'), copy.community],
+    ['lfg', href('/lfg'), locale === 'fr' ? 'Trouver des mates' : locale === 'es' ? 'Buscar equipo' : 'Find teammates'],
   ] as const;
 
   return (
