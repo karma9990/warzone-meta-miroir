@@ -105,6 +105,7 @@ const labels: Record<Locale, Record<string, string>> = {
     hot: 'Hot', news: 'New', profileLink: 'Profile', report: 'Report', joinRequests: 'join requests', hotScore: 'Hot score',
     askJoin: 'Ask to join', reply: 'Reply', noThread: 'No thread found', noThreadBody: 'Change the filters or start the first post for this search.',
     autoTranslated: 'Auto-translated', originalLanguage: 'Original language',
+    lfgExpiresIn: 'Expires in', lfgExpiringSoon: 'Expiring soon',
   },
   fr: {
     all: 'Tous', lfg: 'Trouver des mates', discussion: 'Discussions', tip: 'Conseils', patch: 'Patch notes',
@@ -118,6 +119,7 @@ const labels: Record<Locale, Record<string, string>> = {
     hot: 'Hot', news: 'Nouveau', profileLink: 'Profil', report: 'Signaler', joinRequests: 'demandes pour rejoindre', hotScore: 'Score hot',
     askJoin: 'Demander a rejoindre', reply: 'Repondre', noThread: 'Aucun sujet trouve', noThreadBody: 'Change les filtres ou cree le premier post pour cette recherche.',
     autoTranslated: 'Traduit auto', originalLanguage: 'Langue originale',
+    lfgExpiresIn: 'Expire dans', lfgExpiringSoon: 'Expire bientot',
   },
   es: {
     all: 'Todo', lfg: 'Encontrar equipo', discussion: 'Debates', tip: 'Consejos', patch: 'Parches',
@@ -131,6 +133,7 @@ const labels: Record<Locale, Record<string, string>> = {
     hot: 'Hot', news: 'Nuevo', profileLink: 'Perfil', report: 'Denunciar', joinRequests: 'solicitudes para unirse', hotScore: 'Puntuacion hot',
     askJoin: 'Pedir unirse', reply: 'Responder', noThread: 'No se encontro ningun tema', noThreadBody: 'Cambia los filtros o crea el primer post para esta busqueda.',
     autoTranslated: 'Traducido auto', originalLanguage: 'Idioma original',
+    lfgExpiresIn: 'Expira en', lfgExpiringSoon: 'Expira pronto',
   },
   de: {
     all: 'Alle', lfg: 'Mitspieler finden', discussion: 'Diskussionen', tip: 'Tipps', patch: 'Patch Talk',
@@ -208,6 +211,16 @@ const labels: Record<Locale, Record<string, string>> = {
 
 function labelFor(locale: Locale, key: string) {
   return labels[locale]?.[key] ?? labels.en[key] ?? key;
+}
+
+// Freshness badge for LFG posts (expired posts are already filtered out).
+function lfgExpiryLabel(expiresAt: string | undefined, now: number, locale: Locale): string | null {
+  if (!expiresAt) return null;
+  const ms = new Date(expiresAt).getTime() - now;
+  if (ms <= 0) return null;
+  const minutes = Math.round(ms / 60000);
+  if (minutes < 60) return labelFor(locale, 'lfgExpiringSoon');
+  return `${labelFor(locale, 'lfgExpiresIn')} ${Math.round(minutes / 60)}h`;
 }
 
 function typeLabelsFor(locale: Locale): Record<CommunityPostType | 'all', string> {
@@ -911,6 +924,9 @@ export default function CommunityClient({
                     <div className="community-post-meta">
                       <span>{typeLabels[post.type]}</span>
                       <small>{post.author} / {post.region} / {formatTime(post.createdAt, locale)}</small>
+                      {post.type === 'lfg' && lfgExpiryLabel(post.expiresAt, now, locale) && (
+                        <small className="community-lfg-expiry">{lfgExpiryLabel(post.expiresAt, now, locale)}</small>
+                      )}
                     </div>
                     <div className="community-language-row">
                       {post.language && <span>{t('originalLanguage')}: {localizeCommunityOption(post.language, locale)}</span>}
