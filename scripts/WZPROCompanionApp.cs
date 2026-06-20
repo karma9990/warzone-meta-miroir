@@ -131,6 +131,8 @@ public sealed class WzproCompanionApp : Form
     private DateTime sessionStartUtc;
     private int sessionGameCount;
     private int sessionHighlightCount;
+    private ulong lastIdleTime, lastKernelTime, lastUserTime;
+    private int perfCpu = -1, perfRam = -1;
     private Button statsButton;
     private Button gameBarButton;
     private TextBox statsBox;
@@ -2790,10 +2792,15 @@ public sealed class WzproCompanionApp : Form
     {
         // Don't resize/repaint mid-drag (the AutoSize form would jitter under the cursor).
         if (overlayLabel == null || overlayDragging) return;
+        UpdatePerfSample();
         int mins = sessionStartUtc == default(DateTime)
             ? 0
             : Math.Max(0, (int)Math.Round(DateTime.UtcNow.Subtract(sessionStartUtc).TotalMinutes));
         string meta = string.IsNullOrWhiteSpace(metaTodayWeapon) ? "" : Environment.NewLine + T("metaToday") + metaTodayWeapon;
+        // RAM is valid from the first sample; CPU needs two samples, so show "--" until ready.
+        string perf = perfRam >= 0
+            ? Environment.NewLine + "CPU " + (perfCpu >= 0 ? perfCpu.ToString() : "--") + "%  RAM " + perfRam + "%"
+            : "";
         string highlights = (premiumAccessActive && sessionHighlightCount > 0)
             ? Environment.NewLine + T("overlayHighlights") + sessionHighlightCount
             : "";
@@ -2801,7 +2808,38 @@ public sealed class WzproCompanionApp : Form
         string replay = (premiumAccessActive && manualReplayHotkeyRegistered && lastManualReplayUtc == DateTime.MinValue)
             ? Environment.NewLine + T("overlayReplay") + activeReplayHotkeyLabel
             : "";
-        overlayLabel.Text = "WZPRO" + Environment.NewLine + T("overlayGames") + sessionGameCount + "  /  " + mins + " min" + highlights + meta + replay;
+        overlayLabel.Text = "WZPRO" + Environment.NewLine + T("overlayGames") + sessionGameCount + "  /  " + mins + " min" + highlights + meta + perf + replay;
+    }
+
+    // Sample CPU% (busy share of system time deltas) and RAM% (memory load) cheaply.
+    private void UpdatePerfSample()
+    {
+        try
+        {
+            FileTime64 idle, kernel, user;
+            if (GetSystemTimes(out idle, out kernel, out user))
+            {
+                ulong i = ((ulong)idle.High << 32) | idle.Low;
+                ulong k = ((ulong)kernel.High << 32) | kernel.Low;
+                ulong u = ((ulong)user.High << 32) | user.Low;
+                if (lastKernelTime != 0 || lastUserTime != 0)
+                {
+                    ulong total = (k - lastKernelTime) + (u - lastUserTime);
+                    ulong busy = total - (i - lastIdleTime); // idle is included in kernel time
+                    if (total > 0) perfCpu = (int)Math.Min(100UL, busy * 100UL / total);
+                }
+                lastIdleTime = i;
+                lastKernelTime = k;
+                lastUserTime = u;
+            }
+            MemoryStatusEx mem = new MemoryStatusEx();
+            mem.dwLength = (uint)Marshal.SizeOf(typeof(MemoryStatusEx));
+            if (GlobalMemoryStatusEx(ref mem)) perfRam = (int)mem.dwMemoryLoad;
+        }
+        catch
+        {
+            // Perf readout is cosmetic; never let it break the overlay.
+        }
     }
 
     // Highlight emitted by the Node engine ("HIGHLIGHT {json}"): log it, and on premium
@@ -3084,6 +3122,33 @@ public sealed class WzproCompanionApp : Form
 
     [StructLayout(LayoutKind.Sequential)]
     private struct NativeRect { public int Left; public int Top; public int Right; public int Bottom; }
+
+    // Lightweight system perf for the overlay (CPU% from time deltas, RAM% from load).
+    // FPS/GPU are intentionally out of scope: they need game present-hooking / vendor APIs.
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FileTime64 { public uint Low; public uint High; }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetSystemTimes(out FileTime64 idleTime, out FileTime64 kernelTime, out FileTime64 userTime);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MemoryStatusEx
+    {
+        public uint dwLength;
+        public uint dwMemoryLoad;
+        public ulong ullTotalPhys;
+        public ulong ullAvailPhys;
+        public ulong ullTotalPageFile;
+        public ulong ullAvailPageFile;
+        public ulong ullTotalVirtual;
+        public ulong ullAvailVirtual;
+        public ulong ullAvailExtendedVirtual;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GlobalMemoryStatusEx(ref MemoryStatusEx lpBuffer);
 
     // Native in-process capture of the focused game window (no PowerShell spawn).
     // Writes to the temp PNG the Node engine reads, so OCR has a fresh frame without
