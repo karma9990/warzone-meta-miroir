@@ -2317,14 +2317,18 @@ public sealed class WzproCompanionApp : Form
     {
         if (optimisationInfoCard == null || optimisationOverlayCard == null) return;
         int h = mainPanel.ClientSize.Height;
-        optimisationInfoCard.SetBounds(contentX, 26, contentW, 84);
-        optimisationOverlayCard.SetBounds(contentX, 122, contentW, 132);
+        int pageTop = 92;
+        int infoH = 84;
+        int overlayTop = pageTop + infoH + 12;
+        int overlayH = 132;
+        optimisationInfoCard.SetBounds(contentX, pageTop, contentW, infoH);
+        optimisationOverlayCard.SetBounds(contentX, overlayTop, contentW, overlayH);
         if (optimisationPageDescLabel != null) optimisationPageDescLabel.Width = contentW - 48;
         if (optimisationOverlayDescLabel != null) optimisationOverlayDescLabel.Width = Math.Max(240, contentW - 210);
         if (overlayToggleButton != null) overlayToggleButton.SetBounds(Math.Max(280, contentW - 170), 46, 150, 40);
         if (optimisationOverlayStatusLabel != null) optimisationOverlayStatusLabel.Width = contentW - 48;
 
-        int logTop = 270;
+        int logTop = overlayTop + overlayH + 28;
         int logH = Math.Max(52, h - logTop - 24);
         if (journalLabel != null && activePage == "optimisation") journalLabel.SetBounds(contentX, logTop - 24, contentW, 20);
         if (logBox != null && activePage == "optimisation") logBox.SetBounds(contentX, logTop, contentW, logH);
