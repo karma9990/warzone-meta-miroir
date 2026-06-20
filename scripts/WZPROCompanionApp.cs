@@ -200,6 +200,14 @@ public sealed class WzproCompanionApp : Form
     private Label optimisationOverlayDescLabel;
     private Label optimisationOverlayStatusLabel;
     private Button overlayToggleButton;
+    private Panel optimisationBoostCard;
+    private Label optimisationBoostTitleLabel;
+    private Label optimisationBoostDescLabel;
+    private Label optimisationBoostStatusLabel;
+    private Button gameBoostButton;
+    private bool gameBoostActive;
+    private string savedPowerScheme = "";
+    private const string HighPerfSchemeGuid = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c";
     private Button startButton;
     private Button stopButton;
     private Button clipsFolderButton;
@@ -1097,6 +1105,25 @@ public sealed class WzproCompanionApp : Form
         optimisationOverlayCard.Controls.Add(overlayToggleButton);
         optimisationOverlayStatusLabel = Label("", 24, 94, 480, 20, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
         optimisationOverlayCard.Controls.Add(optimisationOverlayStatusLabel);
+
+        optimisationBoostCard = new Panel
+        {
+            Location = new Point(34, 266),
+            Size = new Size(690, 120),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle,
+            Visible = false
+        };
+        mainPanel.Controls.Add(optimisationBoostCard);
+        optimisationBoostTitleLabel = Label("", 24, 16, 440, 24, 11, FontStyle.Bold, Color.White);
+        optimisationBoostCard.Controls.Add(optimisationBoostTitleLabel);
+        optimisationBoostDescLabel = Label("", 24, 46, 480, 48, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        optimisationBoostCard.Controls.Add(optimisationBoostDescLabel);
+        gameBoostButton = Button("", 520, 46, 150, 40, Color.FromArgb(22, 60, 255));
+        gameBoostButton.Click += delegate { ToggleGameBoost(); };
+        optimisationBoostCard.Controls.Add(gameBoostButton);
+        optimisationBoostStatusLabel = Label("", 24, 94, 480, 20, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
+        optimisationBoostCard.Controls.Add(optimisationBoostStatusLabel);
     }
 
     private Label Label(string text, int x, int y, int w, int h, float size, FontStyle style, Color color)
@@ -1239,6 +1266,15 @@ public sealed class WzproCompanionApp : Form
                 case "optimisationOverlayBtn": return "Toggle overlay";
                 case "optimisationOverlayOn": return "Overlay: shown";
                 case "optimisationOverlayOff": return "Overlay: hidden";
+                case "optimisationBoostTitle": return "Game Boost";
+                case "optimisationBoostDesc": return "Switch Windows to the High Performance power plan while you play. Restored automatically when you close the app.";
+                case "optimisationBoostBtnOn": return "Enable Boost";
+                case "optimisationBoostBtnOff": return "Disable Boost";
+                case "optimisationBoostStatusOn": return "Boost: on (High Performance)";
+                case "optimisationBoostStatusOff": return "Boost: off";
+                case "optimisationBoostUnavailable": return "High Performance power plan not available on this PC.";
+                case "optimisationBoostOn": return "Game Boost on - High Performance power plan active.";
+                case "optimisationBoostOff": return "Game Boost off - power plan restored.";
                 case "premiumSideActive": return "PREMIUM ACTIVE";
                 case "premiumSideInactive": return "PREMIUM OFF";
                 case "recorderActive": return "RECORDER ACTIVE";
@@ -1461,6 +1497,15 @@ public sealed class WzproCompanionApp : Form
                 case "optimisationOverlayBtn": return "Mostrar/ocultar";
                 case "optimisationOverlayOn": return "Overlay: visible";
                 case "optimisationOverlayOff": return "Overlay: oculto";
+                case "optimisationBoostTitle": return "Game Boost";
+                case "optimisationBoostDesc": return "Cambia Windows al plan de energia Alto rendimiento mientras juegas. Se restaura al cerrar la app.";
+                case "optimisationBoostBtnOn": return "Activar Boost";
+                case "optimisationBoostBtnOff": return "Desactivar Boost";
+                case "optimisationBoostStatusOn": return "Boost: activo (Alto rendimiento)";
+                case "optimisationBoostStatusOff": return "Boost: inactivo";
+                case "optimisationBoostUnavailable": return "Plan de energia Alto rendimiento no disponible en este PC.";
+                case "optimisationBoostOn": return "Game Boost activo - plan Alto rendimiento.";
+                case "optimisationBoostOff": return "Game Boost inactivo - plan de energia restaurado.";
                 case "premiumSideActive": return "PREMIUM ACTIVO";
                 case "premiumSideInactive": return "PREMIUM OFF";
                 case "recorderActive": return "RECORDER ACTIVO";
@@ -1682,6 +1727,15 @@ public sealed class WzproCompanionApp : Form
             case "optimisationOverlayBtn": return "Afficher/masquer";
             case "optimisationOverlayOn": return "Overlay : affiche";
             case "optimisationOverlayOff": return "Overlay : masque";
+            case "optimisationBoostTitle": return "Game Boost";
+            case "optimisationBoostDesc": return "Bascule Windows sur le mode d alimentation Performances elevees pendant que tu joues. Restaure a la fermeture de l app.";
+            case "optimisationBoostBtnOn": return "Activer Boost";
+            case "optimisationBoostBtnOff": return "Desactiver Boost";
+            case "optimisationBoostStatusOn": return "Boost : actif (Performances elevees)";
+            case "optimisationBoostStatusOff": return "Boost : inactif";
+            case "optimisationBoostUnavailable": return "Mode Performances elevees indisponible sur ce PC.";
+            case "optimisationBoostOn": return "Game Boost actif - mode Performances elevees.";
+            case "optimisationBoostOff": return "Game Boost inactif - mode d alimentation restaure.";
             case "premiumSideActive": return "PREMIUM ACTIF";
             case "premiumSideInactive": return "PREMIUM INACTIF";
             case "recorderActive": return "RECORDER ACTIF";
@@ -1952,6 +2006,7 @@ public sealed class WzproCompanionApp : Form
 
         if (optimisationInfoCard != null) optimisationInfoCard.Visible = optimisation && !compact;
         if (optimisationOverlayCard != null) optimisationOverlayCard.Visible = optimisation && !compact;
+        if (optimisationBoostCard != null) optimisationBoostCard.Visible = optimisation && !compact;
 
         if (premiumInfoCard != null) premiumInfoCard.Visible = premium && !compact;
         if (premiumHighlightsCard != null) premiumHighlightsCard.Visible = premium && !compact;
@@ -2317,6 +2372,7 @@ public sealed class WzproCompanionApp : Form
     private void LayoutOptimisationPage(int contentX, int contentW)
     {
         if (optimisationInfoCard == null || optimisationOverlayCard == null) return;
+        if (compactMode) return; // compact layout positions the journal via the free-page path
         int h = mainPanel.ClientSize.Height;
         int pageTop = 92;
         int infoH = 84;
@@ -2329,7 +2385,14 @@ public sealed class WzproCompanionApp : Form
         if (overlayToggleButton != null) overlayToggleButton.SetBounds(Math.Max(280, contentW - 170), 46, 150, 40);
         if (optimisationOverlayStatusLabel != null) optimisationOverlayStatusLabel.Width = contentW - 48;
 
-        int logTop = overlayTop + overlayH + 28;
+        int boostTop = overlayTop + overlayH + 12;
+        int boostH = 120;
+        if (optimisationBoostCard != null) optimisationBoostCard.SetBounds(contentX, boostTop, contentW, boostH);
+        if (optimisationBoostDescLabel != null) optimisationBoostDescLabel.Width = Math.Max(240, contentW - 210);
+        if (gameBoostButton != null) gameBoostButton.SetBounds(Math.Max(280, contentW - 170), 46, 150, 40);
+        if (optimisationBoostStatusLabel != null) optimisationBoostStatusLabel.Width = contentW - 48;
+
+        int logTop = boostTop + boostH + 28;
         int logH = Math.Max(52, h - logTop - 24);
         if (journalLabel != null && activePage == "optimisation") journalLabel.SetBounds(contentX, logTop - 24, contentW, 20);
         if (logBox != null && activePage == "optimisation") logBox.SetBounds(contentX, logTop, contentW, logH);
@@ -3359,6 +3422,80 @@ public sealed class WzproCompanionApp : Form
         optimisationOverlayStatusLabel.Text = on ? T("optimisationOverlayOn") : T("optimisationOverlayOff");
     }
 
+    // ── Game Boost: temporarily switch to the High Performance power plan ──
+    private static string RunPowercfg(string args)
+    {
+        try
+        {
+            using (Process p = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "powercfg.exe",
+                    Arguments = args,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
+                }
+            })
+            {
+                p.Start();
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit(4000);
+                return output ?? "";
+            }
+        }
+        catch
+        {
+            return "";
+        }
+    }
+
+    private void ToggleGameBoost()
+    {
+        if (gameBoostActive) DisableGameBoost(); else EnableGameBoost();
+    }
+
+    private void EnableGameBoost()
+    {
+        if (gameBoostActive) return;
+        // The High Performance plan is hidden on some machines; bail out cleanly if absent.
+        if (RunPowercfg("/list").IndexOf(HighPerfSchemeGuid, StringComparison.OrdinalIgnoreCase) < 0)
+        {
+            AddLogLine(T("optimisationBoostUnavailable"));
+            return;
+        }
+        Match m = Regex.Match(RunPowercfg("/getactivescheme"), "[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}");
+        if (!m.Success)
+        {
+            // Can't read the current plan -> don't switch, to avoid stranding the user on High Performance.
+            AddLogLine(T("optimisationBoostUnavailable"));
+            return;
+        }
+        savedPowerScheme = m.Value;
+        RunPowercfg("/setactive " + HighPerfSchemeGuid);
+        gameBoostActive = true;
+        UpdateGameBoostStatus();
+        AddLogLine(T("optimisationBoostOn"));
+    }
+
+    private void DisableGameBoost()
+    {
+        if (!gameBoostActive) return;
+        // Fall back to the Balanced plan if the original was somehow never captured.
+        string target = string.IsNullOrEmpty(savedPowerScheme) ? "381b4222-f694-41f0-9685-ff5bb260df2e" : savedPowerScheme;
+        RunPowercfg("/setactive " + target);
+        gameBoostActive = false;
+        UpdateGameBoostStatus();
+        AddLogLine(T("optimisationBoostOff"));
+    }
+
+    private void UpdateGameBoostStatus()
+    {
+        if (gameBoostButton != null) gameBoostButton.Text = T(gameBoostActive ? "optimisationBoostBtnOff" : "optimisationBoostBtnOn");
+        if (optimisationBoostStatusLabel != null) optimisationBoostStatusLabel.Text = T(gameBoostActive ? "optimisationBoostStatusOn" : "optimisationBoostStatusOff");
+    }
+
     // Keep a saved overlay position usable: fall back to the primary screen if the point
     // lands on a monitor that is no longer attached. Also accepts negative coordinates
     // (monitors placed left/above the primary), unlike a raw 0..N clamp.
@@ -3597,6 +3734,13 @@ public sealed class WzproCompanionApp : Form
             registeredHotkeyHwnd = IntPtr.Zero;
         }
         base.OnHandleDestroyed(e);
+    }
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        // Restore the user's power plan on real exit (never on hide-to-tray).
+        if (gameBoostActive) DisableGameBoost();
+        base.OnFormClosed(e);
     }
 
     protected override void WndProc(ref Message m)
@@ -4420,6 +4564,9 @@ public sealed class WzproCompanionApp : Form
         if (optimisationOverlayDescLabel != null) optimisationOverlayDescLabel.Text = T("optimisationOverlayDesc");
         if (overlayToggleButton != null) overlayToggleButton.Text = T("optimisationOverlayBtn");
         UpdateOverlayStatus();
+        if (optimisationBoostTitleLabel != null) optimisationBoostTitleLabel.Text = T("optimisationBoostTitle");
+        if (optimisationBoostDescLabel != null) optimisationBoostDescLabel.Text = T("optimisationBoostDesc");
+        UpdateGameBoostStatus();
         freePageTitleLabel.Text = T("freePageTitle");
         freePageDescLabel.Text = T("freePageDesc");
         premiumPageTitleLabel.Text = T("premiumPageTitle");
@@ -4498,6 +4645,7 @@ public sealed class WzproCompanionApp : Form
         if (freeInfoCard != null) freeInfoCard.BackColor = theme.Surface;
         if (optimisationInfoCard != null) optimisationInfoCard.BackColor = theme.Surface;
         if (optimisationOverlayCard != null) optimisationOverlayCard.BackColor = theme.Surface;
+        if (optimisationBoostCard != null) optimisationBoostCard.BackColor = theme.Surface;
         if (freeConnectionCard != null) freeConnectionCard.BackColor = theme.Surface;
         if (freeControlsCard != null) freeControlsCard.BackColor = theme.Surface;
         if (premiumInfoCard != null) premiumInfoCard.BackColor = theme.Surface;
@@ -4537,6 +4685,7 @@ public sealed class WzproCompanionApp : Form
         if (freeInfoCard != null) freeInfoCard.BackColor = theme.Surface;
         if (optimisationInfoCard != null) optimisationInfoCard.BackColor = theme.Surface;
         if (optimisationOverlayCard != null) optimisationOverlayCard.BackColor = theme.Surface;
+        if (optimisationBoostCard != null) optimisationBoostCard.BackColor = theme.Surface;
         if (freeConnectionCard != null) freeConnectionCard.BackColor = theme.Surface;
         if (freeControlsCard != null) freeControlsCard.BackColor = theme.Surface;
         if (premiumInfoCard != null) premiumInfoCard.BackColor = theme.Surface;
@@ -4586,6 +4735,7 @@ public sealed class WzproCompanionApp : Form
         StylePrimaryButton(startButton, theme);
         StyleSecondaryButton(stopButton, theme);
         StylePrimaryButton(overlayToggleButton, theme);
+        StylePrimaryButton(gameBoostButton, theme);
         StylePrimaryButton(clipsFolderButton, theme);
         StyleSecondaryButton(clipsOpenFolderButton, theme);
         StylePrimaryButton(premiumCheckoutButton, theme);
