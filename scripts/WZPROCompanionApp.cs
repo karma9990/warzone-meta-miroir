@@ -70,6 +70,18 @@ public sealed class WzproCompanionApp : Form
     private int noGameTicks;
     private static readonly string BufferDir = Path.Combine(Path.GetTempPath(), "wzpro-companion-buffer");
 
+    // Manual instant-replay global hotkey (Ctrl+Alt+R): saves the rolling buffer on demand,
+    // even while the game holds focus in exclusive fullscreen.
+    private const int ManualReplayHotkeyId = 0xB001;
+    private const uint ModAlt = 0x0001, ModControl = 0x0002, ModNoRepeat = 0x4000;
+    private const uint ManualReplayVk = 0x52; // VK_R
+    private bool manualReplayHotkeyRegistered;
+    private IntPtr registeredHotkeyHwnd = IntPtr.Zero;
+    private DateTime lastManualReplayUtc = DateTime.MinValue;
+    private Form toastForm;
+    private Timer toastTimer;
+    private Font toastFont;
+
     // Capture + encoder recipes, tried in order (fast-failing ones are skipped at runtime).
     // ddagrab = Desktop Duplication: captures the whole monitor INCLUDING exclusive
     // fullscreen games, GPU-accelerated. gdigrab is the last-resort fallback (windowed only).
@@ -849,6 +861,13 @@ public sealed class WzproCompanionApp : Form
                 case "recorderUnavailable": return "Clip recorder unavailable: ";
                 case "clipSaving": return "Saving clip: ";
                 case "clipFailed": return "Clip save failed: ";
+                case "manualReplaySaved": return "Instant replay saved.";
+                case "manualReplayRequested": return "Instant replay requested via Game Bar.";
+                case "manualReplayPremium": return "Instant replay is a Premium feature.";
+                case "manualReplayEmpty": return "Nothing buffered yet - play a few seconds first.";
+                case "manualReplayNoRecorder": return "Recorder not ready - start a game first.";
+                case "manualReplayHotkeyTaken": return "Instant replay hotkey (Ctrl+Alt+R) is already used by another app.";
+                case "manualReplayHint": return "Instant replay: Ctrl+Alt+R saves the last clip on demand.";
                 case "modeSocial": return "Output: Social (montage)";
                 case "modeRaw": return "Output: Raw clips (pro)";
                 case "modeFull": return "Output: Full game + AI coach";
@@ -1000,6 +1019,13 @@ public sealed class WzproCompanionApp : Form
                 case "recorderUnavailable": return "Grabador de clips no disponible: ";
                 case "clipSaving": return "Guardando clip: ";
                 case "clipFailed": return "Error al guardar clip: ";
+                case "manualReplaySaved": return "Repeticion instantanea guardada.";
+                case "manualReplayRequested": return "Repeticion instantanea solicitada via Game Bar.";
+                case "manualReplayPremium": return "La repeticion instantanea es una funcion Premium.";
+                case "manualReplayEmpty": return "Aun no hay grabacion - juega unos segundos primero.";
+                case "manualReplayNoRecorder": return "Grabador no listo - inicia una partida primero.";
+                case "manualReplayHotkeyTaken": return "El atajo de repeticion (Ctrl+Alt+R) ya lo usa otra app.";
+                case "manualReplayHint": return "Repeticion instantanea: Ctrl+Alt+R guarda el ultimo clip al instante.";
                 case "modeSocial": return "Salida: Redes (montaje)";
                 case "modeRaw": return "Salida: Bruto (pro)";
                 case "modeFull": return "Salida: Partida + Coach IA";
@@ -1150,6 +1176,13 @@ public sealed class WzproCompanionApp : Form
             case "recorderUnavailable": return "Enregistreur de clips indisponible : ";
             case "clipSaving": return "Enregistrement du clip : ";
             case "clipFailed": return "Echec d enregistrement du clip : ";
+            case "manualReplaySaved": return "Replay instantane enregistre.";
+            case "manualReplayRequested": return "Replay instantane demande via Game Bar.";
+            case "manualReplayPremium": return "Le replay instantane est une fonction Premium.";
+            case "manualReplayEmpty": return "Rien en memoire encore - joue quelques secondes d abord.";
+            case "manualReplayNoRecorder": return "Enregistreur non pret - lance une partie d abord.";
+            case "manualReplayHotkeyTaken": return "Le raccourci replay (Ctrl+Alt+R) est deja utilise par une autre app.";
+            case "manualReplayHint": return "Replay instantane : Ctrl+Alt+R enregistre le dernier clip a la demande.";
             case "modeSocial": return "Sortie : Reseaux (montage)";
             case "modeRaw": return "Sortie : Brut (pro)";
             case "modeFull": return "Sortie : Game complete + Coach IA";
@@ -1899,6 +1932,159 @@ public sealed class WzproCompanionApp : Form
         }
     }
 
+    // ── Manual instant-replay hotkey ───────────────────────────────────────────
+
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        // The hotkey intentionally survives tray-hide (the HWND stays alive). It is
+        // re-registered if the handle is ever recreated (e.g. ShowInTaskbar toggling).
+        if (!manualReplayHotkeyRegistered)
+        {
+            registeredHotkeyHwnd = Handle;
+            manualReplayHotkeyRegistered = RegisterHotKey(registeredHotkeyHwnd, ManualReplayHotkeyId, ModControl | ModAlt | ModNoRepeat, ManualReplayVk);
+            if (!manualReplayHotkeyRegistered && logBox != null)
+            {
+                logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("manualReplayHotkeyTaken") + Environment.NewLine);
+            }
+        }
+    }
+
+    protected override void OnHandleDestroyed(EventArgs e)
+    {
+        if (manualReplayHotkeyRegistered)
+        {
+            try { UnregisterHotKey(registeredHotkeyHwnd, ManualReplayHotkeyId); } catch { }
+            manualReplayHotkeyRegistered = false;
+            registeredHotkeyHwnd = IntPtr.Zero;
+        }
+        base.OnHandleDestroyed(e);
+    }
+
+    protected override void WndProc(ref Message m)
+    {
+        base.WndProc(ref m);
+        if (m.Msg == 0x0312 /* WM_HOTKEY */ && m.WParam.ToInt32() == ManualReplayHotkeyId)
+        {
+            OnManualReplay();
+        }
+    }
+
+    private void OnManualReplay()
+    {
+        if (!premiumAccessActive)
+        {
+            ShowToast(T("manualReplayPremium"));
+            return;
+        }
+        // Debounce: back-to-back saves overlap on the same buffer segments.
+        if ((DateTime.UtcNow - lastManualReplayUtc).TotalSeconds < 4) return;
+
+        if (recorderActive && !string.IsNullOrEmpty(ffmpegPath))
+        {
+            string clip = SaveClip("manual");
+            if (!string.IsNullOrEmpty(clip))
+            {
+                lastManualReplayUtc = DateTime.UtcNow;
+                if (clipMode == "social") sessionClips.Add(clip);
+                else if (clipMode == "ask") pendingGameClips.Add(clip);
+                ShowToast(T("manualReplaySaved"));
+            }
+            else
+            {
+                ShowToast(T("manualReplayEmpty"));
+            }
+        }
+        else if (!string.IsNullOrEmpty(ffmpegPath))
+        {
+            lastManualReplayUtc = DateTime.UtcNow;
+            TriggerGameBarClip();
+            ShowToast(T("manualReplayRequested"));
+        }
+        else
+        {
+            ShowToast(T("manualReplayNoRecorder"));
+        }
+    }
+
+    // Borderless, non-activating confirmation toast: visible over the focused game
+    // without stealing its input focus.
+    private sealed class NoActivateForm : Form
+    {
+        protected override bool ShowWithoutActivation { get { return true; } }
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= 0x08000000 /* WS_EX_NOACTIVATE */ | 0x00000080 /* WS_EX_TOOLWINDOW */;
+                return cp;
+            }
+        }
+    }
+
+    private void ShowToast(string message)
+    {
+        try
+        {
+            if (toastTimer != null) { toastTimer.Stop(); toastTimer.Dispose(); toastTimer = null; }
+            if (toastForm != null) { try { toastForm.Close(); toastForm.Dispose(); } catch { } toastForm = null; }
+
+            if (toastFont == null) toastFont = AppFont(11, FontStyle.Bold);
+            Label lbl = new Label
+            {
+                Text = message,
+                AutoSize = true,
+                Font = toastFont,
+                ForeColor = Color.White,
+                Padding = new Padding(18, 12, 18, 12),
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+            NoActivateForm form = new NoActivateForm
+            {
+                FormBorderStyle = FormBorderStyle.None,
+                StartPosition = FormStartPosition.Manual,
+                ShowInTaskbar = false,
+                TopMost = true,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                BackColor = Color.FromArgb(22, 60, 255),
+                Opacity = 0.96,
+                Location = new Point(-10000, -10000) // offscreen until measured, avoids a flash
+            };
+            form.Controls.Add(lbl);
+            toastForm = form;
+            form.Show();
+            // Now the handle exists: AutoSize has measured the label at the real DPI, and we
+            // can place the toast on whatever screen the focused game is running on.
+            Screen target = Screen.FromHandle(GetForegroundWindow());
+            Rectangle area = (target ?? Screen.PrimaryScreen).WorkingArea;
+            form.Location = new Point(area.Left + (area.Width - form.Width) / 2, area.Bottom - form.Height - 80);
+
+            toastTimer = new Timer { Interval = 2200 };
+            toastTimer.Tick += delegate
+            {
+                try
+                {
+                    if (toastTimer != null) { toastTimer.Stop(); toastTimer.Dispose(); toastTimer = null; }
+                    if (toastForm != null) { toastForm.Close(); toastForm.Dispose(); toastForm = null; }
+                }
+                catch { }
+            };
+            toastTimer.Start();
+        }
+        catch
+        {
+            // Toast is purely cosmetic; never let it break a clip save.
+        }
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+    [DllImport("user32.dll")]
+    private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
     [DllImport("user32.dll")]
     private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
@@ -2115,7 +2301,7 @@ public sealed class WzproCompanionApp : Form
             // Exclude the newest segment (still being written), keep up to ~30s before it.
             int end = segs.Length - 1;
             int start = Math.Max(0, end - 10);
-            string listPath = Path.Combine(BufferDir, "concat_" + DateTime.Now.ToString("HHmmss") + ".txt");
+            string listPath = Path.Combine(BufferDir, "concat_" + DateTime.Now.ToString("HHmmss_fff") + ".txt");
             var sb = new System.Text.StringBuilder();
             for (int i = start; i < end; i++)
             {
@@ -2499,7 +2685,7 @@ public sealed class WzproCompanionApp : Form
         hintLabel.Text = T("hint");
         highlightsTitleLabel.Text = T("highlightsTitle");
         highlightsToggle.Text = T("highlightsToggle");
-        highlightsDescLabel.Text = T("highlightsDesc");
+        highlightsDescLabel.Text = T("highlightsDesc") + "   |   " + T("manualReplayHint");
         highlightsStatusLabel.Text = highlightsProEnabled ? T("highlightsStatusOn") : T("highlightsStatusOff");
         clipsFolderTitleLabel.Text = T("clipsFolderTitle");
         clipsFolderButton.Text = T("clipsFolderChoose");
