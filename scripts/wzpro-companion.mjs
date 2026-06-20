@@ -191,13 +191,18 @@ function parseWarzoneEndGame(text) {
 
   if (found < 2) return null;
 
+  // OCR can merge digits or read a neighbouring scoreboard row, producing impossible
+  // values. Clamp to physical Warzone ceilings so garbage never triggers a false
+  // highlight (e.g. a spurious 'bigdamage') nor pollutes the dedup key.
+  const clamp = (value, max, fallback) => (value != null && value >= 0 && value <= max ? value : fallback);
+
   return {
     id: `companion-${Date.now()}`,
     date: new Date().toLocaleDateString('en-GB'),
-    kills: kills ?? 0,
-    deaths: deaths ?? 1,
-    damage: damage ?? 0,
-    placement: placement ?? 0,
+    kills: clamp(kills, 60, 0),
+    deaths: clamp(deaths, 40, 1),
+    damage: clamp(damage, 30000, 0),
+    placement: clamp(placement, 200, 0),
     won: /\b(victory|victoire|winner|gagne|win)\b/i.test(text),
   };
 }
@@ -236,12 +241,20 @@ const site = argValue('site', 'http://localhost:3000');
 const token = argValue('token');
 const pollMs = Math.max(3000, Number(argValue('poll_ms', String(DEFAULT_POLL_MS))) || DEFAULT_POLL_MS);
 const highlightKills = Math.max(1, Number(argValue('highlight_kills', '4')) || 4);
+const highlightDamage = Math.max(0, Number(argValue('highlight_damage', '6000')) || 6000);
 
-// Decide whether an end-game entry is a "highlight" worth clipping.
+// Classify an end-game entry into the single most notable clip-worthy reason.
+// Reasons are checked best-first and the first match wins, so 'bigdamage' only fires
+// when nothing more prestigious did (e.g. a high-damage loss outside the top 3).
+// Only end-of-game stats are available (the engine intentionally skips OCR during
+// live gameplay), so mid-match events like gulag/clutch are out of scope here.
 function highlightReason(entry) {
+  if (entry.won && entry.kills >= highlightKills * 2) return 'dominant';
   if (entry.won) return 'win';
   if (entry.kills >= highlightKills) return 'multikill';
   if (entry.placement > 0 && entry.placement <= 3) return 'top3';
+  // Require some kills so a damage-only OCR misread cannot drive a highlight alone.
+  if (highlightDamage > 0 && entry.kills > 0 && entry.damage >= highlightDamage) return 'bigdamage';
   return '';
 }
 
@@ -353,7 +366,8 @@ try {
       const reason = highlightReason(entry);
       if (reason) {
         // Structured line consumed by the desktop app to trigger a clip (premium).
-        console.log(`HIGHLIGHT ${JSON.stringify({ reason, kills: entry.kills, placement: entry.placement, won: entry.won })}`);
+        // deaths is sent for forward use (K/D labelling) even though the app ignores it today.
+        console.log(`HIGHLIGHT ${JSON.stringify({ reason, kills: entry.kills, deaths: entry.deaths, damage: entry.damage, placement: entry.placement, won: entry.won })}`);
       }
     } catch (error) {
       console.log(`\nCompanion waiting: ${error instanceof Error ? error.message : 'unknown error'}`);
