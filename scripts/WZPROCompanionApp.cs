@@ -1198,7 +1198,7 @@ public sealed class WzproCompanionApp : Form
                 case "manualReplayPremium": return "Instant replay is a Premium feature.";
                 case "manualReplayEmpty": return "Nothing buffered yet - play a few seconds first.";
                 case "manualReplayNoRecorder": return "Recorder not ready - start a game first.";
-                case "manualReplayHotkeyActive": return "Instant replay hotkey active: ";
+                case "manualReplayHotkeyActive": return "Instant replay hotkey (Premium): ";
                 case "manualReplayHotkeyUnavailable": return "Instant replay unavailable (hotkey conflict).";
                 case "manualReplayHotkeyTaken": return "No instant replay hotkey could be registered (all taken by other apps).";
                 case "manualReplayHint": return "Instant replay: {key} saves the last clip on demand.";
@@ -1396,7 +1396,7 @@ public sealed class WzproCompanionApp : Form
                 case "manualReplayPremium": return "La repeticion instantanea es una funcion Premium.";
                 case "manualReplayEmpty": return "Aun no hay grabacion - juega unos segundos primero.";
                 case "manualReplayNoRecorder": return "Grabador no listo - inicia una partida primero.";
-                case "manualReplayHotkeyActive": return "Atajo de repeticion activo: ";
+                case "manualReplayHotkeyActive": return "Atajo de repeticion (Premium): ";
                 case "manualReplayHotkeyUnavailable": return "Repeticion instantanea no disponible (conflicto de atajo).";
                 case "manualReplayHotkeyTaken": return "No se pudo registrar ningun atajo de repeticion (todos en uso por otras apps).";
                 case "manualReplayHint": return "Repeticion instantanea: {key} guarda el ultimo clip al instante.";
@@ -1593,7 +1593,7 @@ public sealed class WzproCompanionApp : Form
             case "manualReplayPremium": return "Le replay instantane est une fonction Premium.";
             case "manualReplayEmpty": return "Rien en memoire encore - joue quelques secondes d abord.";
             case "manualReplayNoRecorder": return "Enregistreur non pret - lance une partie d abord.";
-            case "manualReplayHotkeyActive": return "Raccourci replay actif : ";
+            case "manualReplayHotkeyActive": return "Raccourci replay (Premium) : ";
             case "manualReplayHotkeyUnavailable": return "Replay instantane indisponible (conflit de raccourci).";
             case "manualReplayHotkeyTaken": return "Aucun raccourci replay n a pu etre enregistre (tous pris par d autres apps).";
             case "manualReplayHint": return "Replay instantane : {key} enregistre le dernier clip a la demande.";
