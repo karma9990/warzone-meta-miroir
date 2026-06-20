@@ -130,6 +130,7 @@ public sealed class WzproCompanionApp : Form
     private bool homeFetched;
     private DateTime sessionStartUtc;
     private int sessionGameCount;
+    private int sessionHighlightCount;
     private Button statsButton;
     private Button gameBarButton;
     private TextBox statsBox;
@@ -1177,6 +1178,8 @@ public sealed class WzproCompanionApp : Form
                 case "statsLevel": return "Level: ";
                 case "overlayButton": return "OVERLAY";
                 case "overlayGames": return "Games: ";
+                case "overlayHighlights": return "Highlights: ";
+                case "overlayReplay": return "Replay: ";
                 case "highlightDetected": return "Highlight: ";
                 case "highlightWin": return "Victory";
                 case "highlightTop3": return "Top 3";
@@ -1373,6 +1376,8 @@ public sealed class WzproCompanionApp : Form
                 case "statsLevel": return "Nivel: ";
                 case "overlayButton": return "SUPERPOSICION";
                 case "overlayGames": return "Partidas: ";
+                case "overlayHighlights": return "Clips: ";
+                case "overlayReplay": return "Replay: ";
                 case "highlightDetected": return "Momento destacado: ";
                 case "highlightWin": return "Victoria";
                 case "highlightTop3": return "Top 3";
@@ -1568,6 +1573,8 @@ public sealed class WzproCompanionApp : Form
             case "statsLevel": return "Niveau : ";
             case "overlayButton": return "SUPERPOSITION";
             case "overlayGames": return "Parties : ";
+            case "overlayHighlights": return "Moments forts : ";
+            case "overlayReplay": return "Replay : ";
             case "highlightDetected": return "Moment fort : ";
             case "highlightWin": return "Victoire";
             case "highlightTop3": return "Top 3";
@@ -2754,12 +2761,14 @@ public sealed class WzproCompanionApp : Form
             ShowInTaskbar = false,
             BackColor = Color.Black,
             Opacity = 0.78,
-            Size = new Size(240, 96),
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            MinimumSize = new Size(200, 30),
             Location = new Point(24, 24)
         };
         overlayLabel = new Label
         {
-            Dock = DockStyle.Fill,
+            AutoSize = true,
             ForeColor = Color.White,
             Font = AppFont(9, FontStyle.Bold),
             TextAlign = ContentAlignment.MiddleLeft,
@@ -2779,12 +2788,20 @@ public sealed class WzproCompanionApp : Form
 
     private void UpdateOverlay()
     {
-        if (overlayLabel == null) return;
+        // Don't resize/repaint mid-drag (the AutoSize form would jitter under the cursor).
+        if (overlayLabel == null || overlayDragging) return;
         int mins = sessionStartUtc == default(DateTime)
             ? 0
             : Math.Max(0, (int)Math.Round(DateTime.UtcNow.Subtract(sessionStartUtc).TotalMinutes));
         string meta = string.IsNullOrWhiteSpace(metaTodayWeapon) ? "" : Environment.NewLine + T("metaToday") + metaTodayWeapon;
-        overlayLabel.Text = "WZPRO" + Environment.NewLine + T("overlayGames") + sessionGameCount + "  /  " + mins + " min" + meta;
+        string highlights = (premiumAccessActive && sessionHighlightCount > 0)
+            ? Environment.NewLine + T("overlayHighlights") + sessionHighlightCount
+            : "";
+        // Show the replay-key reminder only until the player has used it once.
+        string replay = (premiumAccessActive && manualReplayHotkeyRegistered && lastManualReplayUtc == DateTime.MinValue)
+            ? Environment.NewLine + T("overlayReplay") + activeReplayHotkeyLabel
+            : "";
+        overlayLabel.Text = "WZPRO" + Environment.NewLine + T("overlayGames") + sessionGameCount + "  /  " + mins + " min" + highlights + meta + replay;
     }
 
     // Highlight emitted by the Node engine ("HIGHLIGHT {json}"): log it, and on premium
@@ -2809,6 +2826,9 @@ public sealed class WzproCompanionApp : Form
         if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] * " + detail + Environment.NewLine);
 
         if (!premiumAccessActive || !highlightsProEnabled) return;
+
+        sessionHighlightCount++;
+        if (overlayLabel != null) UpdateOverlay();
 
         try
         {
@@ -4246,6 +4266,7 @@ public sealed class WzproCompanionApp : Form
         companionProcess.BeginErrorReadLine();
         sessionStartUtc = DateTime.UtcNow;
         sessionGameCount = 0;
+        sessionHighlightCount = 0;
         sessionClips.Clear();
         if (captureTimer == null)
         {
