@@ -149,6 +149,7 @@ public sealed class WzproCompanionApp : Form
     private bool windowDragging;
     private Point overlayDragStart;
     private bool overlayDragging;
+    private int overlayX = 24, overlayY = 24; // persisted overlay position
     private Panel sidebarPanel;
     private Panel mainPanel;
     private Panel welcomePanel;
@@ -3341,6 +3342,9 @@ public sealed class WzproCompanionApp : Form
         }
         else
         {
+            // Re-validate in case the desktop changed since the overlay was created.
+            Point safe = ClampToVisibleScreen(overlayForm.Location.X, overlayForm.Location.Y);
+            if (safe != overlayForm.Location) overlayForm.Location = safe;
             UpdateOverlay();
             overlayForm.Show();
         }
@@ -3355,9 +3359,25 @@ public sealed class WzproCompanionApp : Form
         optimisationOverlayStatusLabel.Text = on ? T("optimisationOverlayOn") : T("optimisationOverlayOff");
     }
 
+    // Keep a saved overlay position usable: fall back to the primary screen if the point
+    // lands on a monitor that is no longer attached. Also accepts negative coordinates
+    // (monitors placed left/above the primary), unlike a raw 0..N clamp.
+    private static Point ClampToVisibleScreen(int x, int y)
+    {
+        foreach (Screen s in Screen.AllScreens)
+        {
+            if (s.Bounds.Contains(x, y)) return new Point(x, y);
+        }
+        Rectangle wa = Screen.PrimaryScreen.WorkingArea;
+        return new Point(wa.Left + 24, wa.Top + 24);
+    }
+
     private void EnsureOverlay()
     {
         if (overlayForm != null) return;
+        Point safePos = ClampToVisibleScreen(overlayX, overlayY);
+        overlayX = safePos.X;
+        overlayY = safePos.Y;
         overlayForm = new Form
         {
             FormBorderStyle = FormBorderStyle.None,
@@ -3369,7 +3389,7 @@ public sealed class WzproCompanionApp : Form
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             MinimumSize = new Size(200, 30),
-            Location = new Point(24, 24)
+            Location = new Point(overlayX, overlayY)
         };
         overlayLabel = new Label
         {
@@ -3379,8 +3399,18 @@ public sealed class WzproCompanionApp : Form
             TextAlign = ContentAlignment.MiddleLeft,
             Padding = new Padding(12, 8, 12, 8)
         };
-        overlayLabel.MouseDown += delegate(object s, MouseEventArgs e) { overlayDragStart = e.Location; overlayDragging = true; };
-        overlayLabel.MouseUp += delegate { overlayDragging = false; };
+        overlayLabel.MouseDown += delegate(object s, MouseEventArgs e) { overlayDragStart = e.Location; overlayDragging = true; overlayLabel.Capture = true; };
+        overlayLabel.MouseUp += delegate
+        {
+            overlayLabel.Capture = false;
+            if (overlayDragging && overlayForm != null)
+            {
+                overlayX = overlayForm.Location.X;
+                overlayY = overlayForm.Location.Y;
+                SaveSession();
+            }
+            overlayDragging = false;
+        };
         overlayLabel.MouseMove += delegate(object s, MouseEventArgs e)
         {
             if (overlayDragging)
@@ -4774,6 +4804,11 @@ public sealed class WzproCompanionApp : Form
             string savedTrainingGoal = ExtractLine(text, "trainingGoal");
             if (savedTrainingGoal == "survive" || savedTrainingGoal == "finish" || savedTrainingGoal == "rotate" || savedTrainingGoal == "comms") trainingGoal = savedTrainingGoal;
             compactMode = ExtractLine(text, "compactMode") == "1";
+            int savedX, savedY;
+            // Accept any parseable coordinate; EnsureOverlay/ToggleOverlay clamp it to a
+            // currently-visible screen (handles disconnected and left/above monitors).
+            if (int.TryParse(ExtractLine(text, "overlayX"), out savedX)) overlayX = savedX;
+            if (int.TryParse(ExtractLine(text, "overlayY"), out savedY)) overlayY = savedY;
             string savedTrainingModule = ExtractLine(text, "trainingModule");
             foreach (string key in TrainingModuleKeys())
             {
@@ -4803,7 +4838,8 @@ public sealed class WzproCompanionApp : Form
     {
         Directory.CreateDirectory(sessionDir);
         SaveCurrentTrainingModuleState();
-        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "compactMode=" + (compactMode ? "1" : "0") + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes, Encoding.UTF8);
+        if (overlayForm != null) { overlayX = overlayForm.Location.X; overlayY = overlayForm.Location.Y; }
+        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "compactMode=" + (compactMode ? "1" : "0") + Environment.NewLine + "overlayX=" + overlayX + Environment.NewLine + "overlayY=" + overlayY + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes, Encoding.UTF8);
     }
 
     private static string ExtractLine(string text, string key)
