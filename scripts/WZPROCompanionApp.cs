@@ -140,6 +140,13 @@ public sealed class WzproCompanionApp : Form
     private Form overlayForm;
     private Label overlayLabel;
     private string metaTodayWeapon = "";
+    private Panel topBarPanel;
+    private Label searchBoxLabel;
+    private Button minimizeButton;
+    private Button closeButton;
+    private PictureBox brandLogoBox;
+    private Point windowDragStart;
+    private bool windowDragging;
     private Point overlayDragStart;
     private bool overlayDragging;
     private Panel sidebarPanel;
@@ -177,6 +184,21 @@ public sealed class WzproCompanionApp : Form
     private Button freeAccessButton;
     private Button premiumButton;
     private Button trainingButton;
+    private Button optimisationButton;
+    private Label premiumSidebarLabel;
+    private Label recorderSidebarLabel;
+    private Label updateStatusLabel;
+    private Button restartButton;
+    private Button compactButton;
+    private Button supportButton;
+    private Panel optimisationInfoCard;
+    private Panel optimisationOverlayCard;
+    private Label optimisationPageTitleLabel;
+    private Label optimisationPageDescLabel;
+    private Label optimisationOverlayTitleLabel;
+    private Label optimisationOverlayDescLabel;
+    private Label optimisationOverlayStatusLabel;
+    private Button overlayToggleButton;
     private Button startButton;
     private Button stopButton;
     private Button clipsFolderButton;
@@ -217,6 +239,9 @@ public sealed class WzproCompanionApp : Form
     private ToolStripMenuItem trayStopItem;
     private ToolStripMenuItem trayQuitItem;
     private ContextMenuStrip profileMenu;
+    private ToolStripMenuItem profileRestartItem;
+    private ToolStripMenuItem profileCompactItem;
+    private ToolStripMenuItem profileSupportItem;
     private ToolStripMenuItem profileSettingsItem;
     private ToolStripMenuItem profileLogoutItem;
 
@@ -246,6 +271,10 @@ public sealed class WzproCompanionApp : Form
     private DateTime lastPremiumCheckUtc = DateTime.MinValue;
     private Task backgroundPremiumCheck;
     private Task backgroundHome;
+    private Task backgroundUpdateCheck;
+    private bool updateAvailable;
+    private string updateUrl = "";
+    private bool compactMode;
     private int historyCount;
 
     [STAThread]
@@ -292,9 +321,11 @@ public sealed class WzproCompanionApp : Form
         RefreshConnectionUi();
         if (string.IsNullOrWhiteSpace(deviceToken)) ShowWelcome();
         else ShowAppShell();
+        ApplyResponsiveLayout();
         AddLogLine(T("ready"));
         AddLogLine(T("site") + site);
         if (!string.IsNullOrWhiteSpace(deviceToken)) backgroundHome = FetchHomeData();
+        backgroundUpdateCheck = CheckForUpdates(false);
     }
 
     private Font AppFont(float size, FontStyle style)
@@ -341,15 +372,17 @@ public sealed class WzproCompanionApp : Form
     private void BuildUi()
     {
         Text = "WZPRO Companion v" + AppVersion;
-        Size = new Size(980, 680);
-        MinimumSize = new Size(920, 640);
+        Size = new Size(1040, 784);
+        MinimumSize = new Size(1040, 784);
         StartPosition = FormStartPosition.CenterScreen;
+        FormBorderStyle = FormBorderStyle.None;
+        DoubleBuffered = true;
         Font = AppFont(9, FontStyle.Regular);
 
         welcomePanel = new Panel
         {
             Location = new Point(0, 0),
-            Size = new Size(980, 680),
+            Size = new Size(1040, 784),
             Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
         };
         Controls.Add(welcomePanel);
@@ -418,7 +451,29 @@ public sealed class WzproCompanionApp : Form
         };
         Controls.Add(mainPanel);
 
-        titleLabel = Label("WZPRO", 22, 22, 176, 34, 18, FontStyle.Bold, Color.White);
+        topBarPanel = new Panel
+        {
+            Location = new Point(0, 0),
+            Size = new Size(760, 72),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            Cursor = Cursors.SizeAll
+        };
+        topBarPanel.MouseDown += StartWindowDrag;
+        topBarPanel.MouseMove += DragWindow;
+        topBarPanel.MouseUp += EndWindowDrag;
+        mainPanel.Controls.Add(topBarPanel);
+
+        brandLogoBox = new PictureBox
+        {
+            Location = new Point(22, 16),
+            Size = new Size(176, 46),
+            SizeMode = PictureBoxSizeMode.Zoom,
+            BackColor = Color.Transparent
+        };
+        sidebarPanel.Controls.Add(brandLogoBox);
+
+        titleLabel = Label("WZPRO", 22, 20, 176, 36, 20, FontStyle.Bold, Color.White);
+        titleLabel.Visible = false;
         sidebarPanel.Controls.Add(titleLabel);
 
         leadLabel = Label("", 34, 30, 360, 46, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
@@ -436,6 +491,34 @@ public sealed class WzproCompanionApp : Form
         trainingButton = Button("", 16, 200, 188, 44, Color.FromArgb(42, 42, 48));
         trainingButton.Click += delegate { ShowPage("training"); };
         sidebarPanel.Controls.Add(trainingButton);
+
+        optimisationButton = Button("", 16, 254, 188, 44, Color.FromArgb(42, 42, 48));
+        optimisationButton.Click += delegate { ShowPage("optimisation"); };
+        sidebarPanel.Controls.Add(optimisationButton);
+
+        premiumSidebarLabel = Label("", 16, 312, 188, 22, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
+        premiumSidebarLabel.TextAlign = ContentAlignment.MiddleCenter;
+        sidebarPanel.Controls.Add(premiumSidebarLabel);
+
+        recorderSidebarLabel = Label("", 16, 338, 188, 22, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
+        recorderSidebarLabel.TextAlign = ContentAlignment.MiddleCenter;
+        sidebarPanel.Controls.Add(recorderSidebarLabel);
+
+        updateStatusLabel = Label("", 16, 366, 188, 34, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        updateStatusLabel.TextAlign = ContentAlignment.MiddleCenter;
+        sidebarPanel.Controls.Add(updateStatusLabel);
+
+        restartButton = Button("", 16, 408, 188, 30, Color.FromArgb(42, 42, 48));
+        restartButton.Click += delegate { RestartApp(); };
+        restartButton.Visible = false;
+
+        compactButton = Button("", 16, 446, 188, 30, Color.FromArgb(42, 42, 48));
+        compactButton.Click += delegate { ToggleCompactMode(); };
+        compactButton.Visible = false;
+
+        supportButton = Button("", 16, 484, 188, 30, Color.FromArgb(42, 42, 48));
+        supportButton.Click += delegate { ContactSupport(); };
+        supportButton.Visible = false;
 
         profilePanel = new Panel
         {
@@ -465,8 +548,15 @@ public sealed class WzproCompanionApp : Form
         profilePanel.Controls.Add(profileNameLabel);
 
         profileMenu = new ContextMenuStrip();
+        profileRestartItem = new ToolStripMenuItem("", null, delegate { RestartApp(); });
+        profileCompactItem = new ToolStripMenuItem("", null, delegate { ToggleCompactMode(); });
+        profileSupportItem = new ToolStripMenuItem("", null, delegate { ContactSupport(); });
         profileSettingsItem = new ToolStripMenuItem("", null, delegate { OpenProfileSettings(); });
         profileLogoutItem = new ToolStripMenuItem("", null, delegate { LogoutProfile(); });
+        profileMenu.Items.Add(profileRestartItem);
+        profileMenu.Items.Add(profileCompactItem);
+        profileMenu.Items.Add(profileSupportItem);
+        profileMenu.Items.Add(new ToolStripSeparator());
         profileMenu.Items.Add(profileSettingsItem);
         profileMenu.Items.Add(profileLogoutItem);
 
@@ -479,19 +569,32 @@ public sealed class WzproCompanionApp : Form
         };
         languageBox.Items.AddRange(new object[] { "FR", "EN", "ES" });
         languageBox.SelectedIndexChanged += delegate { OnLanguageChanged(); };
-        mainPanel.Controls.Add(languageBox);
+        topBarPanel.Controls.Add(languageBox);
 
         themeButton = Button("MODE CLAIR", 608, 24, 116, 28, Color.FromArgb(22, 60, 255));
         themeButton.Click += delegate { ToggleTheme(); };
-        mainPanel.Controls.Add(themeButton);
+        topBarPanel.Controls.Add(themeButton);
 
         overlayButton = Button("", 466, 24, 132, 28, Color.FromArgb(42, 42, 48));
         overlayButton.Click += delegate { ToggleOverlay(); };
-        mainPanel.Controls.Add(overlayButton);
+        topBarPanel.Controls.Add(overlayButton);
 
         gameBarButton = Button("", 300, 24, 158, 28, Color.FromArgb(22, 60, 255));
         gameBarButton.Click += delegate { OpenUrl("ms-settings:gaming-gamebar"); };
-        mainPanel.Controls.Add(gameBarButton);
+        topBarPanel.Controls.Add(gameBarButton);
+
+        searchBoxLabel = Label("Search", 462, 16, 220, 34, 9, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        searchBoxLabel.TextAlign = ContentAlignment.MiddleLeft;
+        searchBoxLabel.Padding = new Padding(14, 0, 0, 0);
+        topBarPanel.Controls.Add(searchBoxLabel);
+
+        minimizeButton = Button("_", 690, 16, 34, 34, Color.FromArgb(22, 22, 24));
+        minimizeButton.Click += delegate { WindowState = FormWindowState.Minimized; };
+        topBarPanel.Controls.Add(minimizeButton);
+
+        closeButton = Button("X", 728, 16, 34, 34, Color.FromArgb(22, 22, 24));
+        closeButton.Click += delegate { Close(); };
+        topBarPanel.Controls.Add(closeButton);
 
         freeInfoCard = new Panel
         {
@@ -686,7 +789,7 @@ public sealed class WzproCompanionApp : Form
 
         clipModeCombo = new ComboBox
         {
-            Location = new Point(12, 48),
+            Location = new Point(12, 42),
             Size = new Size(210, 24),
             DropDownStyle = ComboBoxStyle.DropDownList,
             BackColor = Color.FromArgb(14, 18, 45),
@@ -699,7 +802,7 @@ public sealed class WzproCompanionApp : Form
 
         socialFormatCombo = new ComboBox
         {
-            Location = new Point(12, 74),
+            Location = new Point(12, 68),
             Size = new Size(210, 24),
             DropDownStyle = ComboBoxStyle.DropDownList,
             BackColor = Color.FromArgb(14, 18, 45),
@@ -959,6 +1062,40 @@ public sealed class WzproCompanionApp : Form
             BorderStyle = BorderStyle.FixedSingle
         };
         mainPanel.Controls.Add(logBox);
+
+        // ── Optimisation page ──
+        optimisationInfoCard = new Panel
+        {
+            Location = new Point(34, 26),
+            Size = new Size(690, 84),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle,
+            Visible = false
+        };
+        mainPanel.Controls.Add(optimisationInfoCard);
+        optimisationPageTitleLabel = Label("", 24, 16, 440, 30, 16, FontStyle.Bold, Color.White);
+        optimisationInfoCard.Controls.Add(optimisationPageTitleLabel);
+        optimisationPageDescLabel = Label("", 24, 50, 640, 24, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        optimisationInfoCard.Controls.Add(optimisationPageDescLabel);
+
+        optimisationOverlayCard = new Panel
+        {
+            Location = new Point(34, 122),
+            Size = new Size(690, 120),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle,
+            Visible = false
+        };
+        mainPanel.Controls.Add(optimisationOverlayCard);
+        optimisationOverlayTitleLabel = Label("", 24, 16, 440, 24, 11, FontStyle.Bold, Color.White);
+        optimisationOverlayCard.Controls.Add(optimisationOverlayTitleLabel);
+        optimisationOverlayDescLabel = Label("", 24, 46, 480, 48, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        optimisationOverlayCard.Controls.Add(optimisationOverlayDescLabel);
+        overlayToggleButton = Button("", 520, 46, 150, 40, Color.FromArgb(22, 60, 255));
+        overlayToggleButton.Click += delegate { ToggleOverlay(); };
+        optimisationOverlayCard.Controls.Add(overlayToggleButton);
+        optimisationOverlayStatusLabel = Label("", 24, 94, 480, 20, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
+        optimisationOverlayCard.Controls.Add(optimisationOverlayStatusLabel);
     }
 
     private Label Label(string text, int x, int y, int w, int h, float size, FontStyle style, Color color)
@@ -1038,12 +1175,12 @@ public sealed class WzproCompanionApp : Form
         {
             return new WzTheme
             {
-                Canvas = Color.FromArgb(5, 5, 6),
-                Surface = Color.FromArgb(16, 16, 14),
-                SurfaceAlt = Color.FromArgb(22, 22, 24),
+                Canvas = Color.FromArgb(7, 9, 13),
+                Surface = Color.FromArgb(17, 20, 27),
+                SurfaceAlt = Color.FromArgb(13, 16, 22),
                 Ink = Color.FromArgb(243, 246, 239),
-                Muted = Color.FromArgb(184, 186, 178),
-                Line = Color.FromArgb(22, 60, 255),
+                Muted = Color.FromArgb(148, 158, 174),
+                Line = Color.FromArgb(36, 45, 61),
                 Blue = Color.FromArgb(22, 60, 255),
                 BlueText = Color.FromArgb(239, 238, 232),
                 Warn = Color.FromArgb(255, 204, 0),
@@ -1093,6 +1230,30 @@ public sealed class WzproCompanionApp : Form
                 case "premiumPageTitle": return "Premium access";
                 case "premiumPageDesc": return "Optional paid modules for players who want clips, review tools and richer automation inside the same app.";
                 case "trainingAccess": return "TRAINING LAB";
+                case "optimisationAccess": return "OPTIMISATION";
+                case "optimisationPageTitle": return "Optimisation";
+                case "optimisationPageDesc": return "Turn on the in-game overlay and keep an eye on your system load while you play.";
+                case "optimisationOverlayTitle": return "In-game overlay";
+                case "optimisationOverlayDesc": return "Floating box over the game: CPU/RAM and session games for everyone. Highlights and replay hotkey are Premium.";
+                case "optimisationOverlayBtn": return "Toggle overlay";
+                case "optimisationOverlayOn": return "Overlay: shown";
+                case "optimisationOverlayOff": return "Overlay: hidden";
+                case "premiumSideActive": return "PREMIUM ACTIVE";
+                case "premiumSideInactive": return "PREMIUM OFF";
+                case "recorderActive": return "RECORDER ACTIVE";
+                case "recorderIdle": return "RECORDER READY";
+                case "restartApp": return "RESTART APP";
+                case "compactMode": return "COMPACT MODE";
+                case "compactExit": return "FULL MODE";
+                case "supportButton": return "SUPPORT";
+                case "updateChecking": return "Checking update...";
+                case "updateAvailable": return "Update available: ";
+                case "updateCurrent": return "App up to date";
+                case "updateUnavailable": return "Update check unavailable";
+                case "restartFailed": return "Restart failed: ";
+                case "supportCopied": return "Diagnostic copied for support.";
+                case "statsSent": return "Stats sent to WZPRO.";
+                case "clipSaved": return "Clip saved.";
                 case "trainingPageTitle": return "Training Lab";
                 case "trainingPageDesc": return "Set a session focus, review weak decisions and keep risky map zones visible before queueing.";
                 case "trainingGoalTitle": return "Session focus";
@@ -1291,6 +1452,30 @@ public sealed class WzproCompanionApp : Form
                 case "premiumPageTitle": return "Acceso premium";
                 case "premiumPageDesc": return "Modulos de pago opcionales para clips, review y automatizaciones mas completas en la misma app.";
                 case "trainingAccess": return "TRAINING LAB";
+                case "optimisationAccess": return "OPTIMIZACION";
+                case "optimisationPageTitle": return "Optimizacion";
+                case "optimisationPageDesc": return "Activa el overlay en partida y vigila la carga del sistema mientras juegas.";
+                case "optimisationOverlayTitle": return "Overlay en partida";
+                case "optimisationOverlayDesc": return "Caja flotante sobre el juego: CPU/RAM y partidas para todos. Highlights y atajo de repeticion son Premium.";
+                case "optimisationOverlayBtn": return "Mostrar/ocultar";
+                case "optimisationOverlayOn": return "Overlay: visible";
+                case "optimisationOverlayOff": return "Overlay: oculto";
+                case "premiumSideActive": return "PREMIUM ACTIVO";
+                case "premiumSideInactive": return "PREMIUM OFF";
+                case "recorderActive": return "RECORDER ACTIVO";
+                case "recorderIdle": return "RECORDER LISTO";
+                case "restartApp": return "REINICIAR";
+                case "compactMode": return "MODO COMPACTO";
+                case "compactExit": return "MODO COMPLETO";
+                case "supportButton": return "SOPORTE";
+                case "updateChecking": return "Buscando update...";
+                case "updateAvailable": return "Update disponible: ";
+                case "updateCurrent": return "App actualizada";
+                case "updateUnavailable": return "Update no disponible";
+                case "restartFailed": return "Error al reiniciar: ";
+                case "supportCopied": return "Diagnostico copiado para soporte.";
+                case "statsSent": return "Stats enviadas a WZPRO.";
+                case "clipSaved": return "Clip guardado.";
                 case "trainingPageTitle": return "Training Lab";
                 case "trainingPageDesc": return "Define un foco de sesion, revisa malas decisiones y marca zonas de riesgo antes de buscar partida.";
                 case "trainingGoalTitle": return "Foco de sesion";
@@ -1488,6 +1673,30 @@ public sealed class WzproCompanionApp : Form
             case "premiumPageTitle": return "Acces premium";
             case "premiumPageDesc": return "Modules payants optionnels pour les clips, la review et plus d automatisations dans la meme app.";
             case "trainingAccess": return "TRAINING LAB";
+            case "optimisationAccess": return "OPTIMISATION";
+            case "optimisationPageTitle": return "Optimisation";
+            case "optimisationPageDesc": return "Active l overlay en jeu et garde un oeil sur la charge systeme pendant que tu joues.";
+            case "optimisationOverlayTitle": return "Overlay en jeu";
+            case "optimisationOverlayDesc": return "Boite flottante sur le jeu : CPU/RAM et parties pour tous. Moments forts et raccourci replay en Premium.";
+            case "optimisationOverlayBtn": return "Afficher/masquer";
+            case "optimisationOverlayOn": return "Overlay : affiche";
+            case "optimisationOverlayOff": return "Overlay : masque";
+            case "premiumSideActive": return "PREMIUM ACTIF";
+            case "premiumSideInactive": return "PREMIUM INACTIF";
+            case "recorderActive": return "RECORDER ACTIF";
+            case "recorderIdle": return "RECORDER PRET";
+            case "restartApp": return "REDEMARRER";
+            case "compactMode": return "MODE COMPACT";
+            case "compactExit": return "MODE COMPLET";
+            case "supportButton": return "SUPPORT";
+            case "updateChecking": return "Verification update...";
+            case "updateAvailable": return "Update dispo : ";
+            case "updateCurrent": return "App a jour";
+            case "updateUnavailable": return "Update indisponible";
+            case "restartFailed": return "Echec redemarrage : ";
+            case "supportCopied": return "Diagnostic copie pour le support.";
+            case "statsSent": return "Stats envoyees a WZPRO.";
+            case "clipSaved": return "Clip enregistre.";
             case "trainingPageTitle": return "Training Lab";
             case "trainingPageDesc": return "Fixe un focus de session, review les mauvaises decisions et garde les zones a risque sous les yeux avant de relancer.";
             case "trainingGoalTitle": return "Focus de session";
@@ -1724,61 +1933,401 @@ public sealed class WzproCompanionApp : Form
 
     private void ShowPage(string page)
     {
-        activePage = page == "premium" ? "premium" : page == "training" ? "training" : "free";
+        activePage = page == "premium" ? "premium" : page == "training" ? "training" : page == "optimisation" ? "optimisation" : "free";
         bool free = activePage == "free";
         bool premium = activePage == "premium";
         bool training = activePage == "training";
+        bool optimisation = activePage == "optimisation";
+        bool compact = compactMode;
 
-        if (freeInfoCard != null) freeInfoCard.Visible = free;
-        if (freeConnectionCard != null) freeConnectionCard.Visible = free;
-        if (freeControlsCard != null) freeControlsCard.Visible = free;
-        importsLabel.Visible = free;
-        historyList.Visible = free;
-        journalLabel.Visible = free;
-        logBox.Visible = free;
+        if (freeInfoCard != null) freeInfoCard.Visible = free && !compact;
+        if (freeConnectionCard != null) freeConnectionCard.Visible = free || compact;
+        if (freeControlsCard != null) freeControlsCard.Visible = free || compact;
+        importsLabel.Visible = free && !compact;
+        historyList.Visible = free && !compact;
+        // The journal is shared with the optimisation page so overlay activation is visible there.
+        journalLabel.Visible = free || optimisation || compact;
+        logBox.Visible = free || optimisation || compact;
 
-        if (premiumInfoCard != null) premiumInfoCard.Visible = premium;
-        if (premiumHighlightsCard != null) premiumHighlightsCard.Visible = premium;
-        if (premiumClipsCard != null) premiumClipsCard.Visible = premium;
-        if (premiumAccessCard != null) premiumAccessCard.Visible = premium;
-        if (premiumAdvancedCard != null) premiumAdvancedCard.Visible = premium;
-        highlightsTitleLabel.Visible = premium;
-        premiumPageTitleLabel.Visible = premium;
-        premiumPageDescLabel.Visible = premium;
-        highlightsToggle.Visible = premium;
-        highlightsDescLabel.Visible = premium;
-        highlightsStatusLabel.Visible = premium;
-        clipsFolderTitleLabel.Visible = premium;
-        clipsFolderValueLabel.Visible = premium;
-        clipsFolderButton.Visible = premium;
-        clipsOpenFolderButton.Visible = premium;
-        premiumCheckoutHintLabel.Visible = premium;
-        premiumAccessStatusLabel.Visible = premium;
-        premiumCheckoutButton.Visible = premium;
-        premiumRefreshButton.Visible = premium;
-        if (statsButton != null) statsButton.Visible = premium;
-        if (gameBarButton != null) gameBarButton.Visible = premium;
-        if (statsBox != null) statsBox.Visible = premium;
-        if (clipModeCombo != null) clipModeCombo.Visible = premium;
-        if (socialFormatCombo != null) socialFormatCombo.Visible = premium;
-        if (musicButton != null) musicButton.Visible = premium;
-        if (musicLabel != null) musicLabel.Visible = premium;
-        if (audioButton != null) audioButton.Visible = premium;
+        if (optimisationInfoCard != null) optimisationInfoCard.Visible = optimisation && !compact;
+        if (optimisationOverlayCard != null) optimisationOverlayCard.Visible = optimisation && !compact;
 
-        if (trainingInfoCard != null) trainingInfoCard.Visible = training;
-        if (trainingGoalCard != null) trainingGoalCard.Visible = training;
-        if (trainingCategoryCard != null) trainingCategoryCard.Visible = training;
-        if (trainingModuleCard != null) trainingModuleCard.Visible = training;
+        if (premiumInfoCard != null) premiumInfoCard.Visible = premium && !compact;
+        if (premiumHighlightsCard != null) premiumHighlightsCard.Visible = premium && !compact;
+        if (premiumClipsCard != null) premiumClipsCard.Visible = premium && !compact;
+        if (premiumAccessCard != null) premiumAccessCard.Visible = premium && !compact;
+        if (premiumAdvancedCard != null) premiumAdvancedCard.Visible = premium && !compact;
+        highlightsTitleLabel.Visible = premium && !compact;
+        premiumPageTitleLabel.Visible = premium && !compact;
+        premiumPageDescLabel.Visible = premium && !compact;
+        highlightsToggle.Visible = premium && !compact;
+        highlightsDescLabel.Visible = premium && !compact;
+        highlightsStatusLabel.Visible = premium && !compact;
+        clipsFolderTitleLabel.Visible = premium && !compact;
+        clipsFolderValueLabel.Visible = premium && !compact;
+        clipsFolderButton.Visible = premium && !compact;
+        clipsOpenFolderButton.Visible = premium && !compact;
+        premiumCheckoutHintLabel.Visible = premium && !compact;
+        premiumAccessStatusLabel.Visible = premium && !compact;
+        premiumCheckoutButton.Visible = premium && !compact;
+        premiumRefreshButton.Visible = premium && !compact;
+        if (statsButton != null) statsButton.Visible = premium && !compact;
+        if (gameBarButton != null) gameBarButton.Visible = premium && !compact;
+        if (statsBox != null) statsBox.Visible = premium && !compact;
+        if (clipModeCombo != null) clipModeCombo.Visible = premium && !compact;
+        if (socialFormatCombo != null) socialFormatCombo.Visible = premium && !compact;
+        if (musicButton != null) musicButton.Visible = premium && !compact;
+        if (musicLabel != null) musicLabel.Visible = premium && !compact;
+        if (audioButton != null) audioButton.Visible = premium && !compact;
+
+        if (trainingInfoCard != null) trainingInfoCard.Visible = training && !compact;
+        if (trainingGoalCard != null) trainingGoalCard.Visible = training && !compact;
+        if (trainingCategoryCard != null) trainingCategoryCard.Visible = training && !compact;
+        if (trainingModuleCard != null) trainingModuleCard.Visible = training && !compact;
         if (trainingReviewCard != null) trainingReviewCard.Visible = false;
         if (trainingReadinessCard != null) trainingReadinessCard.Visible = false;
         if (trainingHeatmapCard != null) trainingHeatmapCard.Visible = false;
         if (training) RefreshTrainingUi();
 
+        UpdateSidebarStatuses();
         StylePageButtons(Theme);
         if (premium && !string.IsNullOrWhiteSpace(deviceToken) && DateTime.UtcNow.Subtract(lastPremiumCheckUtc).TotalSeconds > 45)
         {
             backgroundPremiumCheck = CheckPremiumAccess(false);
         }
+        ApplyResponsiveLayout();
+    }
+
+    private static int ClampInt(int value, int min, int max)
+    {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
+    }
+
+    private static int ScaleHeight(int baseHeight, double scale, int minHeight)
+    {
+        return Math.Max(minHeight, (int)Math.Round(baseHeight * scale));
+    }
+
+    private void ApplyResponsiveLayout()
+    {
+        if (ClientSize.Width <= 0 || ClientSize.Height <= 0) return;
+        LayoutWelcomePage();
+        LayoutAppShell();
+        if (mainPanel == null || mainPanel.ClientSize.Width <= 0 || mainPanel.ClientSize.Height <= 0) return;
+        int contentX = 34;
+        int contentW = Math.Max(1, mainPanel.ClientSize.Width - 68);
+
+        mainPanel.SuspendLayout();
+        try
+        {
+            LayoutTopBar();
+
+            LayoutFreePage(contentX, contentW);
+            LayoutPremiumPage(contentX, contentW);
+            LayoutTrainingPage(contentX, contentW);
+            LayoutOptimisationPage(contentX, contentW);
+        }
+        finally
+        {
+            mainPanel.ResumeLayout();
+        }
+    }
+
+    private void LayoutTopBar()
+    {
+        if (topBarPanel == null || mainPanel == null) return;
+        topBarPanel.SetBounds(0, 0, mainPanel.ClientSize.Width, 72);
+
+        int topW = Math.Max(1, topBarPanel.ClientSize.Width);
+        int rightPad = 18;
+        int buttonSize = 34;
+        int closeX = Math.Max(10, topW - rightPad - buttonSize);
+        int minimizeX = Math.Max(10, closeX - buttonSize - 8);
+        int actionX = 136;
+        int searchW = ClampInt(topW / 5, 126, 240);
+        int themeW = 116;
+        int overlayW = 132;
+        int gameBarW = 158;
+        int gameBarX = actionX;
+        int overlayX = gameBarX + gameBarW + 10;
+        int themeX = overlayX + overlayW + 10;
+        int minSearchX = themeX + themeW + 16;
+        int searchX = Math.Max(minSearchX, minimizeX - searchW - 18);
+        if (searchX + searchW > minimizeX - 12)
+        {
+            searchW = Math.Max(80, minimizeX - 12 - searchX);
+        }
+
+        if (languageBox != null) languageBox.SetBounds(34, 20, 88, 28);
+        if (closeButton != null) closeButton.SetBounds(closeX, 16, buttonSize, buttonSize);
+        if (minimizeButton != null) minimizeButton.SetBounds(minimizeX, 16, buttonSize, buttonSize);
+        if (searchBoxLabel != null) searchBoxLabel.SetBounds(searchX, 16, searchW, 34);
+        if (gameBarButton != null) gameBarButton.SetBounds(gameBarX, 18, gameBarW, 30);
+        if (overlayButton != null) overlayButton.SetBounds(overlayX, 18, overlayW, 30);
+        if (themeButton != null) themeButton.SetBounds(themeX, 18, themeW, 30);
+    }
+
+    private void LayoutWelcomePage()
+    {
+        if (welcomePanel == null) return;
+        int w = ClientSize.Width;
+        int h = ClientSize.Height;
+        welcomePanel.SetBounds(0, 0, w, h);
+
+        int margin = ClampInt(w / 12, 52, 96);
+        int panelW = ClampInt((int)(w * 0.30), 260, 330);
+        int panelH = ClampInt((int)(h * 0.48), 292, 350);
+        int panelX = Math.Max(margin + 420, w - margin - panelW);
+        int panelY = ClampInt((h - panelH) / 2, 112, 172);
+        int textRight = Math.Max(margin + 360, panelX - 34);
+        int textW = Math.Max(360, textRight - margin);
+
+        if (welcomeLanguageBox != null) welcomeLanguageBox.SetBounds(margin, ClampInt(h / 12, 34, 58), 220, 34);
+        if (welcomeKickerLabel != null) welcomeKickerLabel.SetBounds(margin, ClampInt((int)(h * 0.20), 110, 146), Math.Min(270, textW), 34);
+        if (welcomeTitleLabel != null) welcomeTitleLabel.SetBounds(margin, ClampInt((int)(h * 0.31), 176, 220), textW, ClampInt((int)(h * 0.24), 128, 172));
+        if (welcomeSubtitleLabel != null) welcomeSubtitleLabel.SetBounds(margin, ClampInt((int)(h * 0.52), 318, 372), Math.Min(430, textW), 70);
+        if (welcomeStatsLabel != null) welcomeStatsLabel.SetBounds(margin, ClampInt((int)(h * 0.70), 430, h - 120), textW, 58);
+
+        if (welcomeLoginPanel != null)
+        {
+            welcomeLoginPanel.SetBounds(panelX, panelY, panelW, panelH);
+            int innerW = panelW - 48;
+            if (welcomeLoginTitleLabel != null) welcomeLoginTitleLabel.SetBounds(24, 34, innerW, 60);
+            if (welcomeConnectButton != null) welcomeConnectButton.SetBounds(32, 122, panelW - 64, 44);
+            if (welcomeSiteButton != null) welcomeSiteButton.SetBounds(32, 180, panelW - 64, 38);
+            if (welcomeLoginStatusLabel != null) welcomeLoginStatusLabel.SetBounds(30, Math.Max(236, panelH - 84), panelW - 60, 60);
+        }
+    }
+
+    private void LayoutAppShell()
+    {
+        if (sidebarPanel == null || mainPanel == null) return;
+        int sidebarW = ClampInt((int)(ClientSize.Width * 0.23), 188, 220);
+        sidebarPanel.SetBounds(0, 0, sidebarW, ClientSize.Height);
+        mainPanel.SetBounds(sidebarW, 0, Math.Max(1, ClientSize.Width - sidebarW), ClientSize.Height);
+
+        int sidePad = ClampInt(sidebarW / 14, 12, 16);
+        int navW = sidebarW - sidePad * 2;
+        if (brandLogoBox != null) brandLogoBox.SetBounds(sidePad + 4, 14, navW - 8, 52);
+        if (titleLabel != null) titleLabel.SetBounds(sidePad + 4, 18, navW - 8, 38);
+        if (freeAccessButton != null) freeAccessButton.SetBounds(sidePad, 86, navW, 42);
+        if (premiumButton != null) premiumButton.SetBounds(sidePad, 136, navW, 42);
+        if (trainingButton != null) trainingButton.SetBounds(sidePad, 186, navW, 42);
+        if (optimisationButton != null) optimisationButton.SetBounds(sidePad, 236, navW, 42);
+        if (premiumSidebarLabel != null) premiumSidebarLabel.SetBounds(sidePad, 296, navW, 22);
+        if (recorderSidebarLabel != null) recorderSidebarLabel.SetBounds(sidePad, 322, navW, 22);
+        if (updateStatusLabel != null) updateStatusLabel.SetBounds(sidePad, 352, navW, 34);
+
+        if (profilePanel != null)
+        {
+            int profileH = ClampInt(ClientSize.Height / 7, 86, 104);
+            profilePanel.SetBounds(sidePad, Math.Max(526, ClientSize.Height - profileH - 24), navW, profileH);
+            if (profilePictureBox != null)
+            {
+                int pic = ClampInt(profileH - 54, 38, 48);
+                profilePictureBox.SetBounds(12, (profileH - pic) / 2, pic, pic);
+            }
+            if (profileNameLabel != null) profileNameLabel.SetBounds(22 + ClampInt(profileH - 54, 38, 48), 18, Math.Max(40, navW - 34 - ClampInt(profileH - 54, 38, 48)), profileH - 34);
+        }
+    }
+
+    private void LayoutFreePage(int contentX, int contentW)
+    {
+        int h = mainPanel.ClientSize.Height;
+        if (compactMode)
+        {
+            int cardY = 92;
+            int compactConnH = 126;
+            int compactControlsH = 112;
+            if (freeConnectionCard != null) freeConnectionCard.SetBounds(contentX, cardY, contentW, compactConnH);
+            if (freeControlsCard != null) freeControlsCard.SetBounds(contentX, cardY + compactConnH + 14, contentW, compactControlsH);
+            int compactConnectW = Math.Min(336, Math.Max(180, contentW - 48));
+            if (connectButton != null) connectButton.SetBounds(Math.Max(24, contentW - compactConnectW - 24), 42, compactConnectW, 34);
+            int compactStopX = Math.Max(24, contentW - 106);
+            int compactStartX = Math.Max(24, compactStopX - 96);
+            if (startButton != null) startButton.SetBounds(compactStartX, 14, 82, 34);
+            if (stopButton != null) stopButton.SetBounds(compactStopX, 14, 82, 34);
+            if (hintLabel != null) hintLabel.SetBounds(24, 66, contentW - 48, 34);
+            int logTop = cardY + compactConnH + compactControlsH + 52;
+            if (journalLabel != null) journalLabel.SetBounds(contentX, logTop - 24, contentW, 20);
+            if (logBox != null) logBox.SetBounds(contentX, logTop, contentW, Math.Max(160, h - logTop - 24));
+            return;
+        }
+        int y = 92;
+        int gap = 14;
+        int bottom = 24;
+        int listLabelH = 20;
+        int fixedCards = 126 + 106 + 112 + gap * 3 + listLabelH + 8 + bottom;
+        double scale = Math.Min(1.0, Math.Max(0.78, (double)Math.Max(1, h - 92 - listLabelH - 8 - bottom - gap * 3) / (126 + 106 + 112 + 56)));
+
+        int infoH = ScaleHeight(126, scale, 98);
+        int connH = ScaleHeight(106, scale, 86);
+        int controlsH = ScaleHeight(112, scale, 90);
+        if (h - y < fixedCards) gap = 10;
+
+        if (freeInfoCard != null) freeInfoCard.SetBounds(contentX, y, contentW, infoH);
+        y += infoH + gap;
+        if (freeConnectionCard != null) freeConnectionCard.SetBounds(contentX, y, contentW, connH);
+        y += connH + gap;
+        if (freeControlsCard != null) freeControlsCard.SetBounds(contentX, y, contentW, controlsH);
+        y += controlsH + gap;
+
+        if (freePageTitleLabel != null) freePageTitleLabel.Width = Math.Min(420, contentW - 48);
+        if (freePageDescLabel != null) freePageDescLabel.Width = contentW - 48;
+        int connectW = Math.Min(336, Math.Max(180, contentW - 48));
+        if (connectButton != null) connectButton.SetBounds(Math.Max(24, contentW - connectW - 24), 34, connectW, 34);
+        if (hintLabel != null) hintLabel.SetBounds(24, Math.Max(58, controlsH - 46), contentW - 48, 34);
+        int stopX = Math.Max(24, contentW - 106);
+        int startX = Math.Max(24, stopX - 96);
+        if (startButton != null) startButton.SetBounds(startX, 14, 82, 34);
+        if (stopButton != null) stopButton.SetBounds(stopX, 14, 82, 34);
+
+        int colGap = 24;
+        int colW = Math.Max(180, (contentW - colGap) / 2);
+        int listY = y + listLabelH + 4;
+        int listH = Math.Max(44, h - listY - bottom);
+        if (importsLabel != null) importsLabel.SetBounds(contentX, y, colW, listLabelH);
+        if (historyList != null) historyList.SetBounds(contentX, listY, colW, listH);
+        if (journalLabel != null && activePage == "free") journalLabel.SetBounds(contentX + colW + colGap, y, colW, listLabelH);
+        if (logBox != null && activePage == "free") logBox.SetBounds(contentX + colW + colGap, listY, colW, listH);
+    }
+
+    private void LayoutPremiumPage(int contentX, int contentW)
+    {
+        int top = 92;
+        int bottom = 20;
+        int available = Math.Max(1, mainPanel.ClientSize.Height - top - bottom);
+        int[] baseHeights = new[] { 106, 126, 94, 106, 96 };
+        int[] minHeights = new[] { 82, 96, 74, 82, 82 };
+        int gap = ClampInt((available - 528) / 4, 10, 18);
+        double scale = Math.Min(1.0, (double)Math.Max(1, available - gap * 4) / 528);
+
+        Panel[] cards = new[] { premiumInfoCard, premiumHighlightsCard, premiumClipsCard, premiumAccessCard, premiumAdvancedCard };
+        int y = top;
+        for (int i = 0; i < cards.Length; i++)
+        {
+            int cardH = ScaleHeight(baseHeights[i], scale, minHeights[i]);
+            if (cards[i] != null) cards[i].SetBounds(contentX, y, contentW, cardH);
+            y += cardH + gap;
+        }
+
+        if (premiumPageTitleLabel != null) premiumPageTitleLabel.Width = Math.Min(420, contentW - 48);
+        if (premiumPageDescLabel != null) premiumPageDescLabel.Width = contentW - 48;
+        if (highlightsToggle != null) highlightsToggle.SetBounds(Math.Max(24, contentW - 262), 16, 238, 28);
+        if (highlightsDescLabel != null) highlightsDescLabel.Width = contentW - 48;
+        if (highlightsStatusLabel != null) highlightsStatusLabel.SetBounds(24, Math.Max(70, premiumHighlightsCard.Height - 30), contentW - 48, 22);
+        if (clipsFolderValueLabel != null) clipsFolderValueLabel.Width = Math.Max(220, contentW - 246);
+        int openX = Math.Max(24, contentW - 98);
+        int chooseX = Math.Max(24, openX - 92);
+        if (clipsFolderButton != null) clipsFolderButton.SetBounds(chooseX, 42, 82, 34);
+        if (clipsOpenFolderButton != null) clipsOpenFolderButton.SetBounds(openX, 42, 74, 34);
+        int premiumButtonW = Math.Min(286, Math.Max(180, contentW - 48));
+        int premiumButtonX = Math.Max(24, contentW - premiumButtonW - 24);
+        if (premiumCheckoutButton != null) premiumCheckoutButton.SetBounds(premiumButtonX, 16, premiumButtonW, 38);
+        if (premiumRefreshButton != null) premiumRefreshButton.SetBounds(premiumButtonX, 62, premiumButtonW, 34);
+
+        if (premiumAdvancedCard != null)
+        {
+            int cardH = premiumAdvancedCard.Height;
+            int rightX = 222;
+            int rightW = Math.Max(180, contentW - rightX - 12);
+            if (statsButton != null) statsButton.SetBounds(12, 8, 200, 26);
+            int formatY = Math.Max(54, cardH - 30);
+            int modeY = Math.Max(34, formatY - 26);
+            if (clipModeCombo != null) clipModeCombo.SetBounds(12, modeY, 210, 24);
+            if (socialFormatCombo != null) socialFormatCombo.SetBounds(12, formatY, 210, 24);
+            if (statsBox != null) statsBox.SetBounds(rightX, 8, rightW, Math.Max(52, cardH - 20));
+            int toolY = Math.Max(42, cardH - 34);
+            if (musicButton != null) musicButton.SetBounds(rightX, toolY, 136, 24);
+            if (musicLabel != null) musicLabel.SetBounds(rightX + 146, toolY + 4, Math.Max(80, rightW - 322), 16);
+            if (audioButton != null) audioButton.SetBounds(rightX + rightW - 156, toolY, 156, 24);
+        }
+    }
+
+    private void LayoutTrainingPage(int contentX, int contentW)
+    {
+        int h = mainPanel.ClientSize.Height;
+        int y = 92;
+        int gap = 14;
+        int bottom = 24;
+        int infoH = ClampInt((int)(h * 0.14), 74, 90);
+        int goalH = ClampInt((int)(h * 0.19), 100, 126);
+
+        if (trainingInfoCard != null) trainingInfoCard.SetBounds(contentX, y, contentW, infoH);
+        y += infoH + gap;
+        if (trainingGoalCard != null) trainingGoalCard.SetBounds(contentX, y, contentW, goalH);
+        y += goalH + gap;
+
+        if (trainingGoalDescLabel() != null) trainingGoalDescLabel().Width = contentW - 48;
+        int buttonGap = 10;
+        int buttonW = Math.Max(80, (contentW - 48 - buttonGap * 3) / 4);
+        int buttonY = Math.Max(70, goalH - 44);
+        if (trainingGoalSurviveButton != null) trainingGoalSurviveButton.SetBounds(24, buttonY, buttonW, 30);
+        if (trainingGoalFinishButton != null) trainingGoalFinishButton.SetBounds(24 + (buttonW + buttonGap), buttonY, buttonW, 30);
+        if (trainingGoalRotateButton != null) trainingGoalRotateButton.SetBounds(24 + (buttonW + buttonGap) * 2, buttonY, buttonW, 30);
+        if (trainingGoalCommsButton != null) trainingGoalCommsButton.SetBounds(24 + (buttonW + buttonGap) * 3, buttonY, buttonW, 30);
+
+        int lowerH = Math.Max(210, h - y - bottom);
+        int categoryW = ClampInt((int)(contentW * 0.32), 190, 240);
+        int moduleX = contentX + categoryW + 14;
+        int moduleW = Math.Max(280, contentW - categoryW - 14);
+        if (trainingCategoryCard != null) trainingCategoryCard.SetBounds(contentX, y, categoryW, lowerH);
+        if (trainingModuleCard != null) trainingModuleCard.SetBounds(moduleX, y, moduleW, lowerH);
+        if (trainingReviewCard != null) trainingReviewCard.SetBounds(contentX, y, categoryW, Math.Min(170, lowerH));
+        if (trainingReadinessCard != null) trainingReadinessCard.SetBounds(moduleX, y, moduleW, Math.Min(170, lowerH));
+        if (trainingHeatmapCard != null) trainingHeatmapCard.SetBounds(contentX, y + Math.Min(184, lowerH / 2), contentW, Math.Max(112, lowerH - Math.Min(184, lowerH / 2)));
+        if (trainingCategoryList != null) trainingCategoryList.SetBounds(14, 44, Math.Max(160, categoryW - 28), Math.Max(120, lowerH - 62));
+
+        Label title = NamedLabel(trainingModuleCard, "trainingModuleTitleLabel");
+        if (title != null) title.Width = moduleW - 36;
+        Label desc = NamedLabel(trainingModuleCard, "trainingModuleDescLabel");
+        if (desc != null) desc.Width = moduleW - 36;
+        Label status = NamedLabel(trainingModuleCard, "trainingModuleStatusLabel");
+        if (status != null) status.SetBounds(18, Math.Max(176, lowerH - 26), moduleW - 36, 18);
+        int notesY = Math.Max(172, lowerH - 92);
+        Label notesLabel = NamedLabel(trainingModuleCard, "trainingModuleNotesLabel");
+        if (notesLabel != null) notesLabel.SetBounds(18, notesY + 4, 90, 18);
+        if (trainingModuleNotesBox != null) trainingModuleNotesBox.SetBounds(110, notesY, Math.Max(120, moduleW - 250), 56);
+        if (trainingModuleDoneButton != null) trainingModuleDoneButton.SetBounds(Math.Max(220, moduleW - 138), notesY, 116, 28);
+        if (trainingModuleResetButton != null) trainingModuleResetButton.SetBounds(Math.Max(220, moduleW - 138), notesY + 36, 116, 28);
+
+        Label reviewDesc = NamedLabel(trainingReadinessCard, "trainingReadinessDescLabel");
+        if (reviewDesc != null) reviewDesc.Width = Math.Max(180, moduleW - 40);
+        Label heatmapDesc = NamedLabel(trainingHeatmapCard, "trainingHeatmapDescLabel");
+        if (heatmapDesc != null) heatmapDesc.Width = contentW - 48;
+        int zoneGap = 10;
+        int resetW = 112;
+        int zoneW = Math.Max(76, (contentW - 48 - resetW - zoneGap * 4) / 4);
+        int zoneY = Math.Max(72, trainingHeatmapCard.Height - 44);
+        if (trainingZoneAButton != null) trainingZoneAButton.SetBounds(24, zoneY, zoneW, 30);
+        if (trainingZoneBButton != null) trainingZoneBButton.SetBounds(24 + (zoneW + zoneGap), zoneY, zoneW, 30);
+        if (trainingZoneCButton != null) trainingZoneCButton.SetBounds(24 + (zoneW + zoneGap) * 2, zoneY, zoneW, 30);
+        if (trainingZoneDButton != null) trainingZoneDButton.SetBounds(24 + (zoneW + zoneGap) * 3, zoneY, zoneW, 30);
+        if (trainingResetButton != null) trainingResetButton.SetBounds(Math.Max(24, contentW - resetW - 24), zoneY, resetW, 30);
+    }
+
+    private Label trainingGoalDescLabel()
+    {
+        return NamedLabel(trainingGoalCard, "trainingGoalDescLabel");
+    }
+
+    private void LayoutOptimisationPage(int contentX, int contentW)
+    {
+        if (optimisationInfoCard == null || optimisationOverlayCard == null) return;
+        int h = mainPanel.ClientSize.Height;
+        optimisationInfoCard.SetBounds(contentX, 26, contentW, 84);
+        optimisationOverlayCard.SetBounds(contentX, 122, contentW, 132);
+        if (optimisationPageDescLabel != null) optimisationPageDescLabel.Width = contentW - 48;
+        if (optimisationOverlayDescLabel != null) optimisationOverlayDescLabel.Width = Math.Max(240, contentW - 210);
+        if (overlayToggleButton != null) overlayToggleButton.SetBounds(Math.Max(280, contentW - 170), 46, 150, 40);
+        if (optimisationOverlayStatusLabel != null) optimisationOverlayStatusLabel.Width = contentW - 48;
+
+        int logTop = 270;
+        int logH = Math.Max(52, h - logTop - 24);
+        if (journalLabel != null && activePage == "optimisation") journalLabel.SetBounds(contentX, logTop - 24, contentW, 20);
+        if (logBox != null && activePage == "optimisation") logBox.SetBounds(contentX, logTop, contentW, logH);
     }
 
     private void SetTrainingGoal(string goal)
@@ -2291,6 +2840,27 @@ public sealed class WzproCompanionApp : Form
         button.FlatAppearance.MouseDownBackColor = ControlPaint.Dark(button.BackColor);
     }
 
+    private void StartWindowDrag(object sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left) return;
+        windowDragging = true;
+        windowDragStart = e.Location;
+    }
+
+    private void DragWindow(object sender, MouseEventArgs e)
+    {
+        if (!windowDragging || sender == null) return;
+        Control control = sender as Control;
+        if (control == null) return;
+        Point screenPoint = control.PointToScreen(e.Location);
+        Location = new Point(screenPoint.X - windowDragStart.X, screenPoint.Y - windowDragStart.Y);
+    }
+
+    private void EndWindowDrag(object sender, MouseEventArgs e)
+    {
+        windowDragging = false;
+    }
+
     private bool populatingCombos;
 
     private void PopulateClipCombos()
@@ -2558,6 +3128,26 @@ public sealed class WzproCompanionApp : Form
         premiumAccessStatusLabel.ForeColor = premiumAccessActive ? Theme.Success : Theme.Muted;
         highlightsStatusLabel.Text = premiumAccessActive ? T("premiumActive") : highlightsProEnabled ? T("highlightsStatusOn") : T("highlightsStatusOff");
         highlightsStatusLabel.ForeColor = premiumAccessActive ? Theme.Success : highlightsProEnabled ? Theme.Warn : Theme.Muted;
+        UpdateSidebarStatuses();
+    }
+
+    private void UpdateSidebarStatuses()
+    {
+        var theme = Theme;
+        if (premiumSidebarLabel != null)
+        {
+            premiumSidebarLabel.Text = premiumAccessActive ? T("premiumSideActive") : T("premiumSideInactive");
+            premiumSidebarLabel.ForeColor = premiumAccessActive ? theme.Success : theme.Muted;
+        }
+        if (recorderSidebarLabel != null)
+        {
+            recorderSidebarLabel.Text = recorderActive ? T("recorderActive") : T("recorderIdle");
+            recorderSidebarLabel.ForeColor = recorderActive ? theme.Success : theme.Muted;
+        }
+        if (compactButton != null) compactButton.Text = compactMode ? T("compactExit") : T("compactMode");
+        if (restartButton != null) restartButton.Text = T("restartApp");
+        if (supportButton != null) supportButton.Text = T("supportButton");
+        if (updateStatusLabel != null && string.IsNullOrWhiteSpace(updateStatusLabel.Text)) updateStatusLabel.Text = T("updateCurrent");
     }
 
     private async Task CheckPremiumAccess(bool userRequested)
@@ -2750,6 +3340,15 @@ public sealed class WzproCompanionApp : Form
             UpdateOverlay();
             overlayForm.Show();
         }
+        UpdateOverlayStatus();
+        AddLogLine(T(overlayForm.Visible ? "optimisationOverlayOn" : "optimisationOverlayOff"));
+    }
+
+    private void UpdateOverlayStatus()
+    {
+        if (optimisationOverlayStatusLabel == null) return;
+        bool on = overlayForm != null && overlayForm.Visible;
+        optimisationOverlayStatusLabel.Text = on ? T("optimisationOverlayOn") : T("optimisationOverlayOff");
     }
 
     private void EnsureOverlay()
@@ -2876,6 +3475,7 @@ public sealed class WzproCompanionApp : Form
                 Path.Combine(dir, "highlights.log"),
                 DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  " + reason + "  kills=" + kills + "  dmg=" + damage + "  place=" + place + "  won=" + (won ? "1" : "0") + Environment.NewLine);
             if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("highlightSaved") + dir + Environment.NewLine);
+            ShowToast(T("clipSaved"));
         }
         catch (Exception ex)
         {
@@ -3311,6 +3911,7 @@ public sealed class WzproCompanionApp : Form
                     else
                     {
                         recorderActive = false; // all recipes failed; highlights fall back to Game Bar
+                        SafeUi(delegate { UpdateSidebarStatuses(); });
                     }
                 }
             };
@@ -3318,12 +3919,14 @@ public sealed class WzproCompanionApp : Form
             recorderProcess.BeginErrorReadLine();
             recorderProcess.BeginOutputReadLine();
             recorderActive = true;
+            UpdateSidebarStatuses();
             try { recorderProcess.PriorityClass = ProcessPriorityClass.BelowNormal; } catch { }
         }
         catch (Exception ex)
         {
             ffmpegPath = "";
             recorderActive = false;
+            UpdateSidebarStatuses();
             if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("recorderUnavailable") + ex.Message + Environment.NewLine);
         }
     }
@@ -3332,6 +3935,7 @@ public sealed class WzproCompanionApp : Form
     {
         recorderActive = false;
         noGameTicks = 0;
+        UpdateSidebarStatuses();
         if (recorderProcess != null && !recorderProcess.HasExited)
         {
             try { recorderProcess.Kill(); recorderProcess.WaitForExit(1500); } catch { }
@@ -3442,7 +4046,7 @@ public sealed class WzproCompanionApp : Form
                 pm.WaitForExit(60000);
             }
             string saved = outPath;
-            SafeUi(delegate { if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("montageSaved") + saved + Environment.NewLine); });
+            SafeUi(delegate { if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("montageSaved") + saved + Environment.NewLine); ShowToast(T("clipSaved")); });
         }
         catch (Exception ex)
         {
@@ -3482,6 +4086,7 @@ public sealed class WzproCompanionApp : Form
             File.WriteAllText(coachPath, BuildCoachText(uploadedLine));
 
             if (logBox != null) logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("fullGameSaved") + outPath + Environment.NewLine);
+            ShowToast(T("clipSaved"));
 
             // Fresh buffer for the next game.
             foreach (FileInfo f in segs) { try { f.Delete(); } catch { } }
@@ -3649,6 +4254,62 @@ public sealed class WzproCompanionApp : Form
         }
     }
 
+    private void RefreshBrandLogo()
+    {
+        if (brandLogoBox == null) return;
+        Image oldImage = brandLogoBox.Image;
+        brandLogoBox.Image = BuildBrandLogoImage();
+        if (oldImage != null) oldImage.Dispose();
+        if (titleLabel != null) titleLabel.Visible = brandLogoBox.Image == null;
+    }
+
+    private Image BuildBrandLogoImage()
+    {
+        string logoPath = ResolveBrandLogoPath();
+        if (string.IsNullOrWhiteSpace(logoPath)) return null;
+        Color target = themeMode == "light" ? Color.FromArgb(8, 10, 14) : Color.White;
+        try
+        {
+            using (Bitmap source = new Bitmap(logoPath))
+            {
+                Bitmap output = new Bitmap(source.Width, source.Height);
+                for (int y = 0; y < source.Height; y++)
+                {
+                    for (int x = 0; x < source.Width; x++)
+                    {
+                        Color pixel = source.GetPixel(x, y);
+                        if (pixel.A < 18)
+                        {
+                            output.SetPixel(x, y, Color.Transparent);
+                            continue;
+                        }
+                        output.SetPixel(x, y, Color.FromArgb(pixel.A, target.R, target.G, target.B));
+                    }
+                }
+                return output;
+            }
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private string ResolveBrandLogoPath()
+    {
+        string[] candidates = new string[]
+        {
+            Path.Combine(root, "app", "wzpro-logo.png"),
+            Path.Combine(root, "public", "brand", "WZ__1_-removebg-preview.png"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app", "wzpro-logo.png")
+        };
+        foreach (string candidate in candidates)
+        {
+            if (File.Exists(candidate)) return candidate;
+        }
+        return "";
+    }
+
     private Bitmap BuildAvatarImage(string name)
     {
         var theme = Theme;
@@ -3714,10 +4375,24 @@ public sealed class WzproCompanionApp : Form
         freeAccessButton.Text = T("freeAccess");
         premiumButton.Text = T("premiumAccess");
         trainingButton.Text = T("trainingAccess");
+        if (optimisationButton != null) optimisationButton.Text = T("optimisationAccess");
+        if (restartButton != null) restartButton.Text = T("restartApp");
+        if (compactButton != null) compactButton.Text = compactMode ? T("compactExit") : T("compactMode");
+        if (supportButton != null) supportButton.Text = T("supportButton");
+        UpdateSidebarStatuses();
+        if (optimisationPageTitleLabel != null) optimisationPageTitleLabel.Text = T("optimisationPageTitle");
+        if (optimisationPageDescLabel != null) optimisationPageDescLabel.Text = T("optimisationPageDesc");
+        if (optimisationOverlayTitleLabel != null) optimisationOverlayTitleLabel.Text = T("optimisationOverlayTitle");
+        if (optimisationOverlayDescLabel != null) optimisationOverlayDescLabel.Text = T("optimisationOverlayDesc");
+        if (overlayToggleButton != null) overlayToggleButton.Text = T("optimisationOverlayBtn");
+        UpdateOverlayStatus();
         freePageTitleLabel.Text = T("freePageTitle");
         freePageDescLabel.Text = T("freePageDesc");
         premiumPageTitleLabel.Text = T("premiumPageTitle");
         premiumPageDescLabel.Text = T("premiumPageDesc");
+        if (profileRestartItem != null) profileRestartItem.Text = T("restartApp");
+        if (profileCompactItem != null) profileCompactItem.Text = compactMode ? T("compactExit") : T("compactMode");
+        if (profileSupportItem != null) profileSupportItem.Text = T("supportButton");
         profileSettingsItem.Text = T("goSettings");
         profileLogoutItem.Text = T("logout");
         welcomeKickerLabel.Text = T("welcomeKicker");
@@ -3778,9 +4453,17 @@ public sealed class WzproCompanionApp : Form
         ForeColor = theme.Ink;
         if (sidebarPanel != null) sidebarPanel.BackColor = theme.SurfaceAlt;
         if (mainPanel != null) mainPanel.BackColor = theme.Canvas;
+        if (topBarPanel != null) topBarPanel.BackColor = theme.Canvas;
+        if (searchBoxLabel != null)
+        {
+            searchBoxLabel.BackColor = theme.Surface;
+            searchBoxLabel.ForeColor = theme.Muted;
+        }
         if (welcomePanel != null) welcomePanel.BackColor = theme.Canvas;
         if (welcomeLoginPanel != null) welcomeLoginPanel.BackColor = theme.Surface;
         if (freeInfoCard != null) freeInfoCard.BackColor = theme.Surface;
+        if (optimisationInfoCard != null) optimisationInfoCard.BackColor = theme.Surface;
+        if (optimisationOverlayCard != null) optimisationOverlayCard.BackColor = theme.Surface;
         if (freeConnectionCard != null) freeConnectionCard.BackColor = theme.Surface;
         if (freeControlsCard != null) freeControlsCard.BackColor = theme.Surface;
         if (premiumInfoCard != null) premiumInfoCard.BackColor = theme.Surface;
@@ -3803,14 +4486,23 @@ public sealed class WzproCompanionApp : Form
             profileMenu.BackColor = theme.SurfaceAlt;
             profileMenu.ForeColor = theme.Ink;
         }
+        RefreshBrandLogo();
 
         ApplyThemeToControls(Controls, theme);
 
         if (sidebarPanel != null) sidebarPanel.BackColor = theme.SurfaceAlt;
         if (mainPanel != null) mainPanel.BackColor = theme.Canvas;
+        if (topBarPanel != null) topBarPanel.BackColor = theme.Canvas;
+        if (searchBoxLabel != null)
+        {
+            searchBoxLabel.BackColor = theme.Surface;
+            searchBoxLabel.ForeColor = theme.Muted;
+        }
         if (welcomePanel != null) welcomePanel.BackColor = theme.Canvas;
         if (welcomeLoginPanel != null) welcomeLoginPanel.BackColor = theme.Surface;
         if (freeInfoCard != null) freeInfoCard.BackColor = theme.Surface;
+        if (optimisationInfoCard != null) optimisationInfoCard.BackColor = theme.Surface;
+        if (optimisationOverlayCard != null) optimisationOverlayCard.BackColor = theme.Surface;
         if (freeConnectionCard != null) freeConnectionCard.BackColor = theme.Surface;
         if (freeControlsCard != null) freeControlsCard.BackColor = theme.Surface;
         if (premiumInfoCard != null) premiumInfoCard.BackColor = theme.Surface;
@@ -3859,11 +4551,17 @@ public sealed class WzproCompanionApp : Form
         StyleSecondaryButton(welcomeSiteButton, theme);
         StylePrimaryButton(startButton, theme);
         StyleSecondaryButton(stopButton, theme);
+        StylePrimaryButton(overlayToggleButton, theme);
         StylePrimaryButton(clipsFolderButton, theme);
         StyleSecondaryButton(clipsOpenFolderButton, theme);
         StylePrimaryButton(premiumCheckoutButton, theme);
         StyleSecondaryButton(premiumRefreshButton, theme);
         StyleSecondaryButton(themeButton, theme);
+        StyleSecondaryButton(minimizeButton, theme);
+        StyleSecondaryButton(closeButton, theme);
+        StyleSecondaryButton(restartButton, theme);
+        StyleSecondaryButton(compactButton, theme);
+        StyleSecondaryButton(supportButton, theme);
         StyleComboBox(languageBox, theme);
         StyleCheckBox(highlightsToggle, theme);
         StylePageButtons(theme);
@@ -3925,16 +4623,17 @@ public sealed class WzproCompanionApp : Form
         StylePageButton(freeAccessButton, activePage == "free", theme);
         StylePageButton(premiumButton, activePage == "premium", theme);
         StylePageButton(trainingButton, activePage == "training", theme);
+        StylePageButton(optimisationButton, activePage == "optimisation", theme);
     }
 
     private void StylePageButton(Button button, bool active, WzTheme theme)
     {
         if (button == null) return;
-        button.BackColor = active ? theme.Blue : theme.SurfaceAlt;
-        button.ForeColor = active ? theme.BlueText : theme.Ink;
+        button.BackColor = active ? theme.Surface : theme.SurfaceAlt;
+        button.ForeColor = active ? theme.Blue : theme.Ink;
         button.FlatAppearance.BorderColor = active ? theme.Blue : theme.Line;
-        button.FlatAppearance.MouseOverBackColor = active ? theme.Blue : theme.Surface;
-        button.FlatAppearance.MouseDownBackColor = active ? theme.Blue : theme.SurfaceAlt;
+        button.FlatAppearance.MouseOverBackColor = theme.Surface;
+        button.FlatAppearance.MouseDownBackColor = theme.SurfaceAlt;
     }
 
     private void StyleComboBox(ComboBox comboBox, WzTheme theme)
@@ -4007,6 +4706,7 @@ public sealed class WzproCompanionApp : Form
         Resize += delegate
         {
             if (WindowState == FormWindowState.Minimized) HideToBackground();
+            else ApplyResponsiveLayout();
         };
 
         FormClosing += delegate(object sender, FormClosingEventArgs e)
@@ -4069,6 +4769,7 @@ public sealed class WzproCompanionApp : Form
             micAudioDevice = ExtractLine(text, "micAudio");
             string savedTrainingGoal = ExtractLine(text, "trainingGoal");
             if (savedTrainingGoal == "survive" || savedTrainingGoal == "finish" || savedTrainingGoal == "rotate" || savedTrainingGoal == "comms") trainingGoal = savedTrainingGoal;
+            compactMode = ExtractLine(text, "compactMode") == "1";
             string savedTrainingModule = ExtractLine(text, "trainingModule");
             foreach (string key in TrainingModuleKeys())
             {
@@ -4098,7 +4799,7 @@ public sealed class WzproCompanionApp : Form
     {
         Directory.CreateDirectory(sessionDir);
         SaveCurrentTrainingModuleState();
-        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes, Encoding.UTF8);
+        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "compactMode=" + (compactMode ? "1" : "0") + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes, Encoding.UTF8);
     }
 
     private static string ExtractLine(string text, string key)
@@ -4153,6 +4854,96 @@ public sealed class WzproCompanionApp : Form
             FileName = url,
             UseShellExecute = true
         });
+    }
+
+    private async Task CheckForUpdates(bool userRequested)
+    {
+        try
+        {
+            SafeUi(delegate
+            {
+                if (updateStatusLabel != null) updateStatusLabel.Text = userRequested ? T("updateChecking") : "";
+            });
+            using (HttpResponseMessage response = await http.GetAsync(site + "/api/companion/version?current=" + Uri.EscapeDataString(AppVersion)).ConfigureAwait(false))
+            {
+                if (!response.IsSuccessStatusCode)
+                {
+                    SafeUi(delegate { if (userRequested && updateStatusLabel != null) updateStatusLabel.Text = T("updateUnavailable"); });
+                    return;
+                }
+                string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                string latest = JsonString(body, "version");
+                if (string.IsNullOrWhiteSpace(latest)) latest = JsonString(body, "latestVersion");
+                string url = JsonString(body, "url");
+                if (string.IsNullOrWhiteSpace(url)) url = site + "/api/companion/download";
+                bool newer = IsNewerVersion(latest, AppVersion);
+                SafeUi(delegate
+                {
+                    updateAvailable = newer;
+                    updateUrl = newer ? url : "";
+                    if (updateStatusLabel != null) updateStatusLabel.Text = newer ? (T("updateAvailable") + latest) : T("updateCurrent");
+                    if (newer)
+                    {
+                        ShowToast(T("updateAvailable") + latest);
+                        if (tray != null) tray.ShowBalloonTip(4500, "WZPRO Companion", T("updateAvailable") + latest, ToolTipIcon.Info);
+                    }
+                });
+            }
+        }
+        catch
+        {
+            SafeUi(delegate { if (userRequested && updateStatusLabel != null) updateStatusLabel.Text = T("updateUnavailable"); });
+        }
+    }
+
+    private static bool IsNewerVersion(string latest, string current)
+    {
+        Version l, c;
+        if (!Version.TryParse(latest, out l) || !Version.TryParse(current, out c)) return false;
+        return l.CompareTo(c) > 0;
+    }
+
+    private void RestartApp()
+    {
+        try
+        {
+            string exe = Application.ExecutablePath;
+            allowExit = true;
+            StopCompanion();
+            if (tray != null) tray.Visible = false;
+            Process.Start(new ProcessStartInfo { FileName = exe, UseShellExecute = true });
+            Close();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(T("restartFailed") + ex.Message, "WZPRO Companion");
+        }
+    }
+
+    private void ToggleCompactMode()
+    {
+        compactMode = !compactMode;
+        if (compactMode) activePage = "free";
+        ApplyLanguage();
+        ShowPage(activePage);
+        SaveSession();
+    }
+
+    private void ContactSupport()
+    {
+        string body = "WZPRO Companion support" + Environment.NewLine
+            + "Version: " + AppVersion + Environment.NewLine
+            + "Site: " + site + Environment.NewLine
+            + "User: " + (string.IsNullOrWhiteSpace(connectedName) ? "not connected" : connectedName) + Environment.NewLine
+            + "Premium: " + (premiumAccessActive ? "active" : "inactive") + Environment.NewLine
+            + "Running: " + IsRunning + Environment.NewLine
+            + "Recorder: " + (recorderActive ? "active" : "idle") + Environment.NewLine
+            + "Clip mode: " + clipMode + " / " + socialFormat + Environment.NewLine
+            + "Clips folder: " + EffectiveClipsFolder() + Environment.NewLine
+            + "Last log:" + Environment.NewLine + (logBox == null ? "" : logBox.Text);
+        try { Clipboard.SetText(body); } catch { }
+        ShowToast(T("supportCopied"));
+        OpenUrl(site + "/contact");
     }
 
     private async Task StartLoginFlow()
@@ -4408,7 +5199,8 @@ public sealed class WzproCompanionApp : Form
         {
             historyCount++;
             sessionGameCount++;
-            historyList.Items.Insert(0, T("gamePrefix") + historyCount + " - " + line);
+            historyList.Items.Insert(0, BuildImportHistoryLine(line));
+            ShowToast(T("statsSent"));
             RefreshTrainingUi();
             if (premiumAccessActive && highlightsProEnabled && recorderActive)
             {
@@ -4445,6 +5237,17 @@ public sealed class WzproCompanionApp : Form
             statusLabel.Text = T("waiting");
             statusLabel.ForeColor = theme.Warn;
         }
+    }
+
+    private string BuildImportHistoryLine(string line)
+    {
+        int kills = ParseIntAfter(line, "kills", -1);
+        Match dmgM = Regex.Match(line, "([0-9]+)\\s*damage", RegexOptions.IgnoreCase);
+        Match placeM = Regex.Match(line, "place\\s*#?\\s*([0-9]+)", RegexOptions.IgnoreCase);
+        string damage = dmgM.Success ? dmgM.Groups[1].Value : "-";
+        string place = placeM.Success ? "#" + placeM.Groups[1].Value : "-";
+        string killText = kills >= 0 ? kills.ToString() : "-";
+        return DateTime.Now.ToString("HH:mm") + "  " + T("gamePrefix") + historyCount + "  |  " + killText + " K  |  " + damage + " dmg  |  " + place;
     }
 
     private void HideToBackground()
