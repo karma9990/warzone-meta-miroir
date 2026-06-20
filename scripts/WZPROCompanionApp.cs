@@ -146,6 +146,8 @@ public sealed class WzproCompanionApp : Form
     private Panel trainingReviewCard;
     private Panel trainingReadinessCard;
     private Panel trainingHeatmapCard;
+    private Panel trainingCategoryCard;
+    private Panel trainingModuleCard;
     private Panel profilePanel;
     private PictureBox profilePictureBox;
     private Label profileNameLabel;
@@ -177,16 +179,25 @@ public sealed class WzproCompanionApp : Form
     private Button trainingZoneCButton;
     private Button trainingZoneDButton;
     private Button trainingResetButton;
+    private Button trainingModuleDoneButton;
+    private Button trainingModuleResetButton;
     private CheckBox highlightsToggle;
     private CheckBox trainingDropCheck;
     private CheckBox trainingRotateCheck;
     private CheckBox trainingPushCheck;
     private CheckBox trainingRegainCheck;
     private CheckBox trainingTiltCheck;
+    private CheckBox trainingModuleCheck1;
+    private CheckBox trainingModuleCheck2;
+    private CheckBox trainingModuleCheck3;
+    private CheckBox trainingModuleCheck4;
+    private CheckBox trainingModuleCheck5;
     private ComboBox languageBox;
     private ComboBox welcomeLanguageBox;
     private NumericUpDown pollBox;
     private ListBox historyList;
+    private ListBox trainingCategoryList;
+    private TextBox trainingModuleNotesBox;
     private TextBox logBox;
     private ToolStripMenuItem trayShowItem;
     private ToolStripMenuItem trayStartItem;
@@ -205,10 +216,15 @@ public sealed class WzproCompanionApp : Form
     private string languageCode = "fr";
     private string activePage = "free";
     private string trainingGoal = "survive";
+    private string trainingModuleKey = "death";
+    private string trainingModuleStates = "";
+    private string trainingModuleNotes = "";
     private int[] trainingZoneRisk = new int[] { 2, 1, 1, 0 };
     private string clipsFolderPath = "";
     private bool highlightsProEnabled;
     private bool updatingLanguageUi;
+    private bool updatingTrainingCategoryUi;
+    private bool updatingTrainingModuleUi;
     private bool pollingLogin;
     private bool allowExit;
     private bool minimizeNoticeShown;
@@ -742,6 +758,89 @@ public sealed class WzproCompanionApp : Form
         trainingGoalCommsButton.Click += delegate { SetTrainingGoal("comms"); };
         trainingGoalCard.Controls.Add(trainingGoalCommsButton);
 
+        trainingCategoryCard = new Panel
+        {
+            Location = new Point(34, 340),
+            Size = new Size(220, 300),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(trainingCategoryCard);
+
+        var trainingCategoryTitleLabel = Label("", 16, 14, 180, 22, 10, FontStyle.Bold, Color.White);
+        trainingCategoryTitleLabel.Name = "trainingCategoryTitleLabel";
+        trainingCategoryCard.Controls.Add(trainingCategoryTitleLabel);
+
+        trainingCategoryList = new ListBox
+        {
+            Location = new Point(14, 44),
+            Size = new Size(192, 238),
+            BackColor = Color.FromArgb(4, 4, 6),
+            ForeColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle,
+            Font = AppFont(8, FontStyle.Regular)
+        };
+        trainingCategoryList.SelectedIndexChanged += delegate { OnTrainingCategoryChanged(); };
+        trainingCategoryCard.Controls.Add(trainingCategoryList);
+
+        trainingModuleCard = new Panel
+        {
+            Location = new Point(268, 340),
+            Size = new Size(456, 300),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        mainPanel.Controls.Add(trainingModuleCard);
+
+        var trainingModuleTitleLabel = Label("", 18, 14, 390, 22, 10, FontStyle.Bold, Color.White);
+        trainingModuleTitleLabel.Name = "trainingModuleTitleLabel";
+        trainingModuleCard.Controls.Add(trainingModuleTitleLabel);
+
+        var trainingModuleDescLabel = Label("", 18, 40, 410, 42, 8, FontStyle.Regular, Color.FromArgb(150, 150, 155));
+        trainingModuleDescLabel.Name = "trainingModuleDescLabel";
+        trainingModuleCard.Controls.Add(trainingModuleDescLabel);
+
+        trainingModuleCheck1 = TrainingCheckBox(18, 88);
+        trainingModuleCheck2 = TrainingCheckBox(18, 112);
+        trainingModuleCheck3 = TrainingCheckBox(18, 136);
+        trainingModuleCheck4 = TrainingCheckBox(18, 160);
+        trainingModuleCheck5 = TrainingCheckBox(18, 184);
+        trainingModuleCard.Controls.Add(trainingModuleCheck1);
+        trainingModuleCard.Controls.Add(trainingModuleCheck2);
+        trainingModuleCard.Controls.Add(trainingModuleCheck3);
+        trainingModuleCard.Controls.Add(trainingModuleCheck4);
+        trainingModuleCard.Controls.Add(trainingModuleCheck5);
+
+        var trainingModuleNotesLabel = Label("", 18, 212, 90, 18, 8, FontStyle.Bold, Color.White);
+        trainingModuleNotesLabel.Name = "trainingModuleNotesLabel";
+        trainingModuleCard.Controls.Add(trainingModuleNotesLabel);
+
+        trainingModuleNotesBox = new TextBox
+        {
+            Location = new Point(110, 208),
+            Size = new Size(196, 56),
+            Multiline = true,
+            ScrollBars = ScrollBars.Vertical,
+            BackColor = Color.FromArgb(4, 4, 6),
+            ForeColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle,
+            Font = AppFont(8, FontStyle.Regular)
+        };
+        trainingModuleNotesBox.TextChanged += delegate { OnTrainingModuleNotesChanged(); };
+        trainingModuleCard.Controls.Add(trainingModuleNotesBox);
+
+        trainingModuleDoneButton = Button("", 318, 208, 116, 28, Color.FromArgb(22, 60, 255));
+        trainingModuleDoneButton.Click += delegate { MarkTrainingModuleDone(); };
+        trainingModuleCard.Controls.Add(trainingModuleDoneButton);
+
+        trainingModuleResetButton = Button("", 318, 244, 116, 28, Color.FromArgb(42, 42, 48));
+        trainingModuleResetButton.Click += delegate { ResetTrainingModule(); };
+        trainingModuleCard.Controls.Add(trainingModuleResetButton);
+
+        var trainingModuleStatusLabel = Label("", 18, 274, 410, 18, 8, FontStyle.Bold, Color.FromArgb(120, 150, 255));
+        trainingModuleStatusLabel.Name = "trainingModuleStatusLabel";
+        trainingModuleCard.Controls.Add(trainingModuleStatusLabel);
+
         trainingReviewCard = new Panel
         {
             Location = new Point(34, 340),
@@ -893,6 +992,8 @@ public sealed class WzproCompanionApp : Form
         };
         checkBox.CheckedChanged += delegate
         {
+            if (updatingTrainingModuleUi) return;
+            SaveCurrentTrainingModuleState();
             RefreshTrainingUi();
             SaveSession();
         };
@@ -987,6 +1088,11 @@ public sealed class WzproCompanionApp : Form
                 case "trainingGoalFinish": return "FINISH";
                 case "trainingGoalRotate": return "ROTATE";
                 case "trainingGoalComms": return "COMMS";
+                case "trainingCategoriesTitle": return "Training categories";
+                case "trainingModuleNotes": return "Notes";
+                case "trainingModuleDone": return "DONE";
+                case "trainingModuleProgress": return "Progress ";
+                case "trainingModuleScore": return "Score ";
                 case "trainingReviewTitle": return "Decision review";
                 case "trainingReviewDrop": return "Dropped too hot";
                 case "trainingReviewRotate": return "Late rotation";
@@ -1176,6 +1282,11 @@ public sealed class WzproCompanionApp : Form
                 case "trainingGoalFinish": return "REMATAR";
                 case "trainingGoalRotate": return "ROTAR";
                 case "trainingGoalComms": return "COMMS";
+                case "trainingCategoriesTitle": return "Categorias";
+                case "trainingModuleNotes": return "Notas";
+                case "trainingModuleDone": return "HECHO";
+                case "trainingModuleProgress": return "Progreso ";
+                case "trainingModuleScore": return "Score ";
                 case "trainingReviewTitle": return "Review de decisiones";
                 case "trainingReviewDrop": return "Caida demasiado caliente";
                 case "trainingReviewRotate": return "Rotacion tarde";
@@ -1364,6 +1475,11 @@ public sealed class WzproCompanionApp : Form
             case "trainingGoalFinish": return "FINIR";
             case "trainingGoalRotate": return "ROTATION";
             case "trainingGoalComms": return "COMMS";
+            case "trainingCategoriesTitle": return "Categories";
+            case "trainingModuleNotes": return "Notes";
+            case "trainingModuleDone": return "FAIT";
+            case "trainingModuleProgress": return "Progression ";
+            case "trainingModuleScore": return "Score ";
             case "trainingReviewTitle": return "Review decision";
             case "trainingReviewDrop": return "Drop trop chaud";
             case "trainingReviewRotate": return "Rotation tardive";
@@ -1626,9 +1742,11 @@ public sealed class WzproCompanionApp : Form
 
         if (trainingInfoCard != null) trainingInfoCard.Visible = training;
         if (trainingGoalCard != null) trainingGoalCard.Visible = training;
-        if (trainingReviewCard != null) trainingReviewCard.Visible = training;
-        if (trainingReadinessCard != null) trainingReadinessCard.Visible = training;
-        if (trainingHeatmapCard != null) trainingHeatmapCard.Visible = training;
+        if (trainingCategoryCard != null) trainingCategoryCard.Visible = training;
+        if (trainingModuleCard != null) trainingModuleCard.Visible = training;
+        if (trainingReviewCard != null) trainingReviewCard.Visible = false;
+        if (trainingReadinessCard != null) trainingReadinessCard.Visible = false;
+        if (trainingHeatmapCard != null) trainingHeatmapCard.Visible = false;
         if (training) RefreshTrainingUi();
 
         StylePageButtons(Theme);
@@ -1644,6 +1762,327 @@ public sealed class WzproCompanionApp : Form
         trainingGoal = goal;
         RefreshTrainingUi();
         SaveSession();
+    }
+
+    private string[] TrainingModuleKeys()
+    {
+        return new string[]
+        {
+            "death", "timeline", "goals", "discipline", "loadout",
+            "regain", "endgame", "comms", "heatmap", "weekly",
+            "routines", "lostDamage", "ranked", "journal", "overlay"
+        };
+    }
+
+    private string TrainingModuleListLabel(string key)
+    {
+        switch (key)
+        {
+            case "death": return "01  Analyse des morts";
+            case "timeline": return "02  Timeline de game";
+            case "goals": return "03  Objectifs session";
+            case "discipline": return "04  Score discipline";
+            case "loadout": return "05  Review de classe";
+            case "regain": return "06  Regain";
+            case "endgame": return "07  Endgame";
+            case "comms": return "08  Comms & Squad";
+            case "heatmap": return "09  Heatmap perso";
+            case "weekly": return "10  Entrainement hebdo";
+            case "routines": return "11  Bibliotheque routines";
+            case "lostDamage": return "12  Degats perdus";
+            case "ranked": return "13  Ranked readiness";
+            case "journal": return "14  Journal decisions";
+            case "overlay": return "15  Coach overlay";
+        }
+        return key;
+    }
+
+    private string TrainingModuleTitle(string key)
+    {
+        switch (key)
+        {
+            case "death": return "Analyse des morts avancee";
+            case "timeline": return "Timeline de game";
+            case "goals": return "Objectifs personnalises de session";
+            case "discipline": return "Score de discipline";
+            case "loadout": return "Review de classe apres performance";
+            case "regain": return "Categorie Regain";
+            case "endgame": return "Categorie Endgame";
+            case "comms": return "Comms & Squad";
+            case "heatmap": return "Heatmap personnelle";
+            case "weekly": return "Mode entrainement hebdo";
+            case "routines": return "Bibliotheque de routines";
+            case "lostDamage": return "Analyse Degats perdus";
+            case "ranked": return "Mode Ranked Readiness";
+            case "journal": return "Journal de decisions";
+            case "overlay": return "Coach vocal / overlay minimal";
+        }
+        return "Training module";
+    }
+
+    private string TrainingModuleDesc(string key)
+    {
+        switch (key)
+        {
+            case "death": return "Tag rapide de la cause de mort apres game pour trouver ce qui coute vraiment les sessions.";
+            case "timeline": return "Frise manuelle et semi-auto: drop, kill, mort, regain, loadout, top 10 et fin de partie.";
+            case "goals": return "Objectif choisi avant de jouer, puis verdict de reussite apres la session.";
+            case "discipline": return "Indicateur hors K/D base sur placement, regularite, top 10 et efficacite des degats.";
+            case "loadout": return "Conseils de classe selon degats, kills, morts close range ou placement trop passif.";
+            case "regain": return "Guides de redeploy: ou atterrir, quoi looter, quel contrat prendre, rejoindre ou temporiser.";
+            case "endgame": return "Checklist derniers cercles: masque, hauteur, smokes, streaks, self-revive et tempo squad.";
+            case "comms": return "Callouts courts, roles d equipe et checklist de communication pour ranked.";
+            case "heatmap": return "Zones favorites, zones de mort et zones de victoire alimentees manuellement.";
+            case "weekly": return "Plan 7 jours relie au coach: aim, rotations, regain, discipline ranked et review.";
+            case "routines": return "Routines courtes pour warmup, anti-tilt, recoil control, regain et reset mental.";
+            case "lostDamage": return "Ratio degats/kills pour detecter les games ou tu casses sans finir.";
+            case "ranked": return "Check pre-ranked: classe, objectif, forme recente et stabilite avant de lancer.";
+            case "journal": return "Apres mauvaise game, marque drop, fight, rotation, loadout ou tilt; l app ressort le pattern.";
+            case "overlay": return "Rappels minimalistes selon l objectif: rotate early, play life, reset mental.";
+        }
+        return "";
+    }
+
+    private string[] TrainingModuleChecklist(string key)
+    {
+        switch (key)
+        {
+            case "death": return new string[] { "Mort en rotation", "Mort sans cover", "Mort apres revive", "Push isole", "Zone / gaz" };
+            case "timeline": return new string[] { "Drop note", "Premier kill marque", "Loadout / regain marque", "Top 10 marque", "Fin de game marquee" };
+            case "goals": return new string[] { "Objectif choisi", "Seuil mesurable fixe", "Objectif garde visible", "Session verifiee", "Reussi ou a refaire" };
+            case "discipline": return new string[] { "Placement stable", "Moins de morts early", "Top 10 suivi", "Degats par kill propres", "Regularite OK" };
+            case "loadout": return new string[] { "Degats sans kills", "Morts close range", "Placement trop passif", "SMG/secondary verifie", "Classe ajustee" };
+            case "regain": return new string[] { "Spot redeploy choisi", "Loot prioritaire", "Contrat prioritaire", "Shop identifie", "Solo safe ou team" };
+            case "endgame": return new string[] { "Masque / gaz", "Streaks prets", "Hauteur controlee", "Smokes / cover", "Self-revive / trade" };
+            case "comms": return new string[] { "Callouts courts", "Role entry", "Role support", "Role anchor/sniper", "Score comms note" };
+            case "heatmap": return new string[] { "Zone favorite", "Zone de mort", "Zone de win", "Zone interdite", "Zone a retester" };
+            case "weekly": return new string[] { "Jour aim", "Jour rotations", "Jour regain", "Jour discipline", "Jour review coach" };
+            case "routines": return new string[] { "Warmup 10 min", "Anti-tilt", "Regain practice", "Recoil control", "Reset mental" };
+            case "lostDamage": return new string[] { "Ratio degats/kills", "Cracks non finis", "Push timing", "Angles de finish", "TTK close range" };
+            case "ranked": return new string[] { "Classe prete", "Objectif clair", "Forme recente", "Mental stable", "Verdict ranked" };
+            case "journal": return new string[] { "Mauvais drop", "Mauvais fight", "Mauvaise rotation", "Mauvais loadout", "Tilt" };
+            case "overlay": return new string[] { "Rotate early", "Play life", "Reset mental", "Rappel objectif", "Overlay minimal actif" };
+        }
+        return new string[] { "", "", "", "", "" };
+    }
+
+    private void PopulateTrainingCategories()
+    {
+        if (trainingCategoryList == null || updatingTrainingCategoryUi) return;
+        updatingTrainingCategoryUi = true;
+        try
+        {
+            string[] keys = TrainingModuleKeys();
+            int selected = 0;
+            trainingCategoryList.Items.Clear();
+            for (int i = 0; i < keys.Length; i++)
+            {
+                if (keys[i] == trainingModuleKey) selected = i;
+                trainingCategoryList.Items.Add(TrainingModuleListLabel(keys[i]));
+            }
+            if (trainingCategoryList.Items.Count > 0) trainingCategoryList.SelectedIndex = selected;
+        }
+        finally
+        {
+            updatingTrainingCategoryUi = false;
+        }
+    }
+
+    private void OnTrainingCategoryChanged()
+    {
+        if (updatingTrainingCategoryUi || trainingCategoryList == null) return;
+        string[] keys = TrainingModuleKeys();
+        if (trainingCategoryList.SelectedIndex < 0 || trainingCategoryList.SelectedIndex >= keys.Length) return;
+        SaveCurrentTrainingModuleState();
+        trainingModuleKey = keys[trainingCategoryList.SelectedIndex];
+        RefreshTrainingModuleUi();
+        SaveSession();
+    }
+
+    private void RefreshTrainingModuleUi()
+    {
+        if (trainingModuleCard == null) return;
+        updatingTrainingModuleUi = true;
+        try
+        {
+            Label label;
+            label = NamedLabel(trainingCategoryCard, "trainingCategoryTitleLabel");
+            if (label != null) label.Text = T("trainingCategoriesTitle");
+            label = NamedLabel(trainingModuleCard, "trainingModuleTitleLabel");
+            if (label != null) label.Text = TrainingModuleTitle(trainingModuleKey);
+            label = NamedLabel(trainingModuleCard, "trainingModuleDescLabel");
+            if (label != null) label.Text = TrainingModuleDesc(trainingModuleKey);
+            label = NamedLabel(trainingModuleCard, "trainingModuleNotesLabel");
+            if (label != null) label.Text = T("trainingModuleNotes");
+            label = NamedLabel(trainingModuleCard, "trainingModuleStatusLabel");
+            if (label != null) label.Text = TrainingModuleStatusText(trainingModuleKey);
+
+            string[] checklist = TrainingModuleChecklist(trainingModuleKey);
+            string bits = GetTrainingModuleBits(trainingModuleKey);
+            SetModuleCheck(trainingModuleCheck1, checklist, bits, 0);
+            SetModuleCheck(trainingModuleCheck2, checklist, bits, 1);
+            SetModuleCheck(trainingModuleCheck3, checklist, bits, 2);
+            SetModuleCheck(trainingModuleCheck4, checklist, bits, 3);
+            SetModuleCheck(trainingModuleCheck5, checklist, bits, 4);
+
+            if (trainingModuleNotesBox != null) trainingModuleNotesBox.Text = GetTrainingModuleNote(trainingModuleKey);
+            if (trainingModuleDoneButton != null) trainingModuleDoneButton.Text = T("trainingModuleDone");
+            if (trainingModuleResetButton != null) trainingModuleResetButton.Text = T("trainingReset");
+        }
+        finally
+        {
+            updatingTrainingModuleUi = false;
+        }
+
+        var theme = Theme;
+        StyleCheckBox(trainingModuleCheck1, theme);
+        StyleCheckBox(trainingModuleCheck2, theme);
+        StyleCheckBox(trainingModuleCheck3, theme);
+        StyleCheckBox(trainingModuleCheck4, theme);
+        StyleCheckBox(trainingModuleCheck5, theme);
+        StylePrimaryButton(trainingModuleDoneButton, theme);
+        StyleSecondaryButton(trainingModuleResetButton, theme);
+    }
+
+    private string TrainingModuleStatusText(string key)
+    {
+        string bits = GetTrainingModuleBits(key);
+        int checkedCount = 0;
+        for (int i = 0; i < bits.Length; i++) if (bits[i] == '1') checkedCount++;
+        int score = Math.Min(100, checkedCount * 20);
+        if (key == "discipline") score = Math.Min(100, score + Math.Min(historyCount, 10) * 2);
+        if (key == "ranked") score = Math.Min(100, (score + TrainingReadinessScore()) / 2);
+        if (key == "lostDamage" && trainingGoal == "finish") score = Math.Min(100, score + 10);
+        if (key == "journal") score = Math.Min(100, score + TrainingReviewCount() * 6);
+        return T("trainingModuleProgress") + checkedCount + "/5  |  " + T("trainingModuleScore") + score + "/100";
+    }
+
+    private void SetModuleCheck(CheckBox checkBox, string[] labels, string bits, int index)
+    {
+        if (checkBox == null) return;
+        checkBox.Text = index < labels.Length ? labels[index] : "";
+        checkBox.Checked = bits.Length > index && bits[index] == '1';
+    }
+
+    private void SaveCurrentTrainingModuleState()
+    {
+        if (updatingTrainingModuleUi || string.IsNullOrWhiteSpace(trainingModuleKey)) return;
+        if (trainingModuleCheck1 == null && trainingModuleNotesBox == null) return;
+        string bits =
+            (trainingModuleCheck1 != null && trainingModuleCheck1.Checked ? "1" : "0") +
+            (trainingModuleCheck2 != null && trainingModuleCheck2.Checked ? "1" : "0") +
+            (trainingModuleCheck3 != null && trainingModuleCheck3.Checked ? "1" : "0") +
+            (trainingModuleCheck4 != null && trainingModuleCheck4.Checked ? "1" : "0") +
+            (trainingModuleCheck5 != null && trainingModuleCheck5.Checked ? "1" : "0");
+        trainingModuleStates = SetTrainingMapValue(trainingModuleStates, trainingModuleKey, bits);
+        if (trainingModuleNotesBox != null)
+        {
+            trainingModuleNotes = SetTrainingMapValue(trainingModuleNotes, trainingModuleKey, EncodeSessionValue(trainingModuleNotesBox.Text));
+        }
+    }
+
+    private string GetTrainingModuleBits(string key)
+    {
+        string value = GetTrainingMapValue(trainingModuleStates, key);
+        if (string.IsNullOrWhiteSpace(value)) return "00000";
+        while (value.Length < 5) value += "0";
+        return value.Substring(0, 5);
+    }
+
+    private string GetTrainingModuleNote(string key)
+    {
+        return DecodeSessionValue(GetTrainingMapValue(trainingModuleNotes, key));
+    }
+
+    private void OnTrainingModuleNotesChanged()
+    {
+        if (updatingTrainingModuleUi) return;
+        SaveCurrentTrainingModuleState();
+        SaveSession();
+    }
+
+    private void MarkTrainingModuleDone()
+    {
+        SetTrainingCheck(trainingModuleCheck1, true);
+        SetTrainingCheck(trainingModuleCheck2, true);
+        SetTrainingCheck(trainingModuleCheck3, true);
+        SetTrainingCheck(trainingModuleCheck4, true);
+        SetTrainingCheck(trainingModuleCheck5, true);
+        SaveCurrentTrainingModuleState();
+        RefreshTrainingUi();
+        SaveSession();
+    }
+
+    private void ResetTrainingModule()
+    {
+        SetTrainingCheck(trainingModuleCheck1, false);
+        SetTrainingCheck(trainingModuleCheck2, false);
+        SetTrainingCheck(trainingModuleCheck3, false);
+        SetTrainingCheck(trainingModuleCheck4, false);
+        SetTrainingCheck(trainingModuleCheck5, false);
+        if (trainingModuleNotesBox != null) trainingModuleNotesBox.Text = "";
+        SaveCurrentTrainingModuleState();
+        RefreshTrainingUi();
+        SaveSession();
+    }
+
+    private string GetTrainingMapValue(string map, string key)
+    {
+        if (string.IsNullOrWhiteSpace(map) || string.IsNullOrWhiteSpace(key)) return "";
+        string[] entries = map.Split(';');
+        for (int i = 0; i < entries.Length; i++)
+        {
+            int p = entries[i].IndexOf(':');
+            if (p <= 0) continue;
+            if (string.Equals(entries[i].Substring(0, p), key, StringComparison.OrdinalIgnoreCase)) return entries[i].Substring(p + 1);
+        }
+        return "";
+    }
+
+    private string SetTrainingMapValue(string map, string key, string value)
+    {
+        var entries = new System.Collections.Generic.List<string>();
+        bool written = false;
+        if (!string.IsNullOrWhiteSpace(map))
+        {
+            string[] existing = map.Split(';');
+            for (int i = 0; i < existing.Length; i++)
+            {
+                int p = existing[i].IndexOf(':');
+                if (p <= 0) continue;
+                string entryKey = existing[i].Substring(0, p);
+                if (string.Equals(entryKey, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!string.IsNullOrEmpty(value)) entries.Add(key + ":" + value);
+                    written = true;
+                }
+                else
+                {
+                    entries.Add(existing[i]);
+                }
+            }
+        }
+        if (!written && !string.IsNullOrEmpty(value)) entries.Add(key + ":" + value);
+        return string.Join(";", entries.ToArray());
+    }
+
+    private string EncodeSessionValue(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return "";
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+    }
+
+    private string DecodeSessionValue(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "";
+        try
+        {
+            return Encoding.UTF8.GetString(Convert.FromBase64String(value));
+        }
+        catch
+        {
+            return "";
+        }
     }
 
     private void CycleTrainingZone(int index)
@@ -1664,6 +2103,9 @@ public sealed class WzproCompanionApp : Form
         SetTrainingCheck(trainingRegainCheck, false);
         SetTrainingCheck(trainingTiltCheck, false);
         trainingZoneRisk = new int[] { 2, 1, 1, 0 };
+        trainingModuleKey = "death";
+        trainingModuleStates = "";
+        trainingModuleNotes = "";
         RefreshTrainingUi();
         SaveSession();
     }
@@ -1767,6 +2209,8 @@ public sealed class WzproCompanionApp : Form
         if (label != null) label.Text = T("trainingHeatmapTitle");
         label = NamedLabel(trainingHeatmapCard, "trainingHeatmapDescLabel");
         if (label != null) label.Text = T("trainingHeatmapDesc");
+        label = NamedLabel(trainingCategoryCard, "trainingCategoryTitleLabel");
+        if (label != null) label.Text = T("trainingCategoriesTitle");
 
         if (trainingButton != null) trainingButton.Text = T("trainingAccess");
         if (trainingGoalSurviveButton != null) trainingGoalSurviveButton.Text = T("trainingGoalSurvive");
@@ -1779,6 +2223,8 @@ public sealed class WzproCompanionApp : Form
         if (trainingRegainCheck != null) trainingRegainCheck.Text = T("trainingReviewRegain");
         if (trainingTiltCheck != null) trainingTiltCheck.Text = T("trainingReviewTilt");
         if (trainingResetButton != null) trainingResetButton.Text = T("trainingReset");
+        PopulateTrainingCategories();
+        RefreshTrainingModuleUi();
 
         int score = TrainingReadinessScore();
         label = NamedLabel(trainingReadinessCard, "trainingReadinessValueLabel");
@@ -3214,6 +3660,8 @@ public sealed class WzproCompanionApp : Form
         if (trainingReviewCard != null) trainingReviewCard.BackColor = theme.Surface;
         if (trainingReadinessCard != null) trainingReadinessCard.BackColor = theme.Surface;
         if (trainingHeatmapCard != null) trainingHeatmapCard.BackColor = theme.Surface;
+        if (trainingCategoryCard != null) trainingCategoryCard.BackColor = theme.Surface;
+        if (trainingModuleCard != null) trainingModuleCard.BackColor = theme.Surface;
         if (profilePanel != null) profilePanel.BackColor = theme.SurfaceAlt;
         if (profileNameLabel != null) profileNameLabel.ForeColor = theme.Ink;
         if (profilePictureBox != null) profilePictureBox.BackColor = Color.Transparent;
@@ -3242,6 +3690,8 @@ public sealed class WzproCompanionApp : Form
         if (trainingReviewCard != null) trainingReviewCard.BackColor = theme.Surface;
         if (trainingReadinessCard != null) trainingReadinessCard.BackColor = theme.Surface;
         if (trainingHeatmapCard != null) trainingHeatmapCard.BackColor = theme.Surface;
+        if (trainingCategoryCard != null) trainingCategoryCard.BackColor = theme.Surface;
+        if (trainingModuleCard != null) trainingModuleCard.BackColor = theme.Surface;
         if (profilePanel != null) profilePanel.BackColor = theme.SurfaceAlt;
         if (profileNameLabel != null) profileNameLabel.ForeColor = theme.Ink;
         if (profilePictureBox != null) profilePictureBox.BackColor = Color.Transparent;
@@ -3486,6 +3936,17 @@ public sealed class WzproCompanionApp : Form
             micAudioDevice = ExtractLine(text, "micAudio");
             string savedTrainingGoal = ExtractLine(text, "trainingGoal");
             if (savedTrainingGoal == "survive" || savedTrainingGoal == "finish" || savedTrainingGoal == "rotate" || savedTrainingGoal == "comms") trainingGoal = savedTrainingGoal;
+            string savedTrainingModule = ExtractLine(text, "trainingModule");
+            foreach (string key in TrainingModuleKeys())
+            {
+                if (savedTrainingModule == key)
+                {
+                    trainingModuleKey = savedTrainingModule;
+                    break;
+                }
+            }
+            trainingModuleStates = ExtractLine(text, "trainingModuleStates");
+            trainingModuleNotes = ExtractLine(text, "trainingModuleNotes");
             LoadTrainingReviewState(ExtractLine(text, "trainingReview"));
             LoadTrainingZonesState(ExtractLine(text, "trainingZones"));
             if (highlightsToggle != null) highlightsToggle.Checked = highlightsProEnabled;
@@ -3503,7 +3964,8 @@ public sealed class WzproCompanionApp : Form
     private void SaveSession()
     {
         Directory.CreateDirectory(sessionDir);
-        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState(), Encoding.UTF8);
+        SaveCurrentTrainingModuleState();
+        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes, Encoding.UTF8);
     }
 
     private static string ExtractLine(string text, string key)
