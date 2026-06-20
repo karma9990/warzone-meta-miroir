@@ -150,6 +150,9 @@ public sealed class WzproCompanionApp : Form
     private Point overlayDragStart;
     private bool overlayDragging;
     private int overlayX = 24, overlayY = 24; // persisted overlay position
+    private bool overlayShowGames = true, overlayShowHighlights = true, overlayShowMeta = true, overlayShowPerf = true;
+    private CheckBox overlayGamesCheck, overlayHighlightsCheck, overlayMetaCheck, overlayPerfCheck;
+    private bool applyingOverlayState; // suppresses checkbox events while syncing UI from saved state
     private Panel sidebarPanel;
     private Panel mainPanel;
     private Panel welcomePanel;
@@ -1098,12 +1101,27 @@ public sealed class WzproCompanionApp : Form
         mainPanel.Controls.Add(optimisationOverlayCard);
         optimisationOverlayTitleLabel = Label("", 24, 16, 440, 24, 11, FontStyle.Bold, Color.White);
         optimisationOverlayCard.Controls.Add(optimisationOverlayTitleLabel);
-        optimisationOverlayDescLabel = Label("", 24, 46, 480, 48, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
+        optimisationOverlayDescLabel = Label("", 24, 44, 480, 32, 8, FontStyle.Regular, Color.FromArgb(185, 185, 185));
         optimisationOverlayCard.Controls.Add(optimisationOverlayDescLabel);
         overlayToggleButton = Button("", 520, 46, 150, 40, Color.FromArgb(22, 60, 255));
         overlayToggleButton.Click += delegate { ToggleOverlay(); };
         optimisationOverlayCard.Controls.Add(overlayToggleButton);
-        optimisationOverlayStatusLabel = Label("", 24, 94, 480, 20, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
+        overlayGamesCheck = OverlayLineCheck(24, 82);
+        overlayGamesCheck.CheckedChanged += delegate { if (applyingOverlayState) return; overlayShowGames = overlayGamesCheck.Checked; OnOverlayLineToggle(); };
+        overlayHighlightsCheck = OverlayLineCheck(150, 82);
+        overlayHighlightsCheck.CheckedChanged += delegate { if (applyingOverlayState) return; overlayShowHighlights = overlayHighlightsCheck.Checked; OnOverlayLineToggle(); };
+        overlayMetaCheck = OverlayLineCheck(300, 82);
+        overlayMetaCheck.CheckedChanged += delegate { if (applyingOverlayState) return; overlayShowMeta = overlayMetaCheck.Checked; OnOverlayLineToggle(); };
+        overlayPerfCheck = OverlayLineCheck(420, 82);
+        overlayPerfCheck.CheckedChanged += delegate
+        {
+            if (applyingOverlayState) return;
+            overlayShowPerf = overlayPerfCheck.Checked;
+            if (!overlayShowPerf) { lastIdleTime = lastKernelTime = lastUserTime = 0; perfCpu = -1; } // reset CPU baseline so re-enabling doesn't spike
+            OnOverlayLineToggle();
+        };
+
+        optimisationOverlayStatusLabel = Label("", 24, 110, 480, 20, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
         optimisationOverlayCard.Controls.Add(optimisationOverlayStatusLabel);
 
         optimisationBoostCard = new Panel
@@ -1275,6 +1293,10 @@ public sealed class WzproCompanionApp : Form
                 case "optimisationBoostUnavailable": return "High Performance power plan not available on this PC.";
                 case "optimisationBoostOn": return "Game Boost on - High Performance power plan active.";
                 case "optimisationBoostOff": return "Game Boost off - power plan restored.";
+                case "overlayToggleGames": return "Games";
+                case "overlayToggleHighlights": return "Highlights";
+                case "overlayToggleMeta": return "Meta";
+                case "overlayTogglePerf": return "CPU/RAM";
                 case "premiumSideActive": return "PREMIUM ACTIVE";
                 case "premiumSideInactive": return "PREMIUM OFF";
                 case "recorderActive": return "RECORDER ACTIVE";
@@ -1506,6 +1528,10 @@ public sealed class WzproCompanionApp : Form
                 case "optimisationBoostUnavailable": return "Plan de energia Alto rendimiento no disponible en este PC.";
                 case "optimisationBoostOn": return "Game Boost activo - plan Alto rendimiento.";
                 case "optimisationBoostOff": return "Game Boost inactivo - plan de energia restaurado.";
+                case "overlayToggleGames": return "Partidas";
+                case "overlayToggleHighlights": return "Highlights";
+                case "overlayToggleMeta": return "Meta";
+                case "overlayTogglePerf": return "CPU/RAM";
                 case "premiumSideActive": return "PREMIUM ACTIVO";
                 case "premiumSideInactive": return "PREMIUM OFF";
                 case "recorderActive": return "RECORDER ACTIVO";
@@ -1736,6 +1762,10 @@ public sealed class WzproCompanionApp : Form
             case "optimisationBoostUnavailable": return "Mode Performances elevees indisponible sur ce PC.";
             case "optimisationBoostOn": return "Game Boost actif - mode Performances elevees.";
             case "optimisationBoostOff": return "Game Boost inactif - mode d alimentation restaure.";
+            case "overlayToggleGames": return "Parties";
+            case "overlayToggleHighlights": return "Moments forts";
+            case "overlayToggleMeta": return "Meta";
+            case "overlayTogglePerf": return "CPU/RAM";
             case "premiumSideActive": return "PREMIUM ACTIF";
             case "premiumSideInactive": return "PREMIUM INACTIF";
             case "recorderActive": return "RECORDER ACTIF";
@@ -2377,7 +2407,7 @@ public sealed class WzproCompanionApp : Form
         int pageTop = 92;
         int infoH = 84;
         int overlayTop = pageTop + infoH + 12;
-        int overlayH = 132;
+        int overlayH = 140;
         optimisationInfoCard.SetBounds(contentX, pageTop, contentW, infoH);
         optimisationOverlayCard.SetBounds(contentX, overlayTop, contentW, overlayH);
         if (optimisationPageDescLabel != null) optimisationPageDescLabel.Width = contentW - 48;
@@ -3422,6 +3452,27 @@ public sealed class WzproCompanionApp : Form
         optimisationOverlayStatusLabel.Text = on ? T("optimisationOverlayOn") : T("optimisationOverlayOff");
     }
 
+    private CheckBox OverlayLineCheck(int x, int y)
+    {
+        CheckBox cb = new CheckBox
+        {
+            Location = new Point(x, y),
+            AutoSize = true,
+            Checked = true,
+            FlatStyle = FlatStyle.Flat,
+            Font = AppFont(8, FontStyle.Regular),
+            ForeColor = Color.White
+        };
+        optimisationOverlayCard.Controls.Add(cb);
+        return cb;
+    }
+
+    private void OnOverlayLineToggle()
+    {
+        SaveSession();
+        if (overlayForm != null && overlayForm.Visible) UpdateOverlay();
+    }
+
     // ── Game Boost: temporarily switch to the High Performance power plan ──
     private static string RunPowercfg(string args)
     {
@@ -3562,23 +3613,24 @@ public sealed class WzproCompanionApp : Form
     {
         // Don't resize/repaint mid-drag (the AutoSize form would jitter under the cursor).
         if (overlayLabel == null || overlayDragging) return;
-        UpdatePerfSample();
+        if (overlayShowPerf) UpdatePerfSample();
         int mins = sessionStartUtc == default(DateTime)
             ? 0
             : Math.Max(0, (int)Math.Round(DateTime.UtcNow.Subtract(sessionStartUtc).TotalMinutes));
-        string meta = string.IsNullOrWhiteSpace(metaTodayWeapon) ? "" : Environment.NewLine + T("metaToday") + metaTodayWeapon;
+        string games = overlayShowGames ? Environment.NewLine + T("overlayGames") + sessionGameCount + "  /  " + mins + " min" : "";
+        string meta = (overlayShowMeta && !string.IsNullOrWhiteSpace(metaTodayWeapon)) ? Environment.NewLine + T("metaToday") + metaTodayWeapon : "";
         // RAM is valid from the first sample; CPU needs two samples, so show "--" until ready.
-        string perf = perfRam >= 0
+        string perf = (overlayShowPerf && perfRam >= 0)
             ? Environment.NewLine + "CPU " + (perfCpu >= 0 ? perfCpu.ToString() : "--") + "%  RAM " + perfRam + "%"
             : "";
-        string highlights = (premiumAccessActive && sessionHighlightCount > 0)
+        string highlights = (overlayShowHighlights && premiumAccessActive && sessionHighlightCount > 0)
             ? Environment.NewLine + T("overlayHighlights") + sessionHighlightCount
             : "";
         // Show the replay-key reminder only until the player has used it once.
         string replay = (premiumAccessActive && manualReplayHotkeyRegistered && lastManualReplayUtc == DateTime.MinValue)
             ? Environment.NewLine + T("overlayReplay") + activeReplayHotkeyLabel
             : "";
-        overlayLabel.Text = "WZPRO" + Environment.NewLine + T("overlayGames") + sessionGameCount + "  /  " + mins + " min" + highlights + meta + perf + replay;
+        overlayLabel.Text = "WZPRO" + games + highlights + meta + perf + replay;
     }
 
     // Sample CPU% (busy share of system time deltas) and RAM% (memory load) cheaply.
@@ -4563,6 +4615,12 @@ public sealed class WzproCompanionApp : Form
         if (optimisationOverlayTitleLabel != null) optimisationOverlayTitleLabel.Text = T("optimisationOverlayTitle");
         if (optimisationOverlayDescLabel != null) optimisationOverlayDescLabel.Text = T("optimisationOverlayDesc");
         if (overlayToggleButton != null) overlayToggleButton.Text = T("optimisationOverlayBtn");
+        applyingOverlayState = true;
+        if (overlayGamesCheck != null) { overlayGamesCheck.Text = T("overlayToggleGames"); overlayGamesCheck.Checked = overlayShowGames; }
+        if (overlayHighlightsCheck != null) { overlayHighlightsCheck.Text = T("overlayToggleHighlights"); overlayHighlightsCheck.Checked = overlayShowHighlights; }
+        if (overlayMetaCheck != null) { overlayMetaCheck.Text = T("overlayToggleMeta"); overlayMetaCheck.Checked = overlayShowMeta; }
+        if (overlayPerfCheck != null) { overlayPerfCheck.Text = T("overlayTogglePerf"); overlayPerfCheck.Checked = overlayShowPerf; }
+        applyingOverlayState = false;
         UpdateOverlayStatus();
         if (optimisationBoostTitleLabel != null) optimisationBoostTitleLabel.Text = T("optimisationBoostTitle");
         if (optimisationBoostDescLabel != null) optimisationBoostDescLabel.Text = T("optimisationBoostDesc");
@@ -4959,6 +5017,11 @@ public sealed class WzproCompanionApp : Form
             // currently-visible screen (handles disconnected and left/above monitors).
             if (int.TryParse(ExtractLine(text, "overlayX"), out savedX)) overlayX = savedX;
             if (int.TryParse(ExtractLine(text, "overlayY"), out savedY)) overlayY = savedY;
+            // Missing keys default to shown (older session files keep all lines on).
+            overlayShowGames = ExtractLine(text, "overlayShowGames") != "0";
+            overlayShowHighlights = ExtractLine(text, "overlayShowHighlights") != "0";
+            overlayShowMeta = ExtractLine(text, "overlayShowMeta") != "0";
+            overlayShowPerf = ExtractLine(text, "overlayShowPerf") != "0";
             string savedTrainingModule = ExtractLine(text, "trainingModule");
             foreach (string key in TrainingModuleKeys())
             {
@@ -4989,7 +5052,7 @@ public sealed class WzproCompanionApp : Form
         Directory.CreateDirectory(sessionDir);
         SaveCurrentTrainingModuleState();
         if (overlayForm != null) { overlayX = overlayForm.Location.X; overlayY = overlayForm.Location.Y; }
-        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "compactMode=" + (compactMode ? "1" : "0") + Environment.NewLine + "overlayX=" + overlayX + Environment.NewLine + "overlayY=" + overlayY + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes, Encoding.UTF8);
+        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "compactMode=" + (compactMode ? "1" : "0") + Environment.NewLine + "overlayX=" + overlayX + Environment.NewLine + "overlayY=" + overlayY + Environment.NewLine + "overlayShowGames=" + (overlayShowGames ? "1" : "0") + Environment.NewLine + "overlayShowHighlights=" + (overlayShowHighlights ? "1" : "0") + Environment.NewLine + "overlayShowMeta=" + (overlayShowMeta ? "1" : "0") + Environment.NewLine + "overlayShowPerf=" + (overlayShowPerf ? "1" : "0") + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes, Encoding.UTF8);
     }
 
     private static string ExtractLine(string text, string key)
