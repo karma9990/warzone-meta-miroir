@@ -1326,7 +1326,7 @@ public sealed class WzproCompanionApp : Form
                 case "goSettings": return "Ir a ajustes";
                 case "logout": return "Cerrar sesion";
                 case "welcomeKicker": return "ENTRA EN WZPRO";
-                case "welcomeTitle": return "WZPRO COMPANION TRACKTEA TUS STATS DE PARTIDA";
+                case "welcomeTitle": return "WZPRO COMPANION TRACKEA TUS STATS DE PARTIDA";
                 case "welcomeSubtitle": return "";
                 case "welcomeStats": return "Import de stats  /  Acceso gratis  /  Modulos premium listos";
                 case "welcomeLoginTitle": return "Conecta para continuar";
