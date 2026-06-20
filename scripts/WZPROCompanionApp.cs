@@ -73,9 +73,19 @@ public sealed class WzproCompanionApp : Form
     // Manual instant-replay global hotkey (Ctrl+Alt+R): saves the rolling buffer on demand,
     // even while the game holds focus in exclusive fullscreen.
     private const int ManualReplayHotkeyId = 0xB001;
-    private const uint ModAlt = 0x0001, ModControl = 0x0002, ModNoRepeat = 0x4000;
-    private const uint ManualReplayVk = 0x52; // VK_R
+    private const uint ModAlt = 0x0001, ModControl = 0x0002, ModShift = 0x0004, ModNoRepeat = 0x4000;
+    // Candidate combos tried in order; the first the OS lets us register wins, so a combo
+    // already claimed by another app falls back automatically. Deep-modifier combos only —
+    // bare Alt+Fn is avoided (Alt+F10 is NVIDIA ShadowPlay's default and F-keys are game-bound).
+    private static readonly ReplayHotkey[] ManualReplayCandidates = new ReplayHotkey[]
+    {
+        new ReplayHotkey(ModControl | ModAlt, 0x52, "Ctrl+Alt+R"),
+        new ReplayHotkey(ModControl | ModAlt, 0x78, "Ctrl+Alt+F9"),
+        new ReplayHotkey(ModControl | ModShift, 0x78, "Ctrl+Shift+F9"),
+    };
+    private string activeReplayHotkeyLabel = "";
     private bool manualReplayHotkeyRegistered;
+    private bool replayHotkeyToastShown;
     private IntPtr registeredHotkeyHwnd = IntPtr.Zero;
     private DateTime lastManualReplayUtc = DateTime.MinValue;
     private Form toastForm;
@@ -1183,8 +1193,10 @@ public sealed class WzproCompanionApp : Form
                 case "manualReplayPremium": return "Instant replay is a Premium feature.";
                 case "manualReplayEmpty": return "Nothing buffered yet - play a few seconds first.";
                 case "manualReplayNoRecorder": return "Recorder not ready - start a game first.";
-                case "manualReplayHotkeyTaken": return "Instant replay hotkey (Ctrl+Alt+R) is already used by another app.";
-                case "manualReplayHint": return "Instant replay: Ctrl+Alt+R saves the last clip on demand.";
+                case "manualReplayHotkeyActive": return "Instant replay hotkey active: ";
+                case "manualReplayHotkeyUnavailable": return "Instant replay unavailable (hotkey conflict).";
+                case "manualReplayHotkeyTaken": return "No instant replay hotkey could be registered (all taken by other apps).";
+                case "manualReplayHint": return "Instant replay: {key} saves the last clip on demand.";
                 case "modeSocial": return "Output: Social (montage)";
                 case "modeRaw": return "Output: Raw clips (pro)";
                 case "modeFull": return "Output: Full game + AI coach";
@@ -1377,8 +1389,10 @@ public sealed class WzproCompanionApp : Form
                 case "manualReplayPremium": return "La repeticion instantanea es una funcion Premium.";
                 case "manualReplayEmpty": return "Aun no hay grabacion - juega unos segundos primero.";
                 case "manualReplayNoRecorder": return "Grabador no listo - inicia una partida primero.";
-                case "manualReplayHotkeyTaken": return "El atajo de repeticion (Ctrl+Alt+R) ya lo usa otra app.";
-                case "manualReplayHint": return "Repeticion instantanea: Ctrl+Alt+R guarda el ultimo clip al instante.";
+                case "manualReplayHotkeyActive": return "Atajo de repeticion activo: ";
+                case "manualReplayHotkeyUnavailable": return "Repeticion instantanea no disponible (conflicto de atajo).";
+                case "manualReplayHotkeyTaken": return "No se pudo registrar ningun atajo de repeticion (todos en uso por otras apps).";
+                case "manualReplayHint": return "Repeticion instantanea: {key} guarda el ultimo clip al instante.";
                 case "modeSocial": return "Salida: Redes (montaje)";
                 case "modeRaw": return "Salida: Bruto (pro)";
                 case "modeFull": return "Salida: Partida + Coach IA";
@@ -1570,8 +1584,10 @@ public sealed class WzproCompanionApp : Form
             case "manualReplayPremium": return "Le replay instantane est une fonction Premium.";
             case "manualReplayEmpty": return "Rien en memoire encore - joue quelques secondes d abord.";
             case "manualReplayNoRecorder": return "Enregistreur non pret - lance une partie d abord.";
-            case "manualReplayHotkeyTaken": return "Le raccourci replay (Ctrl+Alt+R) est deja utilise par une autre app.";
-            case "manualReplayHint": return "Replay instantane : Ctrl+Alt+R enregistre le dernier clip a la demande.";
+            case "manualReplayHotkeyActive": return "Raccourci replay actif : ";
+            case "manualReplayHotkeyUnavailable": return "Replay instantane indisponible (conflit de raccourci).";
+            case "manualReplayHotkeyTaken": return "Aucun raccourci replay n a pu etre enregistre (tous pris par d autres apps).";
+            case "manualReplayHint": return "Replay instantane : {key} enregistre le dernier clip a la demande.";
             case "modeSocial": return "Sortie : Reseaux (montage)";
             case "modeRaw": return "Sortie : Brut (pro)";
             case "modeFull": return "Sortie : Game complete + Coach IA";
@@ -2859,10 +2875,23 @@ public sealed class WzproCompanionApp : Form
         if (!manualReplayHotkeyRegistered)
         {
             registeredHotkeyHwnd = Handle;
-            manualReplayHotkeyRegistered = RegisterHotKey(registeredHotkeyHwnd, ManualReplayHotkeyId, ModControl | ModAlt | ModNoRepeat, ManualReplayVk);
-            if (!manualReplayHotkeyRegistered && logBox != null)
+            activeReplayHotkeyLabel = "";
+            foreach (ReplayHotkey combo in ManualReplayCandidates)
             {
-                logBox.AppendText("[" + DateTime.Now.ToString("HH:mm:ss") + "] " + T("manualReplayHotkeyTaken") + Environment.NewLine);
+                if (RegisterHotKey(registeredHotkeyHwnd, ManualReplayHotkeyId, combo.Mods | ModNoRepeat, combo.Vk))
+                {
+                    manualReplayHotkeyRegistered = true;
+                    activeReplayHotkeyLabel = combo.Label;
+                    break;
+                }
+            }
+            AddLogLine(manualReplayHotkeyRegistered ? T("manualReplayHotkeyActive") + activeReplayHotkeyLabel : T("manualReplayHotkeyTaken"));
+            ApplyManualReplayHint();
+            // Tell the user the active combo once, where they can act on it.
+            if (manualReplayHotkeyRegistered && !replayHotkeyToastShown)
+            {
+                replayHotkeyToastShown = true;
+                ShowToast(T("manualReplayHotkeyActive") + activeReplayHotkeyLabel);
             }
         }
     }
@@ -2922,6 +2951,25 @@ public sealed class WzproCompanionApp : Form
         {
             ShowToast(T("manualReplayNoRecorder"));
         }
+    }
+
+    // Surface the live hotkey combo in the Highlights card (reflects fallback choices).
+    private void ApplyManualReplayHint()
+    {
+        if (highlightsDescLabel == null) return;
+        string hint = manualReplayHotkeyRegistered
+            ? T("manualReplayHint").Replace("{key}", activeReplayHotkeyLabel)
+            : T("manualReplayHotkeyUnavailable");
+        highlightsDescLabel.Text = T("highlightsDesc") + "   |   " + hint;
+    }
+
+    // A candidate global hotkey for the manual instant replay.
+    private sealed class ReplayHotkey
+    {
+        public readonly uint Mods;
+        public readonly uint Vk;
+        public readonly string Label;
+        public ReplayHotkey(uint mods, uint vk, string label) { Mods = mods; Vk = vk; Label = label; }
     }
 
     // Borderless, non-activating confirmation toast: visible over the focused game
@@ -3603,7 +3651,7 @@ public sealed class WzproCompanionApp : Form
         hintLabel.Text = T("hint");
         highlightsTitleLabel.Text = T("highlightsTitle");
         highlightsToggle.Text = T("highlightsToggle");
-        highlightsDescLabel.Text = T("highlightsDesc") + "   |   " + T("manualReplayHint");
+        ApplyManualReplayHint();
         highlightsStatusLabel.Text = highlightsProEnabled ? T("highlightsStatusOn") : T("highlightsStatusOff");
         clipsFolderTitleLabel.Text = T("clipsFolderTitle");
         clipsFolderButton.Text = T("clipsFolderChoose");
