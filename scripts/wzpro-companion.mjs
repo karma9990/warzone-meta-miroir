@@ -8,6 +8,7 @@ import { createWorker } from 'tesseract.js';
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_POLL_MS = 5000;
+const UPLOAD_ATTEMPTS = 3;
 const GAME_PROCESS_NAMES = new Set([
   'cod',
   'cod22-cod',
@@ -221,18 +222,40 @@ function detectMatchSignal(text) {
   return 'unknown';
 }
 
+class UploadError extends Error {
+  constructor(message, status, transient) {
+    super(message);
+    this.status = status;
+    this.transient = transient;
+  }
+}
+
 async function uploadEntry(site, token, entry) {
-  const response = await fetch(`${site.replace(/\/$/, '')}/api/companion/stats`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ entry }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
+  let response;
+  try {
+    response = await fetch(`${site.replace(/\/$/, '')}/api/companion/stats`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ entry }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    // Network failure or timeout — transient, worth retrying.
+    const message = error && error.name === 'AbortError' ? 'Upload timed out' : (error instanceof Error ? error.message : 'Network error');
+    throw new UploadError(message, 0, true);
+  } finally {
+    clearTimeout(timer);
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(data.error || `Upload failed (${response.status})`);
+    // 5xx and 429 are transient; 4xx (bad token/entry) will never succeed on retry.
+    const transient = response.status >= 500 || response.status === 429;
+    throw new UploadError(data.error || `Upload failed (${response.status})`, response.status, transient);
   }
   return data;
 }
@@ -242,6 +265,7 @@ const token = argValue('token');
 const pollMs = Math.max(3000, Number(argValue('poll_ms', String(DEFAULT_POLL_MS))) || DEFAULT_POLL_MS);
 const highlightKills = Math.max(1, Number(argValue('highlight_kills', '4')) || 4);
 const highlightDamage = Math.max(0, Number(argValue('highlight_damage', '6000')) || 6000);
+const uploadAttempts = Math.max(1, Number(argValue('upload_attempts', String(UPLOAD_ATTEMPTS))) || UPLOAD_ATTEMPTS);
 
 // Classify an end-game entry into the single most notable clip-worthy reason.
 // Reasons are checked best-first and the first match wins, so 'bigdamage' only fires
@@ -357,9 +381,41 @@ try {
         await sleep(pollMs);
         continue;
       }
-      lastUploadedKey = uploadKey;
 
-      const result = await uploadEntry(site, token, entry);
+      // Retry transient upload failures; only mark the game uploaded on success so a
+      // network blip no longer drops the stats permanently. console.log (not status)
+      // is used so repeated failures across polls are never deduped away.
+      let result = null;
+      let permanentFailure = false;
+      for (let attempt = 1; attempt <= uploadAttempts; attempt++) {
+        try {
+          result = await uploadEntry(site, token, entry);
+          break;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'unknown error';
+          const transient = !(error instanceof UploadError) || error.transient;
+          if (!transient) {
+            console.log(`\nUpload rejected: ${message}. Not retrying (check token/account).`);
+            permanentFailure = true;
+            break;
+          }
+          if (attempt < uploadAttempts) {
+            console.log(`\nUpload failed (try ${attempt}/${uploadAttempts}): ${message}. Retrying...`);
+            await sleep(1000 * attempt);
+          } else {
+            console.log(`\nUpload failed (try ${attempt}/${uploadAttempts}): ${message}. Stats not saved this time.`);
+          }
+        }
+      }
+      if (result === null) {
+        // Permanent rejection: mark the game done so we stop hammering the endpoint.
+        // Transient failure: re-OCR the still-visible summary so a later poll retries.
+        if (permanentFailure) lastUploadedKey = uploadKey;
+        else lastOcrHash = '';
+        await sleep(pollMs);
+        continue;
+      }
+      lastUploadedKey = uploadKey;
       state = 'uploaded-summary';
       console.log(`\nUploaded game #${result.count}: ${entry.kills} kills, ${entry.damage} damage, place #${entry.placement}`);
 
