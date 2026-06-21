@@ -7,12 +7,6 @@ import { useCurrentLocale } from '@/lib/useCurrentLocale';
 
 type ProfileForm = Omit<UserProfile, 'userId' | 'email' | 'updatedAt'>;
 
-const inputDeviceOptions = [
-  ['', 'Select device'],
-  ['controller', 'Controller'],
-  ['keyboard-mouse', 'Keyboard + mouse'],
-] as const;
-
 const platformOptions = [
   ['', 'Select platform'],
   ['pc', 'PC'],
@@ -25,17 +19,6 @@ const platformOptions = [
 const languageOptions = [
   ['fr', 'Francais'],
   ['en', 'English'],
-] as const;
-
-const themeOptions = [
-  ['system', 'System'],
-  ['light', 'Light'],
-  ['dark', 'Dark'],
-] as const;
-
-const loadoutDisplayOptions = [
-  ['compact', 'Compact'],
-  ['detailed', 'Detailed'],
 ] as const;
 
 function initials(value: string) {

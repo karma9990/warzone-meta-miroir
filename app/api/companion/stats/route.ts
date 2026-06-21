@@ -13,16 +13,77 @@ function bearerToken(request: NextRequest) {
   return match?.[1] || '';
 }
 
-function normalizeEntry(input: Partial<ProfileStatsEntry>): ProfileStatsEntry {
+type EntryValidation =
+  | { ok: true; entry: ProfileStatsEntry }
+  | { ok: false; error: string };
+
+function integerField(input: Record<string, unknown>, key: string, min: number, max: number): EntryValidation | number {
+  const raw = input[key];
+  const value = typeof raw === 'number' ? raw : typeof raw === 'string' && raw.trim() ? Number(raw) : NaN;
+  if (!Number.isFinite(value)) {
+    return { ok: false, error: `Invalid ${key}.` };
+  }
+
+  const rounded = Math.round(value);
+  if (Math.abs(value - rounded) > 0.001 || rounded < min || rounded > max) {
+    return { ok: false, error: `${key} outside expected Warzone range.` };
+  }
+  return rounded;
+}
+
+function safeDate(value: unknown) {
+  if (typeof value !== 'string' || !value.trim()) return new Date().toLocaleDateString('en-GB');
+  const clean = value.trim().slice(0, 32);
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(clean) || /^\d{4}-\d{2}-\d{2}/.test(clean)) return clean;
+  return new Date().toLocaleDateString('en-GB');
+}
+
+function normalizeEntry(input: unknown): EntryValidation {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return { ok: false, error: 'Missing stats entry.' };
+  }
+
+  const record = input as Record<string, unknown>;
+  const kills = integerField(record, 'kills', 0, 100);
+  if (typeof kills !== 'number') return kills;
+  const deaths = integerField(record, 'deaths', 0, 80);
+  if (typeof deaths !== 'number') return deaths;
+  const damage = integerField(record, 'damage', 0, 100000);
+  if (typeof damage !== 'number') return damage;
+  const placement = integerField(record, 'placement', 0, 200);
+  if (typeof placement !== 'number') return placement;
+
+  if (kills === 0 && deaths === 0 && damage === 0) {
+    return { ok: false, error: 'Empty scoreboard row rejected.' };
+  }
+  if (kills > 0 && damage < kills * 20) {
+    return { ok: false, error: 'Damage is too low for the detected kills.' };
+  }
+  if (damage > 0 && kills === 0 && damage > 15000) {
+    return { ok: false, error: 'Damage-only row is too high to trust.' };
+  }
+
+  const rawId = typeof record.id === 'string' ? record.id.trim() : '';
+  const id = rawId && /^[a-z0-9][a-z0-9._:-]{0,79}$/i.test(rawId)
+    ? rawId
+    : `companion-${Date.now()}`;
+
   return {
-    id: typeof input.id === 'string' && input.id ? input.id : `companion-${Date.now()}`,
-    date: typeof input.date === 'string' && input.date ? input.date : new Date().toLocaleDateString('en-GB'),
-    kills: Number(input.kills) || 0,
-    deaths: Number(input.deaths) || 1,
-    damage: Number(input.damage) || 0,
-    placement: Number(input.placement) || 0,
-    won: Boolean(input.won),
+    ok: true,
+    entry: {
+      id,
+      date: safeDate(record.date),
+      kills,
+      deaths,
+      damage,
+      placement,
+      won: record.won === true,
+    },
   };
+}
+
+function statsKey(entry: ProfileStatsEntry) {
+  return `${entry.date}:${entry.kills}:${entry.deaths}:${entry.damage}:${entry.placement}:${entry.won ? 1 : 0}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -50,7 +111,23 @@ export async function POST(request: NextRequest) {
     email: companion.email,
     name: companion.name,
   });
-  const entry = normalizeEntry(parsed.data.entry || {});
+  const normalized = normalizeEntry(parsed.data.entry);
+  if (!normalized.ok) {
+    return NextResponse.json({ error: normalized.error }, { status: 400 });
+  }
+
+  const entry = normalized.entry;
+  const key = statsKey(entry);
+  const duplicate = current.statsEntries.slice(0, 10).find((candidate) => statsKey(candidate) === key);
+  if (duplicate) {
+    return NextResponse.json({
+      ok: true,
+      duplicate: true,
+      entry: duplicate,
+      count: current.statsEntries.length,
+    });
+  }
+
   const nextEntries = [entry, ...current.statsEntries].slice(0, 300);
   const profile = sanitizeProfile({
     ...current,
@@ -113,23 +190,26 @@ export async function GET(request: NextRequest) {
   const premium = Boolean(
     userEntitlements?.pro || userEntitlements?.companion || emailEntitlements?.pro || emailEntitlements?.companion,
   );
-  if (!premium) {
-    return NextResponse.json({ error: 'Premium access is required for the advanced tracker.' }, { status: 403 });
-  }
 
   const summary = getStatsSummary(profile?.statsEntries ?? []);
   const { level, percentile } = skillLevel(summary.kd);
 
-  return NextResponse.json({
+  const payload: Record<string, unknown> = {
     games: summary.games,
     kd: Math.round(summary.kd * 100) / 100,
     kills: Math.round(summary.kills * 10) / 10,
     damage: Math.round(summary.damage),
     winRate: Math.round(summary.winRate),
     topTenRate: Math.round(summary.topTenRate),
-    level,
-    percentile,
-    coach: coachTips(summary),
+    premium,
     checkedAt: new Date().toISOString(),
-  });
+  };
+
+  if (premium) {
+    payload.level = level;
+    payload.percentile = percentile;
+    payload.coach = coachTips(summary);
+  }
+
+  return NextResponse.json(payload);
 }

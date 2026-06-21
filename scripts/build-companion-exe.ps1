@@ -89,6 +89,10 @@ if (Test-Path $fontPath) {
 if (Test-Path $resolvedIconPath) {
   Copy-Item -Force -Path $resolvedIconPath -Destination (Join-Path $appDir 'wzpro-companion.ico')
 }
+$brandLogoPath = Join-Path $root 'public\brand\WZ__1_-removebg-preview.png'
+if (Test-Path $brandLogoPath) {
+  Copy-Item -Force -Path $brandLogoPath -Destination (Join-Path $appDir 'wzpro-logo.png')
+}
 
 if (-not (Test-Path $nodeModulesSource)) {
   throw 'node_modules not found. Run npm install before building the companion package.'

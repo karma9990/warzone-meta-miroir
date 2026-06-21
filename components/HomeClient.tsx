@@ -375,7 +375,6 @@ export default function HomeClient({
         </h1>
         <div className="hero-leaderboard-slot">
           <Link className="hero-leaderboard-cta" href={href('/leaderboard')}>{locale === 'fr' ? 'Classement WZ' : locale === 'es' ? 'Clasificacion WZ' : 'WZ Leaderboard'}</Link>
-          <Link className="hero-leaderboard-cta" href={href('/tier-list')}>Tier List</Link>
         </div>
         <div className="hero-brief">
           <span>{copy.eyebrow}</span>
@@ -383,9 +382,9 @@ export default function HomeClient({
           <span>[ {String(buildCount).padStart(2, '0')} BUILDS ]</span>
         </div>
         <div className="hero-actions">
-          <a href="#all-loadouts">{locale === 'fr' ? 'Outil Pro' : locale === 'es' ? 'Herramienta Pro' : 'Pro Tool'}</a>
           <Link href={href('/quiz')}>{locale === 'fr' ? 'Trouve ta classe' : locale === 'es' ? 'Encuentra tu clase' : 'Find your loadout'}</Link>
           <Link href={href('/pro-tools')}>{copy.secondaryCta}</Link>
+          <Link href={href('/tier-list')}>Tier List</Link>
         </div>
       </section>
 
@@ -396,7 +395,7 @@ export default function HomeClient({
         </Link>
         <nav>
           <Link href={href('/pro-tools')}>{uiCopy.proTools}</Link>
-          <a href="#all-loadouts" aria-current="page">{uiCopy.loadouts}</a>
+          <Link href={href('/quiz')}>{uiCopy.loadouts}</Link>
           <Link href={href('/ai-classes')}>IA WZPRO</Link>
           <Link href={href('/pro-classe')}>{locale === 'fr' ? 'Classes Pro' : locale === 'es' ? 'Clases Pro' : 'Pro Classes'}</Link>
           <Link href={href('/set-up')}>{uiCopy.setUp}</Link>

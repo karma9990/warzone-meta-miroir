@@ -213,11 +213,11 @@ function cleanStatsEntries(value: unknown): ProfileStatsEntry[] {
   if (!Array.isArray(value)) return [];
   return value.slice(0, 300).map((entry) => {
     const input = entry && typeof entry === 'object' ? entry as Partial<ProfileStatsEntry> : {};
-    const deaths = Math.max(1, Math.min(99, Math.round(Number(input.deaths) || 1)));
+    const deaths = Math.max(0, Math.min(80, Math.round(Number(input.deaths) || 0)));
     return {
       id: typeof input.id === 'string' && input.id ? input.id.slice(0, 80) : crypto.randomUUID(),
       date: typeof input.date === 'string' ? input.date.slice(0, 32) : new Date().toLocaleDateString('en-GB'),
-      kills: Math.max(0, Math.min(99, Math.round(Number(input.kills) || 0))),
+      kills: Math.max(0, Math.min(100, Math.round(Number(input.kills) || 0))),
       deaths,
       damage: Math.max(0, Math.min(100000, Math.round(Number(input.damage) || 0))),
       placement: Math.max(0, Math.min(200, Math.round(Number(input.placement) || 0))),

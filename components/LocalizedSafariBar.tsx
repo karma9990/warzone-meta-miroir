@@ -33,7 +33,7 @@ export default function LocalizedSafariBar({
 
   const links = [
     ['pro-tools', href('/pro-tools'), copy.proTools],
-    ['loadouts', href('/#all-loadouts'), copy.loadouts],
+    ['loadouts', href('/quiz'), copy.loadouts],
     ['ai-classes', href('/ai-classes'), 'IA WZPRO'],
     ['pro-classe', href('/pro-classe'), locale === 'fr' ? 'Classes Pro' : locale === 'es' ? 'Clases Pro' : 'Pro Classes'],
     ['set-up', href('/set-up'), copy.setUp],
@@ -42,7 +42,6 @@ export default function LocalizedSafariBar({
     ['actualites', href('/actualites'), locale === 'fr' ? 'Actualites' : locale === 'es' ? 'Noticias' : 'News'],
     ['createur', href('/createur'), locale === 'fr' ? 'Createur' : locale === 'es' ? 'Creador' : 'Creator'],
     ['community', href('/community'), copy.community],
-    ['lfg', href('/lfg'), locale === 'fr' ? 'Trouver des mates' : locale === 'es' ? 'Buscar equipo' : 'Find teammates'],
   ] as const;
 
   return (

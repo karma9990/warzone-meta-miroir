@@ -2344,23 +2344,24 @@ body {
   color: var(--tm-paper) !important;
 }
 
-.glass-demo .hero-actions a:first-child,
-:root[data-theme="dark"] .glass-demo .hero-actions a:first-child {
+.glass-demo .hero-actions a {
   background: transparent !important;
   border-color: var(--tm-ink) !important;
   color: var(--tm-ink) !important;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease !important;
 }
 
-.glass-demo .hero-actions a:first-child:hover,
-.glass-demo .hero-actions a:first-child:focus-visible {
+.glass-demo .hero-actions a:hover,
+.glass-demo .hero-actions a:focus-visible {
   background: var(--tm-ink) !important;
   border-color: var(--tm-ink) !important;
   color: var(--tm-paper) !important;
+  transform: translateY(-1px) !important;
 }
 
 .glass-demo .hero-actions {
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+  grid-template-columns: repeat(3, max-content) !important;
   align-items: center !important;
   justify-content: center !important;
   width: min(620px, calc(100% - 32px)) !important;
@@ -2368,7 +2369,7 @@ body {
 }
 
 .glass-demo .hero-actions a:nth-child(1) {
-  justify-self: end !important;
+  justify-self: center !important;
 }
 
 .glass-demo .hero-actions a:nth-child(2) {
@@ -2376,7 +2377,7 @@ body {
 }
 
 .glass-demo .hero-actions a:nth-child(3) {
-  justify-self: start !important;
+  justify-self: center !important;
 }
 
 @media (max-width: 720px) {

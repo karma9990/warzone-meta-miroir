@@ -1,10 +1,9 @@
-import fs from 'fs';
-import path from 'path';
 import sharp from 'sharp';
 import { ImageResponse } from 'next/og';
-import { getLoadouts } from '@/lib/data';
+import loadoutsData from '@/data/loadouts.json';
+import type { Loadout } from '@/lib/data';
 import { calculateMetaScore, getLoadoutSlug } from '@/lib/loadoutUtils';
-import { findLoadoutByRouteId } from '@/lib/seo';
+import { absoluteUrl } from '@/lib/siteConfig';
 
 export const runtime = 'nodejs';
 export const alt = 'WZPRO Meta - Warzone loadout';
@@ -27,20 +26,21 @@ type OgParams = { params: Promise<{ id: string }> };
 // Satori (next/og) cannot decode avif/webp, so convert the weapon render to a
 // PNG data URI at request time. Returns null when no usable source exists.
 async function weaponImageDataUri(slug: string): Promise<string | null> {
-  const dir = path.join(process.cwd(), 'public', 'assets', 'weapons');
   const candidates = [
-    path.join(dir, 'wzstats', `${slug}.png`),
-    path.join(dir, `${slug}-hq.png`),
-    path.join(dir, 'wzstats', `${slug}.avif`),
-    path.join(dir, `${slug}.avif`),
-    path.join(dir, `${slug}-hq.avif`),
-    path.join(dir, `${slug}.webp`),
+    `/assets/weapons/wzstats/${slug}.png`,
+    `/assets/weapons/${slug}-hq.png`,
+    `/assets/weapons/wzstats/${slug}.avif`,
+    `/assets/weapons/${slug}.avif`,
+    `/assets/weapons/${slug}-hq.avif`,
+    `/assets/weapons/${slug}.webp`,
   ];
-  for (const file of candidates) {
-    if (!fs.existsSync(file)) continue;
+  for (const candidate of candidates) {
     try {
+      const response = await fetch(absoluteUrl(candidate), { cache: 'force-cache' });
+      if (!response.ok) continue;
+      const source = Buffer.from(await response.arrayBuffer());
       // failOn: 'none' lets sharp decode avif/webp variants that only emit warnings.
-      const png = file.endsWith('.png') ? fs.readFileSync(file) : await sharp(file, { failOn: 'none' }).png().toBuffer();
+      const png = candidate.endsWith('.png') ? source : await sharp(source, { failOn: 'none' }).png().toBuffer();
       return `data:image/png;base64,${png.toString('base64')}`;
     } catch {
       // Try the next candidate if decoding fails.
@@ -50,8 +50,9 @@ async function weaponImageDataUri(slug: string): Promise<string | null> {
 }
 
 export default async function LoadoutOgImage({ params }: OgParams) {
-  const [{ id }, loadouts] = await Promise.all([params, getLoadouts()]);
-  const loadout = findLoadoutByRouteId(loadouts, id);
+  const { id } = await params;
+  const loadouts = loadoutsData as Loadout[];
+  const loadout = loadouts.find((entry) => entry.id === id || entry.weaponId === id);
 
   if (!loadout) {
     return new ImageResponse(
