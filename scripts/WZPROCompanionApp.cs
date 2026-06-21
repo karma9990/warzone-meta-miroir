@@ -176,7 +176,9 @@ public sealed class WzproCompanionApp : Form
     private int sessionGameCount;
     private int sessionHighlightCount;
     private ulong lastIdleTime, lastKernelTime, lastUserTime;
-    private int perfCpu = -1, perfRam = -1;
+    private int perfCpu = -1, perfRam = -1, perfGpu = -1;
+    private bool gpuCounterUnavailable;
+    private DateTime lastGpuSampleUtc;
     private Button statsButton;
     private Button gameBarButton;
     private TextBox statsBox;
@@ -277,6 +279,12 @@ public sealed class WzproCompanionApp : Form
     private bool gameBoostActive;
     private string savedPowerScheme = "";
     private const string HighPerfSchemeGuid = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c";
+    // Game Boost sub-options (all reversible when the boost is turned off / app closes).
+    private bool boostFreeRam = true, boostPriority = true, boostVisualEffects = true;
+    private CheckBox boostFreeRamCheck, boostPriorityCheck, boostVisualCheck;
+    private bool savedUiEffects = true; // Windows UI-effects state captured before the boost
+    private bool uiEffectsOverridden;
+    private readonly System.Collections.Generic.Dictionary<int, ProcessPriorityClass> savedGamePriorities = new System.Collections.Generic.Dictionary<int, ProcessPriorityClass>();
     private Button startButton;
     private Button stopButton;
     private Button clipsFolderButton;
@@ -648,6 +656,7 @@ public sealed class WzproCompanionApp : Form
         profileNameLabel = Label("", 8, 56, 172, 30, 8, FontStyle.Bold, Color.White);
         profileNameLabel.TextAlign = ContentAlignment.TopCenter;
         profileNameLabel.Cursor = Cursors.Hand;
+        profileNameLabel.Visible = false;
         profileNameLabel.Click += delegate { ShowProfileMenu(); };
         profilePanel.Controls.Add(profileNameLabel);
 
@@ -716,6 +725,7 @@ public sealed class WzproCompanionApp : Form
         freeInfoCard.Controls.Add(freePageDescLabel);
 
         metaTodayLabel = Label("", 24, 100, 640, 20, 9, FontStyle.Bold, Color.FromArgb(120, 150, 255));
+        metaTodayLabel.Visible = false;
         freeInfoCard.Controls.Add(metaTodayLabel);
 
         freeConnectionCard = new Panel
@@ -1399,7 +1409,7 @@ public sealed class WzproCompanionApp : Form
         {
             if (applyingOverlayState) return;
             overlayShowPerf = overlayPerfCheck.Checked;
-            if (!overlayShowPerf) { lastIdleTime = lastKernelTime = lastUserTime = 0; perfCpu = -1; } // reset CPU baseline so re-enabling doesn't spike
+            if (!overlayShowPerf) { lastIdleTime = lastKernelTime = lastUserTime = 0; perfCpu = -1; perfGpu = -1; } // reset CPU/GPU baseline so re-enabling doesn't spike
             OnOverlayLineToggle();
         };
 
@@ -1409,7 +1419,7 @@ public sealed class WzproCompanionApp : Form
         optimisationBoostCard = new Panel
         {
             Location = new Point(34, 266),
-            Size = new Size(690, 120),
+            Size = new Size(690, 156),
             Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
             BorderStyle = BorderStyle.FixedSingle,
             Visible = false
@@ -1422,8 +1432,29 @@ public sealed class WzproCompanionApp : Form
         gameBoostButton = Button("", 520, 46, 150, 40, Color.FromArgb(22, 60, 255));
         gameBoostButton.Click += delegate { ToggleGameBoost(); };
         optimisationBoostCard.Controls.Add(gameBoostButton);
-        optimisationBoostStatusLabel = Label("", 24, 94, 480, 20, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
+        boostFreeRamCheck = BoostOptionCheck(24, 92, boostFreeRam);
+        boostFreeRamCheck.CheckedChanged += delegate { boostFreeRam = boostFreeRamCheck.Checked; SaveSession(); };
+        boostPriorityCheck = BoostOptionCheck(200, 92, boostPriority);
+        boostPriorityCheck.CheckedChanged += delegate { boostPriority = boostPriorityCheck.Checked; SaveSession(); };
+        boostVisualCheck = BoostOptionCheck(380, 92, boostVisualEffects);
+        boostVisualCheck.CheckedChanged += delegate { boostVisualEffects = boostVisualCheck.Checked; SaveSession(); };
+        optimisationBoostStatusLabel = Label("", 24, 122, 480, 20, 8, FontStyle.Bold, Color.FromArgb(150, 150, 155));
         optimisationBoostCard.Controls.Add(optimisationBoostStatusLabel);
+    }
+
+    private CheckBox BoostOptionCheck(int x, int y, bool initial)
+    {
+        CheckBox cb = new CheckBox
+        {
+            Location = new Point(x, y),
+            AutoSize = true,
+            Checked = initial,
+            FlatStyle = FlatStyle.Flat,
+            Font = AppFont(8, FontStyle.Regular),
+            ForeColor = Color.White
+        };
+        optimisationBoostCard.Controls.Add(cb);
+        return cb;
     }
 
     private Label Label(string text, int x, int y, int w, int h, float size, FontStyle style, Color color)
@@ -1597,18 +1628,21 @@ public sealed class WzproCompanionApp : Form
                 case "optimisationOverlayOn": return "Overlay: shown";
                 case "optimisationOverlayOff": return "Overlay: hidden";
                 case "optimisationBoostTitle": return "Game Boost";
-                case "optimisationBoostDesc": return "Switch Windows to the High Performance power plan while you play. Restored automatically when you close the app.";
+                case "optimisationBoostDesc": return "High Performance power plan plus the extras you tick below, while you play. Everything is restored when you close the app.";
                 case "optimisationBoostBtnOn": return "Enable Boost";
                 case "optimisationBoostBtnOff": return "Disable Boost";
                 case "optimisationBoostStatusOn": return "Boost: on (High Performance)";
                 case "optimisationBoostStatusOff": return "Boost: off";
+                case "optimisationBoostFreeRam": return "Free up RAM";
+                case "optimisationBoostPriority": return "Warzone high priority";
+                case "optimisationBoostVisual": return "Cut visual effects";
                 case "optimisationBoostUnavailable": return "High Performance power plan not available on this PC.";
                 case "optimisationBoostOn": return "Game Boost on - High Performance power plan active.";
                 case "optimisationBoostOff": return "Game Boost off - power plan restored.";
                 case "overlayToggleGames": return "Games";
                 case "overlayToggleHighlights": return "Highlights";
                 case "overlayToggleMeta": return "Meta";
-                case "overlayTogglePerf": return "CPU/RAM";
+                case "overlayTogglePerf": return "CPU/RAM/GPU";
                 case "overlayToggleActions": return "Buttons";
                 case "overlayHotkeyActive": return "Overlay hotkey: ";
                 case "actionOverlayHotkeyActive": return "Actions overlay hotkey: ";
@@ -1878,18 +1912,21 @@ public sealed class WzproCompanionApp : Form
                 case "optimisationOverlayOn": return "Overlay: visible";
                 case "optimisationOverlayOff": return "Overlay: oculto";
                 case "optimisationBoostTitle": return "Game Boost";
-                case "optimisationBoostDesc": return "Cambia Windows al plan de energia Alto rendimiento mientras juegas. Se restaura al cerrar la app.";
+                case "optimisationBoostDesc": return "Plan de energia Alto rendimiento mas los extras que marques abajo, mientras juegas. Todo se restaura al cerrar la app.";
                 case "optimisationBoostBtnOn": return "Activar Boost";
                 case "optimisationBoostBtnOff": return "Desactivar Boost";
                 case "optimisationBoostStatusOn": return "Boost: activo (Alto rendimiento)";
                 case "optimisationBoostStatusOff": return "Boost: inactivo";
+                case "optimisationBoostFreeRam": return "Liberar RAM";
+                case "optimisationBoostPriority": return "Warzone prioridad alta";
+                case "optimisationBoostVisual": return "Cortar efectos visuales";
                 case "optimisationBoostUnavailable": return "Plan de energia Alto rendimiento no disponible en este PC.";
                 case "optimisationBoostOn": return "Game Boost activo - plan Alto rendimiento.";
                 case "optimisationBoostOff": return "Game Boost inactivo - plan de energia restaurado.";
                 case "overlayToggleGames": return "Partidas";
                 case "overlayToggleHighlights": return "Highlights";
                 case "overlayToggleMeta": return "Meta";
-                case "overlayTogglePerf": return "CPU/RAM";
+                case "overlayTogglePerf": return "CPU/RAM/GPU";
                 case "overlayToggleActions": return "Botones";
                 case "overlayHotkeyActive": return "Atajo overlay: ";
                 case "actionOverlayHotkeyActive": return "Atajo acciones: ";
@@ -2158,18 +2195,21 @@ public sealed class WzproCompanionApp : Form
             case "optimisationOverlayOn": return "Overlay : affiche";
             case "optimisationOverlayOff": return "Overlay : masque";
             case "optimisationBoostTitle": return "Game Boost";
-            case "optimisationBoostDesc": return "Bascule Windows sur le mode d alimentation Performances elevees pendant que tu joues. Restaure a la fermeture de l app.";
+            case "optimisationBoostDesc": return "Mode Performances elevees plus les options cochees ci-dessous, pendant que tu joues. Tout est restaure a la fermeture de l app.";
             case "optimisationBoostBtnOn": return "Activer Boost";
             case "optimisationBoostBtnOff": return "Desactiver Boost";
             case "optimisationBoostStatusOn": return "Boost : actif (Performances elevees)";
             case "optimisationBoostStatusOff": return "Boost : inactif";
+            case "optimisationBoostFreeRam": return "Liberer la RAM";
+            case "optimisationBoostPriority": return "Warzone priorite haute";
+            case "optimisationBoostVisual": return "Couper effets visuels";
             case "optimisationBoostUnavailable": return "Mode Performances elevees indisponible sur ce PC.";
             case "optimisationBoostOn": return "Game Boost actif - mode Performances elevees.";
             case "optimisationBoostOff": return "Game Boost inactif - mode d alimentation restaure.";
             case "overlayToggleGames": return "Parties";
             case "overlayToggleHighlights": return "Moments forts";
             case "overlayToggleMeta": return "Meta";
-            case "overlayTogglePerf": return "CPU/RAM";
+            case "overlayTogglePerf": return "CPU/RAM/GPU";
             case "overlayToggleActions": return "Boutons";
             case "overlayHotkeyActive": return "Raccourci overlay : ";
             case "actionOverlayHotkeyActive": return "Raccourci actions : ";
@@ -2466,9 +2506,10 @@ public sealed class WzproCompanionApp : Form
         if (freeStatsCard != null) freeStatsCard.Visible = free && !compact;
         importsLabel.Visible = free && !compact;
         historyList.Visible = free && !compact;
-        // The journal is shared with the optimisation page so overlay activation is visible there.
-        journalLabel.Visible = free || optimisation || compact;
-        logBox.Visible = free || optimisation || compact;
+        // The journal lives on the free page only; the optimisation page conveys boost/overlay
+        // state through the button colour and status labels instead.
+        journalLabel.Visible = free || compact;
+        logBox.Visible = free || compact;
 
         if (optimisationInfoCard != null) optimisationInfoCard.Visible = optimisation && !compact;
         if (optimisationOverlayCard != null) optimisationOverlayCard.Visible = optimisation && !compact;
@@ -2659,7 +2700,7 @@ public sealed class WzproCompanionApp : Form
             if (profilePictureBox != null)
             {
                 int pic = ClampInt(profileH - 54, 38, 48);
-                profilePictureBox.SetBounds(12, (profileH - pic) / 2, pic, pic);
+                profilePictureBox.SetBounds((navW - pic) / 2, (profileH - pic) / 2, pic, pic);
             }
             if (profileNameLabel != null) profileNameLabel.SetBounds(22 + ClampInt(profileH - 54, 38, 48), 18, Math.Max(40, navW - 34 - ClampInt(profileH - 54, 38, 48)), profileH - 34);
         }
@@ -2942,16 +2983,20 @@ public sealed class WzproCompanionApp : Form
         if (optimisationOverlayStatusLabel != null) optimisationOverlayStatusLabel.Width = contentW - 48;
 
         int boostTop = overlayTop + overlayH + 12;
-        int boostH = 120;
+        int boostH = 156;
         if (optimisationBoostCard != null) optimisationBoostCard.SetBounds(contentX, boostTop, contentW, boostH);
         if (optimisationBoostDescLabel != null) optimisationBoostDescLabel.Width = Math.Max(240, contentW - 210);
         if (gameBoostButton != null) gameBoostButton.SetBounds(Math.Max(280, contentW - 170), 46, 150, 40);
+        // Pack the boost option checkboxes left-to-right by measured width so localized labels never overlap.
+        CheckBox[] boostChecks = { boostFreeRamCheck, boostPriorityCheck, boostVisualCheck };
+        int boostCheckX = 24;
+        foreach (CheckBox cb in boostChecks)
+        {
+            if (cb == null) continue;
+            cb.Location = new Point(boostCheckX, 92);
+            boostCheckX += cb.PreferredSize.Width + 22;
+        }
         if (optimisationBoostStatusLabel != null) optimisationBoostStatusLabel.Width = contentW - 48;
-
-        int logTop = boostTop + boostH + 28;
-        int logH = Math.Max(52, h - logTop - 24);
-        if (journalLabel != null && activePage == "optimisation") journalLabel.SetBounds(contentX, logTop - 24, contentW, 20);
-        if (logBox != null && activePage == "optimisation") logBox.SetBounds(contentX, logTop, contentW, logH);
     }
 
     private void SetTrainingGoal(string goal)
@@ -3989,13 +4034,7 @@ public sealed class WzproCompanionApp : Form
                     SafeUi(delegate
                     {
                         if (!string.IsNullOrWhiteSpace(weapon)) metaTodayWeapon = weapon;
-                        if (metaTodayLabel != null && !string.IsNullOrWhiteSpace(weapon))
-                        {
-                            string line = T("metaToday") + weapon;
-                            if (!string.IsNullOrWhiteSpace(tier)) line += " (" + tier + ")";
-                            if (!string.IsNullOrWhiteSpace(category)) line += " - " + category;
-                            metaTodayLabel.Text = line;
-                        }
+                        if (metaTodayLabel != null) metaTodayLabel.Text = "";
                         if (!homeFetched)
                         {
                             homeFetched = true;
@@ -4248,21 +4287,24 @@ public sealed class WzproCompanionApp : Form
         // The High Performance plan is hidden on some machines; bail out cleanly if absent.
         if (RunPowercfg("/list").IndexOf(HighPerfSchemeGuid, StringComparison.OrdinalIgnoreCase) < 0)
         {
-            AddLogLine(T("optimisationBoostUnavailable"));
+            ShowToast(T("optimisationBoostUnavailable"));
             return;
         }
         Match m = Regex.Match(RunPowercfg("/getactivescheme"), "[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}");
         if (!m.Success)
         {
             // Can't read the current plan -> don't switch, to avoid stranding the user on High Performance.
-            AddLogLine(T("optimisationBoostUnavailable"));
+            ShowToast(T("optimisationBoostUnavailable"));
             return;
         }
         savedPowerScheme = m.Value;
         RunPowercfg("/setactive " + HighPerfSchemeGuid);
+        // Apply the selected extras. Each one captures what it needs to restore on disable/close.
+        if (boostVisualEffects) DisableWindowsUiEffects();
+        if (boostPriority) RaiseGameProcessPriority();
+        if (boostFreeRam) TrimBackgroundWorkingSets();
         gameBoostActive = true;
         UpdateGameBoostStatus();
-        AddLogLine(T("optimisationBoostOn"));
     }
 
     private void DisableGameBoost()
@@ -4271,15 +4313,112 @@ public sealed class WzproCompanionApp : Form
         // Fall back to the Balanced plan if the original was somehow never captured.
         string target = string.IsNullOrEmpty(savedPowerScheme) ? "381b4222-f694-41f0-9685-ff5bb260df2e" : savedPowerScheme;
         RunPowercfg("/setactive " + target);
+        RestoreGameProcessPriority();
+        RestoreWindowsUiEffects();
         gameBoostActive = false;
         UpdateGameBoostStatus();
-        AddLogLine(T("optimisationBoostOff"));
     }
 
     private void UpdateGameBoostStatus()
     {
-        if (gameBoostButton != null) gameBoostButton.Text = T(gameBoostActive ? "optimisationBoostBtnOff" : "optimisationBoostBtnOn");
-        if (optimisationBoostStatusLabel != null) optimisationBoostStatusLabel.Text = T(gameBoostActive ? "optimisationBoostStatusOn" : "optimisationBoostStatusOff");
+        if (gameBoostButton != null)
+        {
+            gameBoostButton.Text = T(gameBoostActive ? "optimisationBoostBtnOff" : "optimisationBoostBtnOn");
+            // The button colour is the primary state cue (no journal): green = boost on, blue = off.
+            WzTheme th = Theme;
+            Color fill = gameBoostActive ? th.Success : th.Blue;
+            gameBoostButton.BackColor = fill;
+            gameBoostButton.ForeColor = gameBoostActive ? Color.Black : th.BlueText;
+            gameBoostButton.FlatAppearance.BorderColor = fill;
+            gameBoostButton.FlatAppearance.MouseOverBackColor = fill;
+            gameBoostButton.FlatAppearance.MouseDownBackColor = fill;
+        }
+        if (optimisationBoostStatusLabel != null)
+        {
+            optimisationBoostStatusLabel.Text = T(gameBoostActive ? "optimisationBoostStatusOn" : "optimisationBoostStatusOff");
+            optimisationBoostStatusLabel.ForeColor = gameBoostActive ? Theme.Success : Theme.Muted;
+        }
+    }
+
+    // Drop transparency/animations for steadier frame pacing; restored verbatim on disable/close.
+    private void DisableWindowsUiEffects()
+    {
+        if (uiEffectsOverridden) return;
+        try
+        {
+            bool current = true;
+            SystemParametersInfo(SPI_GETUIEFFECTS, 0, ref current, 0);
+            savedUiEffects = current;
+            bool off = false;
+            SystemParametersInfo(SPI_SETUIEFFECTS, 0, ref off, SPIF_SENDCHANGE);
+            uiEffectsOverridden = true;
+        }
+        catch { /* cosmetic tweak; never block the boost */ }
+    }
+
+    private void RestoreWindowsUiEffects()
+    {
+        if (!uiEffectsOverridden) return;
+        try
+        {
+            bool restore = savedUiEffects;
+            SystemParametersInfo(SPI_SETUIEFFECTS, 0, ref restore, SPIF_SENDCHANGE);
+        }
+        catch { }
+        uiEffectsOverridden = false;
+    }
+
+    // Bump any running Warzone process to High priority; remember the original class to restore it.
+    private void RaiseGameProcessPriority()
+    {
+        savedGamePriorities.Clear();
+        try
+        {
+            foreach (Process p in Process.GetProcesses())
+            {
+                try
+                {
+                    if (!GameProcessNames.Contains(p.ProcessName.ToLowerInvariant())) continue;
+                    savedGamePriorities[p.Id] = p.PriorityClass;
+                    p.PriorityClass = ProcessPriorityClass.High;
+                }
+                catch { /* access denied / exited: skip this process */ }
+                finally { p.Dispose(); }
+            }
+        }
+        catch { }
+    }
+
+    private void RestoreGameProcessPriority()
+    {
+        foreach (var kv in savedGamePriorities)
+        {
+            try
+            {
+                using (Process p = Process.GetProcessById(kv.Key)) p.PriorityClass = kv.Value;
+            }
+            catch { /* process gone: nothing to restore */ }
+        }
+        savedGamePriorities.Clear();
+    }
+
+    // One-shot: trim background processes' working sets so Warzone has more free RAM at launch.
+    private void TrimBackgroundWorkingSets()
+    {
+        try
+        {
+            int self = Process.GetCurrentProcess().Id;
+            foreach (Process p in Process.GetProcesses())
+            {
+                try
+                {
+                    if (p.Id != self) EmptyWorkingSet(p.Handle);
+                }
+                catch { /* protected/system process: skip */ }
+                finally { p.Dispose(); }
+            }
+        }
+        catch { }
     }
 
     // Keep a saved overlay position usable: fall back to the primary screen if the point
@@ -4434,7 +4573,7 @@ public sealed class WzproCompanionApp : Form
         {
             if (applyingOverlayState) return;
             overlayShowPerf = overlayOptPerfCheck.Checked;
-            if (!overlayShowPerf) { lastIdleTime = lastKernelTime = lastUserTime = 0; perfCpu = -1; }
+            if (!overlayShowPerf) { lastIdleTime = lastKernelTime = lastUserTime = 0; perfCpu = -1; perfGpu = -1; }
             OnOverlayOptionChanged();
         };
         actionOverlayForm.Controls.Add(overlayOptPerfCheck);
@@ -4454,6 +4593,11 @@ public sealed class WzproCompanionApp : Form
         if (actionBoostButton != null) actionBoostButton.Text = T(gameBoostActive ? "overlayActionBoostOff" : "overlayActionBoost");
         SetOverlayActionState(actionStartStopButton, !string.IsNullOrWhiteSpace(deviceToken), false);
         SetOverlayActionState(actionBoostButton, true, false);
+        if (actionBoostButton != null && gameBoostActive)
+        {
+            actionBoostButton.BackColor = Theme.Success;
+            actionBoostButton.ForeColor = Color.Black;
+        }
         SetOverlayActionState(actionReplayButton, premiumAccessActive, true);
         SetOverlayActionState(actionSaveHighlightsButton, premiumAccessActive && pendingGameClips.Count > 0, true);
         SetOverlayActionState(actionCoachButton, premiumAccessActive && !string.IsNullOrWhiteSpace(pendingUploadedLine), true);
@@ -4535,9 +4679,10 @@ public sealed class WzproCompanionApp : Form
             : Math.Max(0, (int)Math.Round(DateTime.UtcNow.Subtract(sessionStartUtc).TotalMinutes));
         string games = overlayShowGames ? Environment.NewLine + T("overlayGames") + sessionGameCount + "  /  " + mins + " min" : "";
         string meta = (overlayShowMeta && !string.IsNullOrWhiteSpace(metaTodayWeapon)) ? Environment.NewLine + T("metaToday") + metaTodayWeapon : "";
-        // RAM is valid from the first sample; CPU needs two samples, so show "--" until ready.
+        // RAM is valid from the first sample; CPU/GPU need a moment, so show "--" until ready.
+        string gpu = gpuCounterUnavailable ? "" : "  GPU " + (perfGpu >= 0 ? perfGpu.ToString() : "--") + "%";
         string perf = (overlayShowPerf && perfRam >= 0)
-            ? Environment.NewLine + "CPU " + (perfCpu >= 0 ? perfCpu.ToString() : "--") + "%  RAM " + perfRam + "%"
+            ? Environment.NewLine + "CPU " + (perfCpu >= 0 ? perfCpu.ToString() : "--") + "%  RAM " + perfRam + "%" + gpu
             : "";
         string highlights = (overlayShowHighlights && premiumAccessActive && sessionHighlightCount > 0)
             ? Environment.NewLine + T("overlayHighlights") + sessionHighlightCount
@@ -4617,10 +4762,40 @@ public sealed class WzproCompanionApp : Form
             MemoryStatusEx mem = new MemoryStatusEx();
             mem.dwLength = (uint)Marshal.SizeOf(typeof(MemoryStatusEx));
             if (GlobalMemoryStatusEx(ref mem)) perfRam = (int)mem.dwMemoryLoad;
+            UpdateGpuSample();
         }
         catch
         {
             // Perf readout is cosmetic; never let it break the overlay.
+        }
+    }
+
+    // Sample total GPU 3D-engine utilisation from Windows performance counters. This is heavier
+    // than CPU/RAM, so it's throttled to ~1 Hz and disables itself permanently if unavailable.
+    private void UpdateGpuSample()
+    {
+        if (gpuCounterUnavailable) return;
+        if ((DateTime.UtcNow - lastGpuSampleUtc).TotalMilliseconds < 900) return;
+        lastGpuSampleUtc = DateTime.UtcNow;
+        try
+        {
+            var category = new System.Diagnostics.PerformanceCounterCategory("GPU Engine");
+            float total = 0f;
+            foreach (string name in category.GetInstanceNames())
+            {
+                if (!name.EndsWith("engtype_3D", StringComparison.OrdinalIgnoreCase)) continue;
+                using (var counter = new System.Diagnostics.PerformanceCounter("GPU Engine", "Utilization Percentage", name, true))
+                {
+                    total += counter.NextValue();
+                }
+            }
+            perfGpu = (int)Math.Min(100f, Math.Max(0f, total));
+        }
+        catch
+        {
+            // No GPU Engine counters (older Windows / disabled): stop trying and hide the GPU value.
+            gpuCounterUnavailable = true;
+            perfGpu = -1;
         }
     }
 
@@ -4941,10 +5116,24 @@ public sealed class WzproCompanionApp : Form
     [StructLayout(LayoutKind.Sequential)]
     private struct NativeRect { public int Left; public int Top; public int Right; public int Bottom; }
 
-    // Lightweight system perf for the overlay (CPU% from time deltas, RAM% from load).
-    // FPS/GPU are intentionally out of scope: they need game present-hooking / vendor APIs.
+    // Lightweight system perf for the overlay: CPU% from time deltas, RAM% from load,
+    // GPU% from the "GPU Engine" performance counters (3D engines). FPS is still out of
+    // scope: it needs game present-hooking / vendor APIs.
     [StructLayout(LayoutKind.Sequential)]
     private struct FileTime64 { public uint Low; public uint High; }
+
+    // Game Boost extras: toggle Windows UI effects and trim background working sets.
+    private const uint SPI_GETUIEFFECTS = 0x103E;
+    private const uint SPI_SETUIEFFECTS = 0x103F;
+    private const uint SPIF_SENDCHANGE = 0x02;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref bool pvParam, uint fWinIni);
+
+    [DllImport("psapi.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EmptyWorkingSet(IntPtr hProcess);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -5661,7 +5850,8 @@ public sealed class WzproCompanionApp : Form
     {
         if (profileNameLabel == null || profilePictureBox == null) return;
         string name = string.IsNullOrWhiteSpace(connectedName) ? T("profileGuest") : connectedName;
-        profileNameLabel.Text = name;
+        profileNameLabel.Text = "";
+        profileNameLabel.Visible = false;
         profilePictureBox.Image = BuildAvatarImage(name);
         if (!string.IsNullOrWhiteSpace(profilePictureUrl))
         {
@@ -5824,6 +6014,9 @@ public sealed class WzproCompanionApp : Form
         if (overlayForm != null) RefreshOverlayActions();
         if (optimisationBoostTitleLabel != null) optimisationBoostTitleLabel.Text = T("optimisationBoostTitle");
         if (optimisationBoostDescLabel != null) optimisationBoostDescLabel.Text = T("optimisationBoostDesc");
+        if (boostFreeRamCheck != null) { boostFreeRamCheck.Text = T("optimisationBoostFreeRam"); boostFreeRamCheck.Checked = boostFreeRam; }
+        if (boostPriorityCheck != null) { boostPriorityCheck.Text = T("optimisationBoostPriority"); boostPriorityCheck.Checked = boostPriority; }
+        if (boostVisualCheck != null) { boostVisualCheck.Text = T("optimisationBoostVisual"); boostVisualCheck.Checked = boostVisualEffects; }
         UpdateGameBoostStatus();
         freePageTitleLabel.Text = T("freePageTitle");
         freePageDescLabel.Text = T("freePageDesc");
@@ -6036,6 +6229,7 @@ public sealed class WzproCompanionApp : Form
         StyleComboBox(languageBox, theme);
         StyleCheckBox(highlightsToggle, theme);
         StylePageButtons(theme);
+        UpdateGameBoostStatus(); // re-assert the active/inactive boost colour after the primary-button reset
         RefreshTrainingUi();
         RefreshProfileUi();
     }
@@ -6260,6 +6454,9 @@ public sealed class WzproCompanionApp : Form
             overlayShowHighlights = ExtractLine(text, "overlayShowHighlights") != "0";
             overlayShowMeta = ExtractLine(text, "overlayShowMeta") != "0";
             overlayShowPerf = ExtractLine(text, "overlayShowPerf") != "0";
+            boostFreeRam = ExtractLine(text, "boostFreeRam") != "0";
+            boostPriority = ExtractLine(text, "boostPriority") != "0";
+            boostVisualEffects = ExtractLine(text, "boostVisualEffects") != "0";
             string savedTrainingModule = ExtractLine(text, "trainingModule");
             foreach (string key in TrainingModuleKeys())
             {
@@ -6292,7 +6489,7 @@ public sealed class WzproCompanionApp : Form
         Directory.CreateDirectory(sessionDir);
         SaveCurrentTrainingModuleState();
         if (overlayForm != null) { overlayX = overlayForm.Location.X; overlayY = overlayForm.Location.Y; }
-        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "clipSeconds=" + highlightClipSeconds + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "compactMode=" + (compactMode ? "1" : "0") + Environment.NewLine + "overlayX=" + overlayX + Environment.NewLine + "overlayY=" + overlayY + Environment.NewLine + "overlayShowGames=" + (overlayShowGames ? "1" : "0") + Environment.NewLine + "overlayShowHighlights=" + (overlayShowHighlights ? "1" : "0") + Environment.NewLine + "overlayShowMeta=" + (overlayShowMeta ? "1" : "0") + Environment.NewLine + "overlayShowPerf=" + (overlayShowPerf ? "1" : "0") + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes + Environment.NewLine + "trainingCoachResult=" + EncodeSessionValue(trainingCoachResult) + Environment.NewLine + "trainingRoutineResult=" + EncodeSessionValue(trainingRoutineResult), Encoding.UTF8);
+        File.WriteAllText(sessionPath, "site=" + site + Environment.NewLine + "token=" + deviceToken + Environment.NewLine + "userName=" + connectedName + Environment.NewLine + "profilePicture=" + profilePictureUrl + Environment.NewLine + "theme=" + themeMode + Environment.NewLine + "language=" + languageCode + Environment.NewLine + "highlightsPro=" + (highlightsProEnabled ? "1" : "0") + Environment.NewLine + "clipsFolder=" + clipsFolderPath + Environment.NewLine + "clipMode=" + clipMode + Environment.NewLine + "clipSeconds=" + highlightClipSeconds + Environment.NewLine + "socialFormat=" + socialFormat + Environment.NewLine + "music=" + musicPath + Environment.NewLine + "sysAudio=" + systemAudioDevice + Environment.NewLine + "micAudio=" + micAudioDevice + Environment.NewLine + "compactMode=" + (compactMode ? "1" : "0") + Environment.NewLine + "overlayX=" + overlayX + Environment.NewLine + "overlayY=" + overlayY + Environment.NewLine + "overlayShowGames=" + (overlayShowGames ? "1" : "0") + Environment.NewLine + "overlayShowHighlights=" + (overlayShowHighlights ? "1" : "0") + Environment.NewLine + "overlayShowMeta=" + (overlayShowMeta ? "1" : "0") + Environment.NewLine + "overlayShowPerf=" + (overlayShowPerf ? "1" : "0") + Environment.NewLine + "boostFreeRam=" + (boostFreeRam ? "1" : "0") + Environment.NewLine + "boostPriority=" + (boostPriority ? "1" : "0") + Environment.NewLine + "boostVisualEffects=" + (boostVisualEffects ? "1" : "0") + Environment.NewLine + "trainingGoal=" + trainingGoal + Environment.NewLine + "trainingReview=" + TrainingReviewState() + Environment.NewLine + "trainingZones=" + TrainingZonesState() + Environment.NewLine + "trainingModule=" + trainingModuleKey + Environment.NewLine + "trainingModuleStates=" + trainingModuleStates + Environment.NewLine + "trainingModuleNotes=" + trainingModuleNotes + Environment.NewLine + "trainingCoachResult=" + EncodeSessionValue(trainingCoachResult) + Environment.NewLine + "trainingRoutineResult=" + EncodeSessionValue(trainingRoutineResult), Encoding.UTF8);
     }
 
     private static string ExtractLine(string text, string key)

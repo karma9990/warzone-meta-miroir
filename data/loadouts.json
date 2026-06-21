@@ -153,9 +153,9 @@
   },
   {
     "id": "meta-mk78",
-    "weapon": "MK.78",
-    "weaponId": "mk-78",
-    "category": "LMG",
+    "weapon": "MXR-17",
+    "weaponId": "mxr-17",
+    "category": "Assault Rifle",
     "tier": "S",
     "playstyle": "Long-Range",
     "attachments": [
