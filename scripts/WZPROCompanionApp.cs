@@ -85,6 +85,15 @@ public sealed class WzproCompanionApp : Form
     };
     private string activeReplayHotkeyLabel = "";
     private bool manualReplayHotkeyRegistered;
+    private const int OverlayHotkeyId = 0xB002;
+    private static readonly ReplayHotkey[] OverlayHotkeyCandidates = new ReplayHotkey[]
+    {
+        new ReplayHotkey(ModControl | ModAlt, 0x4F, "Ctrl+Alt+O"),
+        new ReplayHotkey(ModControl | ModShift, 0x4F, "Ctrl+Shift+O"),
+        new ReplayHotkey(ModControl | ModAlt, 0x77, "Ctrl+Alt+F8"),
+    };
+    private string activeOverlayHotkeyLabel = "";
+    private bool overlayHotkeyRegistered;
     private bool replayHotkeyToastShown;
     private IntPtr registeredHotkeyHwnd = IntPtr.Zero;
     private DateTime lastManualReplayUtc = DateTime.MinValue;
@@ -1297,6 +1306,7 @@ public sealed class WzproCompanionApp : Form
                 case "overlayToggleHighlights": return "Highlights";
                 case "overlayToggleMeta": return "Meta";
                 case "overlayTogglePerf": return "CPU/RAM";
+                case "overlayHotkeyActive": return "Overlay hotkey: ";
                 case "premiumSideActive": return "PREMIUM ACTIVE";
                 case "premiumSideInactive": return "PREMIUM OFF";
                 case "recorderActive": return "RECORDER ACTIVE";
@@ -1532,6 +1542,7 @@ public sealed class WzproCompanionApp : Form
                 case "overlayToggleHighlights": return "Highlights";
                 case "overlayToggleMeta": return "Meta";
                 case "overlayTogglePerf": return "CPU/RAM";
+                case "overlayHotkeyActive": return "Atajo overlay: ";
                 case "premiumSideActive": return "PREMIUM ACTIVO";
                 case "premiumSideInactive": return "PREMIUM OFF";
                 case "recorderActive": return "RECORDER ACTIVO";
@@ -1766,6 +1777,7 @@ public sealed class WzproCompanionApp : Form
             case "overlayToggleHighlights": return "Moments forts";
             case "overlayToggleMeta": return "Meta";
             case "overlayTogglePerf": return "CPU/RAM";
+            case "overlayHotkeyActive": return "Raccourci overlay : ";
             case "premiumSideActive": return "PREMIUM ACTIF";
             case "premiumSideInactive": return "PREMIUM INACTIF";
             case "recorderActive": return "RECORDER ACTIF";
@@ -3449,7 +3461,8 @@ public sealed class WzproCompanionApp : Form
     {
         if (optimisationOverlayStatusLabel == null) return;
         bool on = overlayForm != null && overlayForm.Visible;
-        optimisationOverlayStatusLabel.Text = on ? T("optimisationOverlayOn") : T("optimisationOverlayOff");
+        optimisationOverlayStatusLabel.Text = (on ? T("optimisationOverlayOn") : T("optimisationOverlayOff"))
+            + (overlayHotkeyRegistered ? "  (" + activeOverlayHotkeyLabel + ")" : "");
     }
 
     private CheckBox OverlayLineCheck(int x, int y)
@@ -3753,36 +3766,51 @@ public sealed class WzproCompanionApp : Form
         base.OnHandleCreated(e);
         // The hotkey intentionally survives tray-hide (the HWND stays alive). It is
         // re-registered if the handle is ever recreated (e.g. ShowInTaskbar toggling).
-        if (!manualReplayHotkeyRegistered)
+        if (!manualReplayHotkeyRegistered || !overlayHotkeyRegistered)
         {
             registeredHotkeyHwnd = Handle;
-            activeReplayHotkeyLabel = "";
-            foreach (ReplayHotkey combo in ManualReplayCandidates)
+            if (!manualReplayHotkeyRegistered)
             {
-                if (RegisterHotKey(registeredHotkeyHwnd, ManualReplayHotkeyId, combo.Mods | ModNoRepeat, combo.Vk))
+                manualReplayHotkeyRegistered = RegisterFirstAvailable(ManualReplayHotkeyId, ManualReplayCandidates, out activeReplayHotkeyLabel);
+                AddLogLine(manualReplayHotkeyRegistered ? T("manualReplayHotkeyActive") + activeReplayHotkeyLabel : T("manualReplayHotkeyTaken"));
+                ApplyManualReplayHint();
+                // Tell the user the active combo once, where they can act on it.
+                if (manualReplayHotkeyRegistered && !replayHotkeyToastShown)
                 {
-                    manualReplayHotkeyRegistered = true;
-                    activeReplayHotkeyLabel = combo.Label;
-                    break;
+                    replayHotkeyToastShown = true;
+                    ShowToast(T("manualReplayHotkeyActive") + activeReplayHotkeyLabel);
                 }
             }
-            AddLogLine(manualReplayHotkeyRegistered ? T("manualReplayHotkeyActive") + activeReplayHotkeyLabel : T("manualReplayHotkeyTaken"));
-            ApplyManualReplayHint();
-            // Tell the user the active combo once, where they can act on it.
-            if (manualReplayHotkeyRegistered && !replayHotkeyToastShown)
+            if (!overlayHotkeyRegistered)
             {
-                replayHotkeyToastShown = true;
-                ShowToast(T("manualReplayHotkeyActive") + activeReplayHotkeyLabel);
+                overlayHotkeyRegistered = RegisterFirstAvailable(OverlayHotkeyId, OverlayHotkeyCandidates, out activeOverlayHotkeyLabel);
+                if (overlayHotkeyRegistered) AddLogLine(T("overlayHotkeyActive") + activeOverlayHotkeyLabel);
+                UpdateOverlayStatus();
             }
         }
     }
 
+    // Register the first combo the OS lets us claim; out label is the active combo (or "").
+    private bool RegisterFirstAvailable(int id, ReplayHotkey[] candidates, out string label)
+    {
+        label = "";
+        foreach (ReplayHotkey combo in candidates)
+        {
+            if (RegisterHotKey(registeredHotkeyHwnd, id, combo.Mods | ModNoRepeat, combo.Vk))
+            {
+                label = combo.Label;
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected override void OnHandleDestroyed(EventArgs e)
     {
-        if (manualReplayHotkeyRegistered)
+        if (manualReplayHotkeyRegistered || overlayHotkeyRegistered)
         {
-            try { UnregisterHotKey(registeredHotkeyHwnd, ManualReplayHotkeyId); } catch { }
-            manualReplayHotkeyRegistered = false;
+            if (manualReplayHotkeyRegistered) { try { UnregisterHotKey(registeredHotkeyHwnd, ManualReplayHotkeyId); } catch { } manualReplayHotkeyRegistered = false; }
+            if (overlayHotkeyRegistered) { try { UnregisterHotKey(registeredHotkeyHwnd, OverlayHotkeyId); } catch { } overlayHotkeyRegistered = false; }
             registeredHotkeyHwnd = IntPtr.Zero;
         }
         base.OnHandleDestroyed(e);
@@ -3798,9 +3826,11 @@ public sealed class WzproCompanionApp : Form
     protected override void WndProc(ref Message m)
     {
         base.WndProc(ref m);
-        if (m.Msg == 0x0312 /* WM_HOTKEY */ && m.WParam.ToInt32() == ManualReplayHotkeyId)
+        if (m.Msg == 0x0312 /* WM_HOTKEY */)
         {
-            OnManualReplay();
+            int id = m.WParam.ToInt32();
+            if (id == ManualReplayHotkeyId) OnManualReplay();
+            else if (id == OverlayHotkeyId) ToggleOverlay();
         }
     }
 
