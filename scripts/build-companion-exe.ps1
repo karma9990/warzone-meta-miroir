@@ -7,7 +7,10 @@ $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 $fullOutput = Join-Path $root $OutputDir
-$sourcePath = Join-Path $root 'scripts\WZPROCompanionApp.cs'
+# The companion app is split across partial-class files (WZPROCompanionApp*.cs); compile them all.
+$sourceDir = Join-Path $root 'scripts'
+$sourcePaths = @(Get-ChildItem -Path $sourceDir -Filter 'WZPROCompanionApp*.cs' | Sort-Object Name | ForEach-Object { $_.FullName })
+if ($sourcePaths.Count -eq 0) { throw "No WZPROCompanionApp*.cs source files found in $sourceDir." }
 $exePath = Join-Path $fullOutput 'WZPRO Companion.exe'
 $resolvedIconPath = if ([System.IO.Path]::IsPathRooted($IconPath)) { $IconPath } else { Join-Path $root $IconPath }
 $runtimeDir = Join-Path $fullOutput 'runtime'
@@ -61,14 +64,21 @@ if (-not $cscPath) {
   throw 'csc.exe not found. Install .NET SDK or Visual Studio Build Tools to build the companion launcher exe.'
 }
 
-$cscArgs = @('/nologo', '/target:winexe', "/out:$exePath", '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll', '/reference:System.Net.Http.dll')
+$cscArgs = @('/nologo', '/target:winexe', "/out:$exePath", '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll', '/reference:System.Net.Http.dll', '/reference:System.Security.dll')
 if (Test-Path $resolvedIconPath) {
   $cscArgs += "/win32icon:$resolvedIconPath"
   Write-Output "Embedding icon: $resolvedIconPath"
 } else {
   Write-Warning "Icon not found at $resolvedIconPath - build continues with the default Windows exe icon."
 }
-$cscArgs += $sourcePath
+$manifestPath = Join-Path $root 'scripts\wzpro-companion.manifest'
+if (Test-Path $manifestPath) {
+  $cscArgs += "/win32manifest:$manifestPath"
+  Write-Output "Embedding manifest (requireAdministrator): $manifestPath"
+} else {
+  Write-Warning "Manifest not found at $manifestPath - exe will not request admin rights."
+}
+$cscArgs += $sourcePaths
 
 & $cscPath @cscArgs
 if ($LASTEXITCODE -ne 0) {
