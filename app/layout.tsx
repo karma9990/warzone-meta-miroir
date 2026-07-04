@@ -7,6 +7,7 @@ import RuntimeI18n from "@/components/RuntimeI18n";
 import ThemeScript from "@/components/ThemeScript";
 import ThemeToggle from "@/components/ThemeToggle";
 import { LOCALE_HEADER, normalizeLocale } from "@/lib/i18n";
+import { jsonLdHtml } from "@/lib/jsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
 import "./globals.css";
 import "./legal-pages.css";
@@ -74,7 +75,7 @@ export default async function RootLayout({
           nonce={nonce}
           type="application/ld+json"
           suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdHtml(structuredData) }}
         />
       </head>
       <body className="min-h-full flex flex-col">

@@ -13,6 +13,7 @@ import type { SiteContent } from '@/lib/siteContent';
 import type { SiteControls, SetupBuild, EsportSource, LoadoutPairControl } from '@/lib/siteControls';
 import weaponsData from '@/scripts/weapons.json';
 import attachmentsData from '@/scripts/attachments-slots.json';
+import PronosAdmin from './PronosAdmin';
 
 interface AttachmentEntry {
   slot: string;
@@ -259,13 +260,14 @@ function NavItem({
 export default function AdminPage() {
   const [authed, setAuthed]         = useState(false);
   const [password, setPassword]     = useState('');
+  const [totp, setTotp]             = useState('');
   const [authError, setAuthError]   = useState('');
   const [loadouts, setLoadouts]     = useState<Loadout[]>([]);
   const [form, setForm]             = useState({ ...EMPTY_FORM, attachments: [{ slot: 'Muzzle', name: '' }] });
   const [editingId, setEditingId]   = useState<string | null>(null);
   const [saving, setSaving]         = useState(false);
   const [msg, setMsg]               = useState('');
-  const [view, setView]             = useState<'list' | 'form' | 'tools' | 'next-meta' | 'site-content' | 'free-preview' | 'site-controls' | 'community'>('list');
+  const [view, setView]             = useState<'list' | 'form' | 'tools' | 'next-meta' | 'site-content' | 'free-preview' | 'site-controls' | 'community' | 'pronos'>('list');
   const [nextMeta, setNextMeta]     = useState<NextMetaConfig>(EMPTY_NEXT_META_CONFIG);
   const [nextMetaWeaponsText, setNextMetaWeaponsText] = useState('');
   const [nextMetaSaving, setNextMetaSaving] = useState(false);
@@ -358,10 +360,11 @@ export default function AdminPage() {
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ password, totp: totp.trim() }),
     });
     if (res.ok) {
       setAuthed(true);
+      setTotp('');
       await fetchLoadouts();
       await fetchNextMetaConfig();
       await fetchSiteContent();
@@ -369,7 +372,7 @@ export default function AdminPage() {
       await fetchSiteControls();
       await fetchCommunityPosts();
     } else {
-      setAuthError('Incorrect password');
+      setAuthError('Incorrect password or 2FA code');
     }
   };
 
@@ -1133,6 +1136,17 @@ export default function AdminPage() {
                 placeholder="••••••••"
               />
             </div>
+            <div>
+              <div className={LABEL_CLASS}>2FA code (if enabled)</div>
+              <input aria-label="2FA code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={totp}
+                onChange={e => setTotp(e.target.value)}
+                placeholder="000000"
+              />
+            </div>
             {authError && (
               <div className="text-[#ff4455] text-[12px] tracking-normal">
                 ✗ {authError}
@@ -1221,6 +1235,12 @@ export default function AdminPage() {
             badge={communityPosts.length}
             active={view === 'community'}
             onClick={() => setView('community')}
+          />
+          <NavItem
+            icon="◆"
+            label="Pronos"
+            active={view === 'pronos'}
+            onClick={() => setView('pronos')}
           />
         </nav>
 
@@ -2418,6 +2438,8 @@ export default function AdminPage() {
             </div>
           </>
         )}
+
+        {view === 'pronos' && <PronosAdmin />}
 
         {view === 'tools' && (
           <>

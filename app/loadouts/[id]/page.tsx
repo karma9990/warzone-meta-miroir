@@ -10,6 +10,7 @@ import StatRadar from '@/components/StatRadar';
 import WeaponWatchButton from '@/components/WeaponWatchButton';
 import { getLoadouts } from '@/lib/data';
 import { getHomeUiCopy, localizeLoadoutNote, localizeLoadoutText, translateTerm, withLocalePath } from '@/lib/i18n';
+import { jsonLdHtml } from '@/lib/jsonLd';
 import { calculateMetaScore, formatMetaDate, getLoadoutSlug } from '@/lib/loadoutUtils';
 import { getRequestLocale } from '@/lib/requestLocale';
 import {
@@ -130,7 +131,7 @@ export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
         nonce={nonce}
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }}
       />
       <Link href={href('/#all-loadouts')} className="text-inherit opacity-50 no-underline text-[0.75rem] tracking-normal">
         {locale === 'es' ? 'VOLVER A CLASES' : locale === 'fr' ? 'RETOUR AUX CLASSES' : 'BACK TO LOADOUTS'}
