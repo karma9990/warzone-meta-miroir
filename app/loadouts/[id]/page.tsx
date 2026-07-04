@@ -3,12 +3,14 @@ import fs from 'fs';
 import path from 'path';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import StatBar from '@/components/StatBar';
 import StatRadar from '@/components/StatRadar';
 import WeaponWatchButton from '@/components/WeaponWatchButton';
 import { getLoadouts } from '@/lib/data';
 import { getHomeUiCopy, localizeLoadoutNote, localizeLoadoutText, translateTerm, withLocalePath } from '@/lib/i18n';
+import { jsonLdHtml } from '@/lib/jsonLd';
 import { calculateMetaScore, formatMetaDate, getLoadoutSlug } from '@/lib/loadoutUtils';
 import { getRequestLocale } from '@/lib/requestLocale';
 import {
@@ -78,7 +80,8 @@ export async function generateMetadata({ params }: LoadoutPageProps): Promise<Me
 }
 
 export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
-  const [locale, { id }, loadouts] = await Promise.all([getRequestLocale(), params, getLoadouts()]);
+  const [locale, { id }, loadouts, requestHeaders] = await Promise.all([getRequestLocale(), params, getLoadouts(), headers()]);
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
   const uiCopy = getHomeUiCopy(locale);
   const href = (pathname: string) => withLocalePath(pathname, locale);
   const loadout = findLoadoutByRouteId(loadouts, id);
@@ -111,12 +114,24 @@ export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
   const jsonLd = getLoadoutJsonLd(loadout);
   const localizedSeason = locale === 'fr' ? CURRENT_WARZONE_SEASON : 'Season 04';
   const attachmentsList = loadout.attachments.map((attachment) => attachment.name).join(', ');
+  const relatedLoadouts = loadouts
+    .filter((entry) => entry.id !== loadout.id)
+    .sort((a, b) => {
+      const sameA = a.category === loadout.category ? 0 : 1;
+      const sameB = b.category === loadout.category ? 0 : 1;
+      if (sameA !== sameB) return sameA - sameB;
+      return calculateMetaScore(b) - calculateMetaScore(a);
+    })
+    .slice(0, 6);
+  const relatedCopy = locale === 'es' ? 'OTRAS CLASES META' : locale === 'fr' ? 'AUTRES CLASSES META' : 'OTHER META LOADOUTS';
 
   return (
     <main className="loadout-detail-page max-w-[980px] mx-auto px-8 py-20 pb-24 font-[var(--mono)]">
       <script
+        nonce={nonce}
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }}
       />
       <Link href={href('/#all-loadouts')} className="text-inherit opacity-50 no-underline text-[0.75rem] tracking-normal">
         {locale === 'es' ? 'VOLVER A CLASES' : locale === 'fr' ? 'RETOUR AUX CLASSES' : 'BACK TO LOADOUTS'}
@@ -302,6 +317,29 @@ export default async function LoadoutDetailPage({ params }: LoadoutPageProps) {
           {localizeLoadoutText(loadout.sourceNote || 'WZPRO Meta is an independent fan site. Re-check major balance updates before ranked sessions.', locale, loadout.playstyle)}
         </p>
       </section>
+
+      {relatedLoadouts.length > 0 && (
+        <section className="mt-8 border-t border-[var(--tm-line,rgba(16,16,14,0.14))] pt-6">
+          <h2 className="m-0 mb-4 text-[1rem] tracking-normal">{relatedCopy}</h2>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+            {relatedLoadouts.map((entry) => (
+              <Link
+                key={entry.id}
+                href={href(getLoadoutPath(entry))}
+                className="block border border-[var(--tm-line,rgba(16,16,14,0.14))] p-4 no-underline text-[var(--tm-ink,#10100e)] bg-[var(--theme-panel,rgba(239,238,232,0.6))]"
+              >
+                <span className="block text-[var(--tm-blue,#163cff)] text-[0.7rem] font-black uppercase tracking-normal">
+                  {translateTerm(entry.category, locale)} / TIER {entry.tier}
+                </span>
+                <strong className="block mt-1 text-[1.05rem] uppercase tracking-normal">{entry.weapon}</strong>
+                <span className="block mt-2 text-[var(--tm-muted,rgba(16,16,14,0.55))] text-[0.7rem] font-black uppercase tracking-normal">
+                  {locale === 'es' ? 'Meta' : locale === 'fr' ? 'Score meta' : 'Meta score'} {calculateMetaScore(entry)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

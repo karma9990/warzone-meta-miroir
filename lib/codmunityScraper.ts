@@ -4,8 +4,8 @@ import { hasUpstash, upstashCommand } from './upstash.ts';
  * Scraper LLM des pages publiques codmunity.gg.
  * Les pages CODMunity sont rendues cote serveur : le HTML contient les
  * donnees. On le nettoie en texte, puis OpenRouter en extrait du JSON
- * structure. Le resultat est mis en cache (Upstash, TTL 30 min) pour ne
- * pas relancer un appel LLM a chaque requete.
+ * structure. Le resultat est mis en cache (Upstash, TTL 26 h) pour garder
+ * le scan quotidien disponible jusqu'au prochain cron.
  *
  * Le client appelant garde un fallback (API officielle / donnees statiques)
  * si OPENROUTER_API_KEY est absent ou si l'extraction echoue.
@@ -14,7 +14,7 @@ import { hasUpstash, upstashCommand } from './upstash.ts';
 const SITE = 'https://codmunity.gg';
 const OPENROUTER_CHAT_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const DEFAULT_MODEL = 'openrouter/free';
-const CACHE_TTL = 1800; // 30 min
+const CACHE_TTL = 26 * 60 * 60; // 26 h: couvre le scan quotidien meme si le cron glisse un peu
 const CACHE_PREFIX = 'cod:scrape:';
 
 export type ScrapedTeamRow = {
@@ -178,7 +178,8 @@ export async function refreshTeamRows(slug: string): Promise<ScrapedTeamRow[] | 
 
   const system =
     'Tu extrais des classements esport depuis du texte brut de page web. Reponds uniquement avec un objet JSON valide, sans markdown ni commentaire.';
-  const user = `Voici le texte brut de la page CODMunity "${slug}". Extrais le classement (leaderboard) sous forme d'un objet JSON { "rows": [...] }, au maximum 50 entrees, triees par rang croissant.
+  const maxEntries = slug === 'top-250' ? 250 : 50;
+  const user = `Voici le texte brut de la page CODMunity "${slug}". Extrais le classement (leaderboard) sous forme d'un objet JSON { "rows": [...] }, au maximum ${maxEntries} entrees, triees par rang croissant.
 Chaque element de "rows": { "rank": number, "team": string, "players": string, "kills": number, "points": number }.
 - "team" = nom de l'equipe ou du joueur de la ligne.
 - "players" = liste des joueurs separes par " / " si disponible, sinon "".
@@ -210,7 +211,7 @@ ${text.slice(0, 28_000)}`;
         points: Number.isFinite(row.points) ? Number(row.points) : 0,
       }))
       .sort((a, b) => a.rank - b.rank)
-      .slice(0, 250);
+      .slice(0, maxEntries);
 
     if (!rows.length) return null;
     await writeCache(`rows:${slug}`, rows);

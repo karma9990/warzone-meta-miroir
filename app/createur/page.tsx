@@ -66,7 +66,7 @@ export default async function CreateurPage() {
         readout={['CREATOR // FUN TOOLS', 'STATUS: LIVE', 'TRACKING: ACTIVE']}
       />
 
-      <main className="news-main">
+      <main className="news-main creator-main">
         <header className="news-hero">
           <div className="pt-header-tag">{copy.tag}</div>
           <h1>{copy.title}</h1>
@@ -91,16 +91,20 @@ export default async function CreateurPage() {
       </main>
 
       <style>{`
-        .creator-hub { max-width: 1100px; margin: 2rem auto 0; padding: 0 1.5rem; }
+        .creator-main { width: min(1180px, calc(100% - 2rem)); }
+        .creator-main .news-hero { margin-bottom: 1.75rem; }
+        .creator-hub { width: 100%; max-width: 1100px; margin: 0 auto 2rem; padding: 0; }
         .creator-hub-title { display: block; color: #163cff; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.9rem; font-family: var(--font-mono, monospace); }
-        .creator-hub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; }
-        .creator-hub-card { position: relative; display: grid; gap: 0.45rem; align-content: start; border: 1px solid rgba(22,60,255,0.28); background: var(--theme-panel, rgba(239,238,232,0.82)); padding: 1.2rem 1.25rem 2.4rem; text-decoration: none; color: var(--tm-ink, #10100e); font-family: var(--font-mono, monospace); transition: border-color 0.15s ease, transform 0.15s ease; }
+        .creator-hub-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.9rem; }
+        .creator-hub-card { position: relative; display: grid; gap: 0.45rem; align-content: start; min-height: 168px; border: 1px solid rgba(22,60,255,0.28); background: var(--theme-panel, rgba(239,238,232,0.82)); padding: 1.2rem 1.25rem 2.4rem; text-decoration: none; color: var(--tm-ink, #10100e); font-family: var(--font-mono, monospace); transition: border-color 0.15s ease, transform 0.15s ease; }
         .creator-hub-card:hover { border-color: #163cff; transform: translateY(-2px); }
         .creator-hub-label { color: #163cff; font-size: 0.62rem; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; }
-        .creator-hub-card strong { font-size: 1.15rem; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.05; }
+        .creator-hub-card strong { font-size: clamp(0.95rem, 1.5vw, 1.15rem); letter-spacing: 0; text-transform: uppercase; line-height: 1.08; overflow-wrap: anywhere; }
         .creator-hub-card p { margin: 0; font-size: 0.8rem; line-height: 1.5; color: rgba(16,16,14,0.62); }
         .creator-hub-arrow { position: absolute; right: 1.1rem; bottom: 1rem; color: #163cff; font-size: 1.1rem; font-weight: 900; }
-        @media (max-width: 820px) { .creator-hub-grid { grid-template-columns: 1fr; } }
+        .creator-main .fun-zone.content-layer { width: 100% !important; max-width: 1100px !important; margin-top: 2rem !important; }
+        .creator-main .section-heading h2 { font-size: clamp(3rem, 9vw, 6rem) !important; letter-spacing: 0 !important; }
+        @media (max-width: 920px) { .creator-hub-grid { grid-template-columns: 1fr; } .creator-hub-card { min-height: auto; } }
         :root[data-theme="dark"] .creator-hub-card p { color: rgba(255,255,255,0.62); }
       `}</style>
     </>

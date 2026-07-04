@@ -16,7 +16,7 @@ export default function AccountActions() {
 
   return (
     <button className="account-action account-action--ghost" type="button" onClick={signOut}>
-      Sign out
+      {locale === 'fr' ? 'Se deconnecter' : 'Sign out'}
     </button>
   );
 }

@@ -1,6 +1,8 @@
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import LocalizedSafariBar from '@/components/LocalizedSafariBar';
 import { withLocalePath } from '@/lib/i18n';
+import { jsonLdHtml } from '@/lib/jsonLd';
 import { getNewsContent } from '@/lib/newsContent';
 import { getRequestLocale } from '@/lib/requestLocale';
 import { SITE_URL } from '@/lib/siteConfig';
@@ -72,27 +74,30 @@ const UPDATED_LABEL: Record<Locale, string> = {
   es: 'Actualizado',
 };
 
-const HIDDEN_BALANCE_COPY: Record<Locale, { title: string; eyebrow: string; note: string; emptyTitle: string; emptyBody: string }> = {
+const HIDDEN_BALANCE_COPY: Record<Locale, { title: string; eyebrow: string; note: string; emptyTitle: string; emptyBody: string; weaponsLabel: string }> = {
   en: {
     title: 'Secret buffs and nerfs',
     eyebrow: 'LLM scan / unofficial signals',
     note: 'These are WZPRO hypotheses generated from the official patch text. Verify them in-game before changing a ranked class.',
     emptyTitle: 'Daily scan pending',
-    emptyBody: 'The LLM will scan JGOD, Sym.gg, TrueGameData, ModernWarzone and Raven once per day. Signals will appear here after the next cron run.',
+    emptyBody: 'The LLM will scan the official patch notes, JGOD (YouTube) and r/CODWarzone once per day. Signals will appear here after the next cron run.',
+    weaponsLabel: 'Weapons',
   },
   fr: {
     title: 'Buffs et nerfs secrets',
     eyebrow: 'Scan LLM / signaux non officiels',
     note: 'Ce sont des hypotheses WZPRO generees depuis le texte officiel du patch. Verifie-les en jeu avant de changer une classe ranked.',
     emptyTitle: 'Scan quotidien en attente',
-    emptyBody: 'Le LLM scanne JGOD, Sym.gg, TrueGameData, ModernWarzone et Raven une fois par jour. Les signaux apparaitront ici apres le prochain cron.',
+    emptyBody: 'Le LLM scanne les patch notes officiels, JGOD (YouTube) et r/CODWarzone une fois par jour. Les signaux apparaitront ici apres le prochain cron.',
+    weaponsLabel: 'Armes',
   },
   es: {
     title: 'Buffs y nerfs secretos',
     eyebrow: 'Escaneo LLM / senales no oficiales',
     note: 'Son hipotesis WZPRO generadas desde el texto oficial del parche. Verificalas en partida antes de cambiar una clase ranked.',
     emptyTitle: 'Escaneo diario pendiente',
-    emptyBody: 'El LLM escanea JGOD, Sym.gg, TrueGameData, ModernWarzone y Raven una vez al dia. Las senales apareceran aqui tras el proximo cron.',
+    emptyBody: 'El LLM escanea las notas del parche oficiales, JGOD (YouTube) y r/CODWarzone una vez al dia. Las senales apareceran aqui tras el proximo cron.',
+    weaponsLabel: 'Armas',
   },
 };
 
@@ -115,7 +120,8 @@ const RECENT_CHANGES_COPY: Record<Locale, { title: string; eyebrow: string; empt
 };
 
 export default async function NewsCategoryPage({ slug }: { slug: NewsCategorySlug }) {
-  const [locale, news] = await Promise.all([getRequestLocale(), getNewsContent()]);
+  const [locale, news, requestHeaders] = await Promise.all([getRequestLocale(), getNewsContent(), headers()]);
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
   const category = NEWS_CATEGORIES.find((entry) => entry.slug === slug)!;
   const lang = (locale === 'fr' || locale === 'es' ? locale : 'en') as Locale;
   const items = news.categories[slug].items;
@@ -154,9 +160,10 @@ export default async function NewsCategoryPage({ slug }: { slug: NewsCategorySlu
     <>
       {articleJsonLd ? (
         <script
+          nonce={nonce}
           type="application/ld+json"
           suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdHtml(articleJsonLd) }}
         />
       ) : null}
       <div className="pt-technical-backdrop" aria-hidden="true" />
@@ -227,6 +234,11 @@ export default async function NewsCategoryPage({ slug }: { slug: NewsCategorySlu
                     <article key={item.title} data-tone={item.tone}>
                       <small>{item.tone.toUpperCase()}</small>
                       <strong>{item.title}</strong>
+                      {item.weapons.length > 0 && (
+                        <p className="hidden-balance-weapons">
+                          <span>{HIDDEN_BALANCE_COPY[lang].weaponsLabel}:</span> {item.weapons.join(', ')}
+                        </p>
+                      )}
                       <p>{item.body}</p>
                     </article>
                   ))

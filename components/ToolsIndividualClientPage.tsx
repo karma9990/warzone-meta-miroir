@@ -12,42 +12,42 @@ const TOOLS = [
     name: 'Aim Tools',
     tag: 'PRECISION',
     desc: 'Sensitivity tuning, ADS multipliers, dead zone calibration, crosshair placement and recoil pattern guides.',
-    price: '9 €',
+    price: '9 EUR',
   },
   {
     id: 'next-meta',
     name: 'Next Meta',
     tag: 'INTEL',
     desc: 'Weapons, equipment and perk shifts gathered into practical meta notes.',
-    price: '9 €',
+    price: '9 EUR',
   },
   {
     id: 'pro-movement',
     name: 'Pro Movement',
     tag: 'MECHANICS',
     desc: 'Slide cancel, corner peeking, high ground control and rotation timing — core mechanics used by every pro.',
-    price: '9 €',
+    price: '9 EUR',
   },
   {
     id: 'how-to-be-a-pro',
     name: 'How To Be A Pro',
     tag: 'MINDSET',
     desc: 'The system behind consistent improvement — habits, session structure, teammate selection and mental reset.',
-    price: '9 €',
+    price: '9 EUR',
   },
   {
     id: 'pro-spawn',
     name: 'Pro Spawn',
     tag: 'MAP CONTROL',
     desc: 'Dominant spawn zones on Rebirth Island and Haven — the exact positions that control the match flow.',
-    price: '9 €',
+    price: '9 EUR',
   },
   {
     id: 'pro-opti',
     name: 'Pro Opti',
     tag: 'PERFORMANCE',
     desc: 'Settings, hardware and software optimisations to reduce input lag and maximise your frame rate.',
-    price: '9 €',
+    price: '9 EUR',
   },
 ];
 
@@ -69,6 +69,19 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
     tag: copy.modulesCopy[tool.id]?.tag.toUpperCase() ?? tool.tag,
     desc: copy.modulesCopy[tool.id]?.preview ?? tool.desc,
   }));
+  const premiumCard = {
+    id: 'companion-premium',
+    name: locale === 'es' ? 'App Premium' : locale === 'fr' ? 'Application Premium' : 'App Premium',
+    tag: 'PREMIUM',
+    desc:
+      locale === 'es'
+        ? 'Acceso completo a la app WZPRO Companion: overlay en partida, seguimiento en tiempo real y todas las funciones premium.'
+        : locale === 'fr'
+          ? "Acces complet a l'application WZPRO Companion : overlay en partie, suivi en temps reel et toutes les fonctions premium."
+          : 'Full access to the WZPRO Companion app: in-game overlay, real-time tracking and every premium feature.',
+    price: '9 EUR',
+  };
+  const gridCards = [premiumCard, ...tools];
   const [buying, setBuying] = useState<string | null>(null);
   const [emailFor, setEmailFor] = useState<string | null>(null);
   const [email, setEmail] = useState('');
@@ -87,6 +100,17 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
     const userEmail = user.email || email;
     if (!userEmail.includes('@')) {
       setEmailFor(toolId);
+      return;
+    }
+    if (!digitalConsent) {
+      setEmailFor(toolId);
+      setEmailError(
+        locale === 'es'
+          ? 'Confirma el acceso digital inmediato antes de pagar.'
+          : locale === 'fr'
+            ? 'Confirme l acces numerique immediat avant de payer.'
+            : 'Confirm immediate digital access before checkout.'
+      );
       return;
     }
 
@@ -126,7 +150,7 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
         <div className="ti-divider" />
 
         <div className="ti-grid">
-          {tools.map((tool) => (
+          {gridCards.map((tool) => (
             <div key={tool.id} className="ti-card">
               <div className="ti-card-header">
                 <span className="ti-card-tag">{tool.tag}</span>
@@ -143,7 +167,7 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
                     type="email"
                     className="ti-email-input"
                     placeholder={user?.email ? (locale === 'es' ? 'Email de cuenta' : locale === 'fr' ? 'Email du compte' : 'Account email') : (locale === 'es' ? 'Email de facturacion' : locale === 'fr' ? 'Email de facturation' : 'Billing email')}
-                    value={email}
+                    value={user?.email || email}
                     onChange={e => setEmail(e.target.value)}
                     readOnly={Boolean(user?.email)}
                     required
@@ -162,12 +186,14 @@ export default function ToolsIndividualPage({ initialUser = null }: { initialUse
                   <button type="button" className="ti-cancel-btn" onClick={() => setEmailFor(null)}>{locale === 'es' ? 'Cancelar' : locale === 'fr' ? 'Annuler' : 'Cancel'}</button>
                 </form>
               ) : (
-                <Link
-                  href={href('/pro-access')}
+                <button
+                  type="button"
                   className="ti-card-btn"
+                  onClick={() => handleBuy(tool.id)}
+                  disabled={buying === tool.id}
                 >
                   {`${locale === 'es' ? 'OBTENER' : locale === 'fr' ? 'OBTENIR' : 'GET'} ${tool.name.toUpperCase()} - ${tool.price}`}
-                </Link>
+                </button>
               )}
             </div>
           ))}

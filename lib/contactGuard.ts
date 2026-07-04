@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import { NextResponse, type NextRequest } from 'next/server';
-import { hasUpstash, upstashPipeline } from './upstash';
+import { allowEphemeralSecurityFallback, hasUpstash, upstashPipeline } from './upstash';
 
 const CONTACT_COOLDOWN_SECONDS = 10 * 60;
 const memoryCooldowns = new Map<string, number>();
@@ -80,6 +80,10 @@ export async function reserveContactCooldown(req: NextRequest, identity: string)
     const didSet = result[0]?.result === 'OK';
     const ttl = typeof result[1]?.result === 'number' ? result[1].result : CONTACT_COOLDOWN_SECONDS;
     return didSet ? { ok: true as const, key } : { ok: false as const, retryAfter: Math.max(1, ttl) };
+  }
+
+  if (!allowEphemeralSecurityFallback()) {
+    return { ok: false as const, retryAfter: CONTACT_COOLDOWN_SECONDS };
   }
 
   const now = Date.now();

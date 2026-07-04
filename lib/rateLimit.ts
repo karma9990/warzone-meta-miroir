@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { hasUpstash, upstashPipeline } from './upstash';
+import { allowEphemeralSecurityFallback, hasUpstash, upstashPipeline } from './upstash';
 
 const buckets = new Map<string, { count: number; resetAt: number }>();
 const cooldowns = new Map<string, number>();
@@ -21,6 +21,13 @@ function tooManyRequests(retryAfter?: number) {
       status: 429,
       headers: retryAfter ? { 'Retry-After': String(retryAfter) } : undefined,
     }
+  );
+}
+
+function rateLimitUnavailable() {
+  return NextResponse.json(
+    { error: 'Rate limiting is temporarily unavailable.' },
+    { status: 503 }
   );
 }
 
@@ -66,8 +73,16 @@ export async function cooldownIdentifier(scope: string, identifier: string, wind
       const ttl = Number(result[1]?.result ?? windowSeconds);
       return tooManyRequests(Math.max(1, ttl > 0 ? ttl : windowSeconds));
     } catch (error) {
+      if (!allowEphemeralSecurityFallback()) {
+        console.warn('Cooldown store unavailable; refusing ephemeral fallback in production.', error);
+        return rateLimitUnavailable();
+      }
       console.warn('Cooldown store unavailable, falling back to memory.', error);
     }
+  }
+
+  if (!allowEphemeralSecurityFallback()) {
+    return rateLimitUnavailable();
   }
 
   const now = Date.now();
@@ -98,8 +113,16 @@ async function rateLimitKey(key: string, limit: number, windowMs: number) {
 
       return null;
     } catch (error) {
+      if (!allowEphemeralSecurityFallback()) {
+        console.warn('Rate limit store unavailable; refusing ephemeral fallback in production.', error);
+        return rateLimitUnavailable();
+      }
       console.warn('Rate limit store unavailable, falling back to memory.', error);
     }
+  }
+
+  if (!allowEphemeralSecurityFallback()) {
+    return rateLimitUnavailable();
   }
 
   return memoryRateLimit(key, limit, windowMs);

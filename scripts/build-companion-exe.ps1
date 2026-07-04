@@ -7,7 +7,10 @@ $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 $fullOutput = Join-Path $root $OutputDir
-$sourcePath = Join-Path $root 'scripts\WZPROCompanionApp.cs'
+# The companion app is split across partial-class files (WZPROCompanionApp*.cs); compile them all.
+$sourceDir = Join-Path $root 'scripts'
+$sourcePaths = @(Get-ChildItem -Path $sourceDir -Filter 'WZPROCompanionApp*.cs' | Sort-Object Name | ForEach-Object { $_.FullName })
+if ($sourcePaths.Count -eq 0) { throw "No WZPROCompanionApp*.cs source files found in $sourceDir." }
 $exePath = Join-Path $fullOutput 'WZPRO Companion.exe'
 $resolvedIconPath = if ([System.IO.Path]::IsPathRooted($IconPath)) { $IconPath } else { Join-Path $root $IconPath }
 $runtimeDir = Join-Path $fullOutput 'runtime'
@@ -16,6 +19,7 @@ $zipPath = Join-Path $fullOutput 'WZPRO Companion.zip'
 $nodeModulesSource = Join-Path $root 'node_modules'
 $nodeModulesTarget = Join-Path $fullOutput 'node_modules'
 $companionModules = @(
+  'ffmpeg-static',
   'tesseract.js',
   'bmp-js',
   'idb-keyval',
@@ -32,8 +36,18 @@ $companionModules = @(
 )
 
 New-Item -ItemType Directory -Force -Path $fullOutput | Out-Null
-New-Item -ItemType Directory -Force -Path $runtimeDir | Out-Null
-New-Item -ItemType Directory -Force -Path $appDir | Out-Null
+
+foreach ($dir in @($runtimeDir, $appDir)) {
+  if (Test-Path $dir) {
+    $resolvedDir = (Resolve-Path $dir).Path
+    $resolvedOutput = (Resolve-Path $fullOutput).Path
+    if (-not $resolvedDir.StartsWith($resolvedOutput, [System.StringComparison]::OrdinalIgnoreCase)) {
+      throw "Refusing to clean directory outside the companion output directory: $resolvedDir"
+    }
+    Remove-Item -Recurse -Force -LiteralPath $dir
+  }
+  New-Item -ItemType Directory -Force -Path $dir | Out-Null
+}
 
 $cscCommand = Get-Command csc.exe -ErrorAction SilentlyContinue
 $cscPath = if ($cscCommand) { $cscCommand.Source } else { '' }
@@ -50,16 +64,26 @@ if (-not $cscPath) {
   throw 'csc.exe not found. Install .NET SDK or Visual Studio Build Tools to build the companion launcher exe.'
 }
 
-$cscArgs = @('/nologo', '/target:winexe', "/out:$exePath", '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll', '/reference:System.Net.Http.dll')
+$cscArgs = @('/nologo', '/target:winexe', "/out:$exePath", '/reference:System.Windows.Forms.dll', '/reference:System.Drawing.dll', '/reference:System.Net.Http.dll', '/reference:System.Security.dll')
 if (Test-Path $resolvedIconPath) {
   $cscArgs += "/win32icon:$resolvedIconPath"
   Write-Output "Embedding icon: $resolvedIconPath"
 } else {
   Write-Warning "Icon not found at $resolvedIconPath - build continues with the default Windows exe icon."
 }
-$cscArgs += $sourcePath
+$manifestPath = Join-Path $root 'scripts\wzpro-companion.manifest'
+if (Test-Path $manifestPath) {
+  $cscArgs += "/win32manifest:$manifestPath"
+  Write-Output "Embedding manifest (requireAdministrator): $manifestPath"
+} else {
+  Write-Warning "Manifest not found at $manifestPath - exe will not request admin rights."
+}
+$cscArgs += $sourcePaths
 
 & $cscPath @cscArgs
+if ($LASTEXITCODE -ne 0) {
+  throw "csc.exe failed with exit code $LASTEXITCODE."
+}
 
 $nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
 if (-not $nodeCommand) {
@@ -74,6 +98,10 @@ if (Test-Path $fontPath) {
 }
 if (Test-Path $resolvedIconPath) {
   Copy-Item -Force -Path $resolvedIconPath -Destination (Join-Path $appDir 'wzpro-companion.ico')
+}
+$brandLogoPath = Join-Path $root 'public\brand\WZ__1_-removebg-preview.png'
+if (Test-Path $brandLogoPath) {
+  Copy-Item -Force -Path $brandLogoPath -Destination (Join-Path $appDir 'wzpro-logo.png')
 }
 
 if (-not (Test-Path $nodeModulesSource)) {

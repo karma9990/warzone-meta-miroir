@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import ClientGlassScene from "@/components/ClientGlassScene";
 import CommandPalette from "@/components/CommandPalette";
 import LegalFooter from "@/components/LegalFooter";
 import MonoTechOverlay from "@/components/MonoTechOverlay";
@@ -8,11 +7,14 @@ import RuntimeI18n from "@/components/RuntimeI18n";
 import ThemeScript from "@/components/ThemeScript";
 import ThemeToggle from "@/components/ThemeToggle";
 import { LOCALE_HEADER, normalizeLocale } from "@/lib/i18n";
+import { jsonLdHtml } from "@/lib/jsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
 import "./globals.css";
 import "./legal-pages.css";
 import "./home-priority.css";
 import "./design-enhancements.css";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -63,19 +65,20 @@ export default async function RootLayout({
 }>) {
   const requestHeaders = await headers();
   const locale = normalizeLocale(requestHeaders.get(LOCALE_HEADER));
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <ThemeScript />
+        <ThemeScript nonce={nonce} />
         <script
+          nonce={nonce}
           type="application/ld+json"
           suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdHtml(structuredData) }}
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <ClientGlassScene backgroundSrc="/generated/operator-full-site-bg.webp" />
         <div className="grain-overlay" aria-hidden="true" />
         <MonoTechOverlay />
         <RuntimeI18n locale={locale} />

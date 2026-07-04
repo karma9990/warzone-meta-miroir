@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import LocalizedSafariBar from '@/components/LocalizedSafariBar';
 import { withLocalePath } from '@/lib/i18n';
+import { jsonLdHtml } from '@/lib/jsonLd';
 import { getRequestLocale } from '@/lib/requestLocale';
 import { SITE_URL } from '@/lib/siteConfig';
 import { NEWS_CATEGORIES } from './NewsCategoryPage';
@@ -18,7 +20,8 @@ const COPY = {
 } as const;
 
 export default async function ActualitesIndexPage() {
-  const locale = await getRequestLocale();
+  const [locale, requestHeaders] = await Promise.all([getRequestLocale(), headers()]);
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
   const lang = locale === 'fr' || locale === 'es' ? locale : 'en';
   const copy = COPY[lang];
   const href = (pathname: string) => withLocalePath(pathname, locale);
@@ -37,9 +40,10 @@ export default async function ActualitesIndexPage() {
   return (
     <>
       <script
+        nonce={nonce}
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdHtml(itemListJsonLd) }}
       />
       <div className="pt-technical-backdrop" aria-hidden="true" />
 

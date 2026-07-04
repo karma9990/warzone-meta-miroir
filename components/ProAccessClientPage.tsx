@@ -7,6 +7,9 @@ const frText = {
   invalidEmail: 'Adresse email invalide.',
   consentRequired: 'Confirmez l acces numerique immediat et la renonciation au droit de retractation.',
   paymentError: 'Le paiement n est pas configure.',
+  signInRequired: 'Connectez-vous avant le paiement pour rattacher Pro a votre compte.',
+  signInCta: 'Connexion',
+  signUpCta: 'Inscription',
   whatYouGet: 'Ce que vous obtenez aujourd hui',
   whatYouGetTitle: 'Un chemin concret, pas juste une liste de conseils.',
   whatYouGetDesc: 'Chaque module relie un probleme concret a une decision: quelle sensibilite tester, quel combat prendre, quel spawn choisir et quel reglage corriger avant de lancer.',
@@ -47,6 +50,9 @@ const enText = {
   invalidEmail: 'Invalid email address.',
   consentRequired: 'Confirm immediate digital access and withdrawal acknowledgement.',
   paymentError: 'Payment checkout is not configured.',
+  signInRequired: 'Sign in before checkout so Pro is attached to your account.',
+  signInCta: 'Sign in',
+  signUpCta: 'Sign up',
   whatYouGet: 'What you get today',
   whatYouGetTitle: 'An actionable path, not just a list of tips.',
   whatYouGetDesc: 'Each module connects a concrete problem to a decision: which sensitivity to test, which fight to take, which spawn to choose, and which setting to fix before queueing.',
@@ -87,6 +93,9 @@ const esText = {
   invalidEmail: 'Direccion de email no valida.',
   consentRequired: 'Confirma el acceso digital inmediato y la renuncia al derecho de desistimiento.',
   paymentError: 'El pago no esta configurado.',
+  signInRequired: 'Inicia sesion antes del pago para vincular Pro a tu cuenta.',
+  signInCta: 'Iniciar sesion',
+  signUpCta: 'Registrarse',
   whatYouGet: 'Lo que obtienes hoy',
   whatYouGetTitle: 'Un camino concreto, no solo una lista de consejos.',
   whatYouGetDesc: 'Cada modulo conecta un problema concreto con una decision.',
@@ -124,6 +133,12 @@ const esText = {
 };
 
 type ProProof = { title: string; body: string };
+type SessionUser = {
+  sub: string;
+  provider: 'google' | 'battlenet' | 'apple' | 'email';
+  name: string;
+  email?: string;
+};
 
 export type ProAccessCopy = {
   backLabel: string;
@@ -161,7 +176,7 @@ const FR_PRO_COPY: ProAccessCopy = {
   cta: 'COMMENCER - 50 EUR / MOIS',
 };
 
-export default function ProAccessPage({ initialCopy, locale = 'en' }: { initialCopy?: ProAccessCopy; locale?: string }) {
+export default function ProAccessPage({ initialCopy, locale = 'en', initialUser = null }: { initialCopy?: ProAccessCopy; locale?: string; initialUser?: SessionUser | null }) {
   const [step, setStep] = useState<'info' | 'form'>('info');
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -174,10 +189,15 @@ export default function ProAccessPage({ initialCopy, locale = 'en' }: { initialC
   const copy = { ...defaultCopy, ...initialCopy };
   const proofs = isEs ? esText.proofs.map(([title, body]) => ({ title, body })) : isFr ? frText.proofs.map(([title, body]) => ({ title, body })) : enText.proofs.map(([title, body]) => ({ title, body }));
   const faq = isEs ? esText.faq : isFr ? frText.faq : enText.faq;
+  const accountEmail = initialUser?.email || email;
 
   async function handleStart(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.includes('@')) {
+    if (!initialUser) {
+      setError(t.signInRequired);
+      return;
+    }
+    if (!accountEmail.includes('@')) {
       setError(t.invalidEmail);
       return;
     }
@@ -192,7 +212,7 @@ export default function ProAccessPage({ initialCopy, locale = 'en' }: { initialC
       const res = await fetch('/api/polar-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productKey: 'pro', email }),
+        body: JSON.stringify({ productKey: 'pro', email: accountEmail }),
       });
       const result = await res.json() as { url?: string; error?: string };
       if (!res.ok || !result.url) {
@@ -272,6 +292,16 @@ export default function ProAccessPage({ initialCopy, locale = 'en' }: { initialC
 
         {step === 'form' && (
           <form className="pro-form" onSubmit={handleStart} noValidate>
+            {!initialUser && (
+              <div className="pro-payment-note">
+                <span className="pro-payment-tag">{t.signInRequired}</span>
+                <p className="pro-payment-desc">
+                  <LocalizedLink href="/sign-in">{t.signInCta}</LocalizedLink>
+                  {' / '}
+                  <LocalizedLink href="/sign-up">{t.signUpCta}</LocalizedLink>
+                </p>
+              </div>
+            )}
             <div className="pro-field">
               <label className="pro-label" htmlFor="pro-email">{t.emailLabel}</label>
               <input
@@ -279,8 +309,9 @@ export default function ProAccessPage({ initialCopy, locale = 'en' }: { initialC
                 type="email"
                 className="pro-input"
                 placeholder={t.emailPlaceholder}
-                value={email}
+                value={accountEmail}
                 onChange={e => setEmail(e.target.value)}
+                readOnly={Boolean(initialUser?.email)}
                 required
                 autoComplete="email"
               />

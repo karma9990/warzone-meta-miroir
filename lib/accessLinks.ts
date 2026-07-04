@@ -23,7 +23,9 @@ export function buildProToolLinks(token: string) {
 export async function createAccessToken(purchase: Purchase, email: string) {
   const tokenPayload = purchase.type === 'pro'
     ? { access: 'pro', email, claim: 'tool-access', tokenUse: ACCESS_TOKEN_USE, jti: randomUUID() }
-    : { toolId: purchase.id, email, claim: 'tool-access', tokenUse: ACCESS_TOKEN_USE, jti: randomUUID() };
+    : purchase.type === 'companion'
+      ? { access: 'companion', email, claim: 'tool-access', tokenUse: ACCESS_TOKEN_USE, jti: randomUUID() }
+      : { toolId: purchase.id, email, claim: 'tool-access', tokenUse: ACCESS_TOKEN_USE, jti: randomUUID() };
 
   return new SignJWT(tokenPayload)
     .setProtectedHeader({ alg: 'HS256' })
@@ -35,7 +37,7 @@ export async function createAccessToken(purchase: Purchase, email: string) {
 }
 
 export function buildAccessUrl(purchase: Purchase, token: string) {
-  return purchase.type === 'pro'
-    ? `${SITE_URL}/tools/aim-tools?token=${token}`
-    : `${SITE_URL}/tools/${purchase.id}?token=${token}`;
+  if (purchase.type === 'pro') return `${SITE_URL}/tools/aim-tools?token=${token}`;
+  if (purchase.type === 'companion') return `${SITE_URL}/account?token=${token}`;
+  return `${SITE_URL}/tools/${purchase.id}?token=${token}`;
 }

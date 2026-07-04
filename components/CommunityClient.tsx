@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import LocalizedLink from '@/components/LocalizedLink';
 import LocalizedSafariBar from '@/components/LocalizedSafariBar';
 import type { CommunityPost, CommunityPostType } from '@/lib/communityStore';
@@ -104,6 +104,8 @@ const labels: Record<Locale, Record<string, string>> = {
     playerPseudo: 'Player pseudo', sending: 'Sending...', sendPrivate: 'Send private message', noPrivate: 'No private conversations yet.',
     hot: 'Hot', news: 'New', profileLink: 'Profile', report: 'Report', joinRequests: 'join requests', hotScore: 'Hot score',
     askJoin: 'Ask to join', reply: 'Reply', noThread: 'No thread found', noThreadBody: 'Change the filters or start the first post for this search.',
+    autoTranslated: 'Auto-translated', originalLanguage: 'Original language',
+    lfgExpiresIn: 'Expires in', lfgExpiringSoon: 'Expiring soon',
   },
   fr: {
     all: 'Tous', lfg: 'Trouver des mates', discussion: 'Discussions', tip: 'Conseils', patch: 'Patch notes',
@@ -116,6 +118,8 @@ const labels: Record<Locale, Record<string, string>> = {
     playerPseudo: 'Pseudo joueur', sending: 'Envoi...', sendPrivate: 'Envoyer un message prive', noPrivate: 'Aucune conversation privee.',
     hot: 'Hot', news: 'Nouveau', profileLink: 'Profil', report: 'Signaler', joinRequests: 'demandes pour rejoindre', hotScore: 'Score hot',
     askJoin: 'Demander a rejoindre', reply: 'Repondre', noThread: 'Aucun sujet trouve', noThreadBody: 'Change les filtres ou cree le premier post pour cette recherche.',
+    autoTranslated: 'Traduit auto', originalLanguage: 'Langue originale',
+    lfgExpiresIn: 'Expire dans', lfgExpiringSoon: 'Expire bientot',
   },
   es: {
     all: 'Todo', lfg: 'Encontrar equipo', discussion: 'Debates', tip: 'Consejos', patch: 'Parches',
@@ -128,6 +132,8 @@ const labels: Record<Locale, Record<string, string>> = {
     playerPseudo: 'Pseudo del jugador', sending: 'Enviando...', sendPrivate: 'Enviar mensaje privado', noPrivate: 'No hay conversaciones privadas.',
     hot: 'Hot', news: 'Nuevo', profileLink: 'Perfil', report: 'Denunciar', joinRequests: 'solicitudes para unirse', hotScore: 'Puntuacion hot',
     askJoin: 'Pedir unirse', reply: 'Responder', noThread: 'No se encontro ningun tema', noThreadBody: 'Cambia los filtros o crea el primer post para esta busqueda.',
+    autoTranslated: 'Traducido auto', originalLanguage: 'Idioma original',
+    lfgExpiresIn: 'Expira en', lfgExpiringSoon: 'Expira pronto',
   },
   de: {
     all: 'Alle', lfg: 'Mitspieler finden', discussion: 'Diskussionen', tip: 'Tipps', patch: 'Patch Talk',
@@ -207,6 +213,16 @@ function labelFor(locale: Locale, key: string) {
   return labels[locale]?.[key] ?? labels.en[key] ?? key;
 }
 
+// Freshness badge for LFG posts (expired posts are already filtered out).
+function lfgExpiryLabel(expiresAt: string | undefined, now: number, locale: Locale): string | null {
+  if (!expiresAt) return null;
+  const ms = new Date(expiresAt).getTime() - now;
+  if (ms <= 0) return null;
+  const minutes = Math.round(ms / 60000);
+  if (minutes < 60) return labelFor(locale, 'lfgExpiringSoon');
+  return `${labelFor(locale, 'lfgExpiresIn')} ${Math.round(minutes / 60)}h`;
+}
+
 function typeLabelsFor(locale: Locale): Record<CommunityPostType | 'all', string> {
   return {
     all: labelFor(locale, 'all'),
@@ -235,6 +251,20 @@ function normalizeTags(value: string) {
     .map((tag) => tag.trim())
     .filter(Boolean)
     .slice(0, 4);
+}
+
+function languageToLocale(language: string | undefined): Locale | null {
+  const normalized = (language || '').trim().toLowerCase();
+  if (normalized === 'english') return 'en';
+  if (normalized === 'french') return 'fr';
+  if (normalized === 'spanish') return 'es';
+  if (normalized === 'german') return 'de';
+  if (normalized === 'italian') return 'it';
+  if (normalized === 'portuguese') return 'pt';
+  if (normalized === 'dutch') return 'nl';
+  if (normalized === 'polish') return 'pl';
+  if (normalized === 'japanese') return 'ja';
+  return null;
 }
 
 function localizeCommunityText(value: string, locale: Locale) {
@@ -360,12 +390,14 @@ export default function CommunityClient({
   initialMessages = [],
   initialCopy,
   initialPlayer = '',
+  initialType,
 }: {
   initialPosts: CommunityPost[];
   initialUser?: UserSession | null;
   initialMessages?: MessageConversation[];
   initialCopy?: CommunityCopy;
   initialPlayer?: string;
+  initialType?: CommunityPostType | 'all';
 }) {
   const locale = useCurrentLocale();
   const t = (key: string) => labelFor(locale, key);
@@ -373,7 +405,7 @@ export default function CommunityClient({
   const copy = locale === 'en' ? (initialCopy ?? DEFAULT_COMMUNITY_COPY) : (communityCopy[locale] ?? DEFAULT_COMMUNITY_COPY);
   const [posts, setPosts] = useState(initialPosts);
   const [user] = useState<User | null>(initialUser ?? null);
-  const [activeType, setActiveType] = useState<CommunityPostType | 'all'>(initialPlayer ? 'lfg' : 'all');
+  const [activeType, setActiveType] = useState<CommunityPostType | 'all'>(initialType ?? (initialPlayer ? 'lfg' : 'all'));
   const [sortMode, setSortMode] = useState<SortMode>('hot');
   const query = initialPlayer;
   const [now] = useState(() => Date.now());
@@ -387,6 +419,7 @@ export default function CommunityClient({
   const [joinDrafts, setJoinDrafts] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<MessageConversation[]>(initialMessages);
   const [messageForm, setMessageForm] = useState({ recipientPseudo: initialPlayer, body: '' });
+  const [translations, setTranslations] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [messageBusy, setMessageBusy] = useState(false);
   const [error, setError] = useState('');
@@ -454,6 +487,59 @@ export default function CommunityClient({
     inputFilter === ALL_FILTER ? t('allInputs') : localizeCommunityOption(inputFilter, locale),
     query.trim() ? `${t('searchPrefix')}: ${query.trim()}` : t('noSearch'),
   ];
+
+  useEffect(() => {
+    const items = filteredPosts.flatMap((post) => {
+      const sourceLocale = languageToLocale(post.language);
+      if (sourceLocale === locale) return [];
+
+      return [
+        { id: `${post.id}:title`, text: post.title, sourceLanguage: post.language || 'auto' },
+        { id: `${post.id}:body`, text: post.body, sourceLanguage: post.language || 'auto' },
+        ...post.replies.map((reply) => ({
+          id: `${post.id}:reply:${reply.id}`,
+          text: reply.body,
+          sourceLanguage: post.language || 'auto',
+        })),
+      ];
+    }).filter((item) => item.text && !translations[item.id]);
+
+    if (items.length === 0) return;
+
+    const controller = new AbortController();
+    fetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetLocale: locale, items }),
+      signal: controller.signal,
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data: { translations?: Array<{ id: string; text: string }> } | null) => {
+        if (!data?.translations?.length) return;
+        setTranslations((current) => {
+          const next = { ...current };
+          for (const item of data.translations || []) {
+            if (item.id && item.text) next[item.id] = item.text;
+          }
+          return next;
+        });
+      })
+      .catch((error) => {
+        if ((error as Error).name !== 'AbortError') {
+          console.warn('Community auto-translation unavailable:', error);
+        }
+      });
+
+    return () => controller.abort();
+  }, [filteredPosts, locale, translations]);
+
+  function communityText(id: string, text: string) {
+    return translations[id] || localizeCommunityText(text, locale);
+  }
+
+  function isTranslated(id: string) {
+    return Boolean(translations[id]);
+  }
 
   async function publishPost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -600,7 +686,7 @@ export default function CommunityClient({
       <div className="pt-technical-backdrop" aria-hidden="true" />
 
       <LocalizedSafariBar
-        active="community"
+        active={initialType === 'lfg' ? 'lfg' : 'community'}
         searchPlaceholder={locale === 'es' ? 'Mate, rango, clase' : locale === 'fr' ? 'Mate, rang, classe' : locale === 'ja' ? '味方、ランク、ロードアウト' : 'Mate, rank, loadout'}
         readout={[`${posts.length} POSTS`, `${lfgCount} LFG ACTIVE`, 'CHAT: LIVE']}
       />
@@ -824,6 +910,8 @@ export default function CommunityClient({
             <div className="community-posts">
               {filteredPosts.map((post) => {
                 const canContactAuthor = Boolean(post.authorId && post.authorPseudo);
+                const titleId = `${post.id}:title`;
+                const bodyId = `${post.id}:body`;
 
                 return (
                 <article className="community-post" key={post.id}>
@@ -836,9 +924,16 @@ export default function CommunityClient({
                     <div className="community-post-meta">
                       <span>{typeLabels[post.type]}</span>
                       <small>{post.author} / {post.region} / {formatTime(post.createdAt, locale)}</small>
+                      {post.type === 'lfg' && lfgExpiryLabel(post.expiresAt, now, locale) && (
+                        <small className="community-lfg-expiry">{lfgExpiryLabel(post.expiresAt, now, locale)}</small>
+                      )}
                     </div>
-                    <h2>{localizeCommunityText(post.title, locale)}</h2>
-                    <p>{localizeCommunityText(post.body, locale)}</p>
+                    <div className="community-language-row">
+                      {post.language && <span>{t('originalLanguage')}: {localizeCommunityOption(post.language, locale)}</span>}
+                      {(isTranslated(titleId) || isTranslated(bodyId)) && <span>{t('autoTranslated')}</span>}
+                    </div>
+                    <h2>{communityText(titleId, post.title)}</h2>
+                    <p>{communityText(bodyId, post.body)}</p>
                     <div className="community-tags">
                       <span>{localizeCommunityOption(post.platform, locale)}</span>
                       <span>{localizeCommunityOption(post.mode, locale)}</span>
@@ -876,7 +971,7 @@ export default function CommunityClient({
                         <div key={reply.id}>
                           <strong>{reply.author}</strong>
                           <span>{formatTime(reply.createdAt, locale)}</span>
-                          <p>{localizeCommunityText(reply.body, locale)}</p>
+                          <p>{communityText(`${post.id}:reply:${reply.id}`, reply.body)}</p>
                         </div>
                       ))}
                     </div>

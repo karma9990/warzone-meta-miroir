@@ -21,7 +21,11 @@ export async function POST(request: NextRequest) {
 
   const code = typeof parsed.data.code === 'string' ? parsed.data.code.trim().toUpperCase() : '';
   const profile = await getProfile(user.sub);
-  const authorized = await authorizeCompanionFlow(code, user, profile?.profilePicture || user.picture);
+  const companionUser = {
+    ...user,
+    name: profile?.activisionId || profile?.publicName || user.name,
+  };
+  const authorized = await authorizeCompanionFlow(code, companionUser, profile?.profilePicture || user.picture);
   if (!authorized) {
     return NextResponse.json({ error: 'Code expired or invalid.' }, { status: 404 });
   }

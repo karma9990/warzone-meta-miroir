@@ -870,8 +870,8 @@ body {
 }
 
 .pt-access-compare a {
-  background: var(--tm-blue) !important;
-  color: #fff !important;
+  background: rgba(239, 238, 232, 0.82) !important;
+  color: var(--tm-blue) !important;
 }
 
 .pt-access-compare article {
@@ -1656,7 +1656,12 @@ body {
   .account-loadout-picker button,
   .account-loadout-featured,
   .account-favorites a,
-  .account-toggle
+  .account-toggle,
+  .account-form-insight,
+  .account-form-empty,
+  .account-coach-tips,
+  .account-coach-locked,
+  .account-lb-checklist
 ) {
   background: var(--theme-panel) !important;
   border-color: var(--tm-line) !important;
@@ -1717,14 +1722,46 @@ body {
 :root[data-theme="dark"] .account-tool a,
 :root[data-theme="dark"] .account-dashboard a,
 :root[data-theme="dark"] .account-security-grid a,
-:root[data-theme="dark"] .account-profile-actions button {
+:root[data-theme="dark"] .account-profile-actions button,
+:root[data-theme="dark"] .account-form-insight a,
+:root[data-theme="dark"] .account-form-empty a,
+:root[data-theme="dark"] .account-coach-locked a,
+:root[data-theme="dark"] .account-lb-actions a {
   background: var(--tm-blue) !important;
   color: var(--tm-ink) !important;
+}
+
+:root[data-theme="dark"] .account-lb-actions a + a {
+  background: transparent !important;
+  color: var(--tm-blue) !important;
+  border-color: var(--tm-blue) !important;
+}
+
+:root[data-theme="dark"] .account-lb-checklist li::before {
+  color: var(--tm-muted) !important;
+}
+
+:root[data-theme="dark"] .account-lb-checklist li[data-done="yes"]::before {
+  color: #2fd089 !important;
 }
 
 :root[data-theme="dark"] .account-tool.is-locked a {
   background: rgba(243, 246, 239, 0.1) !important;
   color: var(--tm-ink) !important;
+}
+
+:root[data-theme="dark"] .account-manage-sub button {
+  background: var(--tm-blue) !important;
+  color: var(--tm-ink) !important;
+}
+
+:root[data-theme="dark"] .account-manage-sub small {
+  color: var(--tm-muted) !important;
+  opacity: 1 !important;
+}
+
+:root[data-theme="dark"] .account-manage-sub small a {
+  color: var(--tm-blue) !important;
 }
 
 :root[data-theme="dark"] .account-share-stats {
@@ -2262,6 +2299,105 @@ body {
 :root[data-theme="dark"] .side-dock a:hover {
   background: var(--tm-ink) !important;
   color: var(--tm-paper) !important;
+}
+
+.glass-demo .hero-leaderboard-slot {
+  position: relative !important;
+  z-index: 6 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  width: 100% !important;
+  justify-content: center !important;
+  gap: clamp(8px, 1.5vw, 16px) !important;
+  margin: clamp(10px, 1.6vh, 16px) auto 0 !important;
+  padding: 0 !important;
+}
+
+.glass-demo .hero-leaderboard-cta,
+:root[data-theme="dark"] .glass-demo .hero-leaderboard-cta {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transform: translate(-18px, -10px) !important;
+  width: auto !important;
+  min-width: 150px !important;
+  min-height: 44px !important;
+  padding: 0 28px !important;
+  border: 1px solid var(--tm-blue) !important;
+  background: var(--tm-blue) !important;
+  color: #fff !important;
+  font-family: var(--tm-mono) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+}
+
+.glass-demo .hero-leaderboard-cta:hover,
+.glass-demo .hero-leaderboard-cta:focus-visible {
+  background: var(--tm-ink) !important;
+  border-color: var(--tm-ink) !important;
+  color: var(--tm-paper) !important;
+}
+
+.glass-demo .hero-actions a {
+  background: transparent !important;
+  border-color: var(--tm-ink) !important;
+  color: var(--tm-ink) !important;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease !important;
+}
+
+.glass-demo .hero-actions a:hover,
+.glass-demo .hero-actions a:focus-visible {
+  background: var(--tm-ink) !important;
+  border-color: var(--tm-ink) !important;
+  color: var(--tm-paper) !important;
+  transform: translateY(-1px) !important;
+}
+
+.glass-demo .hero-actions {
+  display: grid !important;
+  grid-template-columns: repeat(3, max-content) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: min(620px, calc(100% - 32px)) !important;
+  margin-inline: auto !important;
+}
+
+.glass-demo .hero-actions a:nth-child(1) {
+  justify-self: center !important;
+}
+
+.glass-demo .hero-actions a:nth-child(2) {
+  justify-self: center !important;
+}
+
+.glass-demo .hero-actions a:nth-child(3) {
+  justify-self: center !important;
+}
+
+@media (max-width: 720px) {
+  .glass-demo .hero-leaderboard-slot {
+    margin-top: 10px !important;
+  }
+
+  .glass-demo .hero-leaderboard-cta,
+  :root[data-theme="dark"] .glass-demo .hero-leaderboard-cta {
+    transform: translateY(-6px) !important;
+  }
+
+  .glass-demo .hero-actions {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  .glass-demo .hero-actions a {
+    justify-self: stretch !important;
+  }
 }
 
 
@@ -2909,4 +3045,52 @@ body {
 
 :root[data-theme="dark"] .fun-zone .fun-vote-row.is-voted {
   border-color: var(--tm-blue) !important;
+}
+
+/* Pro Tools dark mode: transparent components, no paper/black fills that bleed past blue frames. */
+:root[data-theme="dark"] body:has(.pro-tools-page) :is(
+  .pt-wt-hero,
+  .pt-wt-proof-grid,
+  .pt-wt-proof-grid > article,
+  .pt-wt-module,
+  .ptv2-rail-panel,
+  .ptv2-jump,
+  .pt-wt-product-preview,
+  .pt-wt-product-preview > div,
+  .pt-wt-hero-stats,
+  .pt-wt-hero-stats > div,
+  .pt-wt-spawn-row,
+  .pt-wt-spawn-row > .pt-wt-spawn,
+  .pt-wt-plans,
+  .pt-wt-plans > .pt-wt-plan,
+  .pt-access-compare,
+  .pt-access-compare > article,
+  .pt-access-compare > a,
+  .pt-preview-card,
+  .pt-preview-unlock
+) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] body:has(.pro-tools-page) :is(
+  .pt-wt-hero,
+  .pt-wt-proof-grid,
+  .pt-wt-module,
+  .ptv2-rail-panel,
+  .ptv2-jump,
+  .pt-wt-product-preview,
+  .pt-wt-hero-stats,
+  .pt-wt-spawn-row,
+  .pt-wt-plans,
+  .pt-access-compare,
+  .pt-preview-card,
+  .pt-preview-unlock
+) {
+  border-color: rgba(22, 60, 255, 0.62) !important;
 }

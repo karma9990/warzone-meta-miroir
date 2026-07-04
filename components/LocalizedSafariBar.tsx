@@ -6,7 +6,7 @@ import { getHomeUiCopy, withLocalePath } from '@/lib/i18n';
 import { useCurrentLocale } from '@/lib/useCurrentLocale';
 
 type LocalizedSafariBarProps = {
-  active?: 'pro-tools' | 'loadouts' | 'quiz' | 'meta-trends' | 'builds' | 'ai-classes' | 'set-up' | 'esport' | 'community' | 'actualites' | 'pro-classe' | 'tournois' | 'createur';
+  active?: 'pro-tools' | 'loadouts' | 'quiz' | 'meta-trends' | 'builds' | 'ai-classes' | 'set-up' | 'esport' | 'community' | 'lfg' | 'actualites' | 'pro-classe' | 'tournois' | 'createur';
   searchPlaceholder?: string;
   readout?: string[];
 };
@@ -33,7 +33,7 @@ export default function LocalizedSafariBar({
 
   const links = [
     ['pro-tools', href('/pro-tools'), copy.proTools],
-    ['loadouts', href('/#all-loadouts'), copy.loadouts],
+    ['loadouts', href('/quiz'), copy.loadouts],
     ['ai-classes', href('/ai-classes'), 'IA WZPRO'],
     ['pro-classe', href('/pro-classe'), locale === 'fr' ? 'Classes Pro' : locale === 'es' ? 'Clases Pro' : 'Pro Classes'],
     ['set-up', href('/set-up'), copy.setUp],

@@ -70,6 +70,18 @@ export function safeCompare(a: string, b: string) {
   return timingSafeEqual(left, right);
 }
 
+// Guards cron endpoints: requires `Authorization: Bearer <CRON_SECRET>` with a
+// constant-time comparison. Returns a 401 response when the secret is missing
+// or does not match, otherwise null.
+export function requireCronSecret(req: NextRequest): NextResponse | null {
+  const secret = process.env.CRON_SECRET;
+  const header = req.headers.get('authorization') || '';
+  if (!secret || !safeCompare(header, `Bearer ${secret}`)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  return null;
+}
+
 export async function readJsonBody<T = Record<string, unknown>>(
   req: NextRequest,
   maxBytes = 16_384

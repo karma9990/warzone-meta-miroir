@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Loadout } from '@/lib/data';
 import { calculateMetaScore } from '@/lib/loadoutUtils';
 import { getLoadoutPath } from '@/lib/seo';
 import { withLocalePath, type Locale } from '@/lib/i18n';
+import { isCompleteQuizAnswers, rankQuizLoadouts, type QuizAnswers, type RankedQuizLoadout } from '@/lib/loadoutQuizLogic';
 
 type Props = {
   loadouts: Loadout[];
@@ -14,15 +15,33 @@ type Props = {
 
 type Lang = 'en' | 'fr' | 'es';
 
-type Answers = {
-  mode?: 'resurgence' | 'br' | 'ranked';
-  range?: 'close' | 'mid' | 'long';
-  priority?: 'aggression' | 'consistency' | 'damage';
-  input?: 'controller' | 'mkb';
-  experience?: 'beginner' | 'experienced';
+type QuestionKey = keyof QuizAnswers;
+
+type QuizAttachment = {
+  slot: string;
+  name: string;
 };
 
-type QuestionKey = keyof Answers;
+type DisplayRecommendation = {
+  id: string;
+  weapon: string;
+  category: string;
+  tier: Loadout['tier'];
+  metaScore?: number;
+  attachments: QuizAttachment[];
+  reason?: string;
+  loadout?: Loadout;
+};
+
+type ApiRecommendation = {
+  id?: string;
+  weapon?: string;
+  category?: string;
+  tier?: Loadout['tier'];
+  metaScore?: number;
+  reason?: string;
+  attachments?: QuizAttachment[];
+};
 
 const COPY: Record<Lang, {
   eyebrow: string;
@@ -131,98 +150,114 @@ const QUESTIONS: Question[] = [
   },
 ];
 
-type Target = { damage: number; range: number; mobility: number; control: number };
-
-function targetFromAnswers(answers: Required<Answers>): { target: Target; weights: Target } {
-  const target: Target = { damage: 70, range: 60, mobility: 60, control: 70 };
-  const weights: Target = { damage: 1, range: 1, mobility: 1, control: 1 };
-
-  if (answers.range === 'close') { target.range = 35; target.mobility = 92; weights.mobility = 2; weights.range = 1.4; }
-  else if (answers.range === 'mid') { target.range = 70; target.mobility = 66; weights.range = 1.4; }
-  else { target.range = 95; target.mobility = 42; weights.range = 2; }
-
-  if (answers.mode === 'resurgence') { target.mobility = Math.min(100, target.mobility + 8); }
-  else if (answers.mode === 'br') { target.range = Math.min(100, target.range + 8); }
-  else { target.control = Math.min(100, target.control + 8); weights.control += 0.4; }
-
-  if (answers.priority === 'aggression') { target.mobility = Math.min(100, target.mobility + 10); weights.mobility += 1; }
-  else if (answers.priority === 'consistency') { target.control = Math.min(100, target.control + 12); weights.control += 1.2; }
-  else { target.damage = Math.min(100, target.damage + 14); weights.damage += 1.2; }
-
-  if (answers.input === 'mkb') { target.range = Math.min(100, target.range + 4); }
-  else { target.control = Math.min(100, target.control + 4); }
-
-  if (answers.experience === 'beginner') { target.control = Math.min(100, target.control + 12); weights.control += 0.8; }
-
-  return { target, weights };
-}
-
-function categoryFor(answers: Required<Answers>) {
-  if (answers.range === 'long' && answers.priority !== 'aggression') return ['Sniper Rifle', 'Marksman Rifle', 'Assault Rifle'];
-  if (answers.range === 'close') return ['SMG', 'Assault Rifle'];
-  return ['Assault Rifle', 'Marksman Rifle', 'SMG'];
-}
-
-function scoreLoadout(loadout: Loadout, target: Target, weights: Target, preferredCats: string[], answers: Required<Answers>) {
-  const s = loadout.stats;
-  const delta =
-    Math.abs(s.damage - target.damage) * weights.damage +
-    Math.abs(s.range - target.range) * weights.range +
-    Math.abs(s.mobility - target.mobility) * weights.mobility +
-    Math.abs(s.control - target.control) * weights.control;
-
-  let bonus = 0;
-  if (preferredCats.includes(loadout.category)) bonus += 30;
-  if (loadout.tier === 'S') bonus += 18; else if (loadout.tier === 'A') bonus += 9; else if (loadout.tier === 'C') bonus -= 8;
-  if (answers.mode === 'resurgence' && loadout.modes?.some((m) => /resurgence|solo|duo|trio/i.test(m))) bonus += 12;
-  if (answers.mode === 'br' && loadout.modes?.some((m) => /battle royale|squads/i.test(m))) bonus += 12;
-  if (answers.mode === 'ranked' && loadout.modes?.some((m) => /ranked/i.test(m))) bonus += 12;
-  if (answers.experience === 'beginner' && loadout.tags?.some((t) => /beginner|easy recoil|forgiving|low recoil/i.test(t))) bonus += 14;
-  if (answers.experience === 'beginner' && loadout.tags?.some((t) => /high recoil|high skill/i.test(t))) bonus -= 14;
-
-  // Lower delta is better; convert to an ascending fit score.
-  return 1000 - delta + bonus;
-}
-
 export default function LoadoutQuiz({ loadouts, locale }: Props) {
   const lang: Lang = locale === 'fr' ? 'fr' : locale === 'es' ? 'es' : 'en';
   const t = COPY[lang];
-  const [answers, setAnswers] = useState<Answers>({});
+  const [answers, setAnswers] = useState<QuizAnswers>({});
   const [step, setStep] = useState(0);
+  const [aiRanked, setAiRanked] = useState<DisplayRecommendation[] | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
 
-  const complete = QUESTIONS.every((q) => answers[q.key]);
+  const complete = isCompleteQuizAnswers(answers);
+  const requestKey = complete ? JSON.stringify(answers) : '';
 
   const ranked = useMemo(() => {
     if (!complete) return [];
-    const full = answers as Required<Answers>;
-    const { target, weights } = targetFromAnswers(full);
-    const cats = categoryFor(full);
-    return [...loadouts]
-      .map((loadout) => ({ loadout, fit: scoreLoadout(loadout, target, weights, cats, full) }))
-      .sort((a, b) => b.fit - a.fit || calculateMetaScore(b.loadout) - calculateMetaScore(a.loadout))
-      .slice(0, 3);
+    return rankQuizLoadouts(loadouts, answers, 3);
   }, [answers, complete, loadouts]);
 
+  const whyLine = useCallback((loadout: Loadout) => {
+    const bits: string[] = [];
+    if (loadout.tags?.length) bits.push(loadout.tags.slice(0, 2).join(', '));
+    bits.push(`tier ${loadout.tier}`);
+    bits.push(`meta ${calculateMetaScore(loadout)}`);
+    return bits.join(' / ');
+  }, []);
+
+  const toDisplayRecommendation = useCallback((item: RankedQuizLoadout): DisplayRecommendation => {
+    return {
+      id: item.loadout.id,
+      weapon: item.loadout.weapon,
+      category: item.loadout.category,
+      tier: item.loadout.tier,
+      metaScore: calculateMetaScore(item.loadout),
+      attachments: item.loadout.attachments.slice(0, 5),
+      reason: item.aiReason || whyLine(item.loadout),
+      loadout: item.loadout,
+    };
+  }, [whyLine]);
+
+  useEffect(() => {
+    if (!complete) return;
+
+    const controller = new AbortController();
+
+    fetch('/api/quiz/recommendation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers, locale }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => null) as {
+          recommendations?: ApiRecommendation[];
+          error?: string;
+        } | null;
+        if (!response.ok) throw new Error(payload?.error || 'AI recommendation unavailable');
+        return payload;
+      })
+      .then((payload) => {
+        const next = (payload?.recommendations ?? [])
+          .map((item, index) => {
+            const loadout = loadouts.find((candidate) => candidate.id === item.id);
+            if (loadout) return toDisplayRecommendation({ loadout, fit: 2000 - index, aiReason: item.reason });
+            if (!item.weapon || !item.category || !item.tier || !item.attachments?.length) return null;
+            return {
+              id: `ai-${index}-${item.weapon.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+              weapon: item.weapon,
+              category: item.category,
+              tier: item.tier,
+              metaScore: item.metaScore,
+              attachments: item.attachments.slice(0, 5),
+              reason: item.reason,
+            } satisfies DisplayRecommendation;
+          })
+          .filter((item): item is DisplayRecommendation => item !== null)
+          .slice(0, 3);
+
+        if (next.length) setAiRanked(next);
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setAiError(error instanceof Error ? error.message : 'AI recommendation unavailable');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setAiLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [complete, requestKey, loadouts, locale, answers, toDisplayRecommendation]);
+
   function choose(key: QuestionKey, value: string) {
-    setAnswers((current) => ({ ...current, [key]: value }));
+    setAiRanked(null);
+    setAiError('');
+    const nextAnswers = { ...answers, [key]: value };
+    if (isCompleteQuizAnswers(nextAnswers)) setAiLoading(true);
+    setAnswers(nextAnswers);
     if (step < QUESTIONS.length - 1) setStep(step + 1);
   }
 
   function reset() {
     setAnswers({});
     setStep(0);
+    setAiRanked(null);
+    setAiError('');
   }
 
   const href = (path: string) => withLocalePath(path, locale);
   const current = QUESTIONS[step];
-
-  function whyLine(loadout: Loadout) {
-    const bits: string[] = [];
-    if (loadout.tags?.length) bits.push(loadout.tags.slice(0, 2).join(', '));
-    bits.push(`tier ${loadout.tier}`);
-    bits.push(`meta ${calculateMetaScore(loadout)}`);
-    return bits.join(' / ');
-  }
+  const displayedRanked = aiRanked ?? ranked.map(toDisplayRecommendation);
 
   return (
     <main className="quiz-page">
@@ -262,35 +297,54 @@ export default function LoadoutQuiz({ loadouts, locale }: Props) {
         <section className="quiz-result">
           <div className="quiz-result-head">
             <span>{t.resultTitle}</span>
-            <p>{t.resultSub}</p>
+            <p>
+              {aiLoading
+                ? (lang === 'fr' ? 'IA WZPRO verifie la meta et les accessoires...' : lang === 'es' ? 'IA WZPRO verifica la meta y los accesorios...' : 'IA WZPRO is checking the meta and attachments...')
+                : aiRanked
+                  ? (lang === 'fr' ? 'Recommandation IA via OpenRouter, hors base du site si besoin.' : lang === 'es' ? 'Recomendacion IA via OpenRouter, fuera de la base del sitio si hace falta.' : 'AI recommendation via OpenRouter, outside the site database when needed.')
+                  : t.resultSub}
+            </p>
+            {aiError && <small className="quiz-ai-note">{lang === 'fr' ? 'Fallback local actif' : lang === 'es' ? 'Fallback local activo' : 'Local fallback active'}: {aiError}</small>}
           </div>
-          {ranked[0] && (
+          {displayedRanked[0] && (
             <article className="quiz-primary">
               <div className="quiz-primary-meta">
-                <span className="quiz-tier" data-tier={ranked[0].loadout.tier}>{ranked[0].loadout.tier}</span>
-                <span>{ranked[0].loadout.category}</span>
-                <strong>{calculateMetaScore(ranked[0].loadout)}</strong>
+                <span className="quiz-tier" data-tier={displayedRanked[0].tier}>{displayedRanked[0].tier}</span>
+                <span>{displayedRanked[0].category}</span>
+                {displayedRanked[0].metaScore && <strong>{displayedRanked[0].metaScore}</strong>}
               </div>
-              <h2>{ranked[0].loadout.weapon}</h2>
-              <p className="quiz-why">{t.why}: {whyLine(ranked[0].loadout)}</p>
+              <h2>{displayedRanked[0].weapon}</h2>
+              <p className="quiz-why">{t.why}: {displayedRanked[0].reason}</p>
               <div className="quiz-attachments">
-                {ranked[0].loadout.attachments.slice(0, 5).map((a) => (
-                  <span key={`${a.slot}-${a.name}`}>{a.name}</span>
+                {displayedRanked[0].attachments.slice(0, 5).map((a) => (
+                  <span key={`${a.slot}-${a.name}`}>{a.slot}: {a.name}</span>
                 ))}
               </div>
-              <Link className="quiz-cta" href={href(getLoadoutPath(ranked[0].loadout))}>{t.primary} →</Link>
+              {displayedRanked[0].loadout ? (
+                <Link className="quiz-cta" href={href(getLoadoutPath(displayedRanked[0].loadout))}>{t.primary} →</Link>
+              ) : (
+                <span className="quiz-ai-build">{lang === 'fr' ? 'Build IA externe' : lang === 'es' ? 'Build IA externo' : 'External AI build'}</span>
+              )}
             </article>
           )}
-          {ranked.length > 1 && (
+          {displayedRanked.length > 1 && (
             <div className="quiz-alts">
               <span className="quiz-alts-label">{t.alts}</span>
               <div className="quiz-alts-grid">
-                {ranked.slice(1).map(({ loadout }) => (
-                  <Link key={loadout.id} className="quiz-alt" href={href(getLoadoutPath(loadout))}>
-                    <span className="quiz-tier" data-tier={loadout.tier}>{loadout.tier}</span>
-                    <strong>{loadout.weapon}</strong>
-                    <span>{loadout.category} / meta {calculateMetaScore(loadout)}</span>
-                  </Link>
+                {displayedRanked.slice(1).map((item) => (
+                  item.loadout ? (
+                    <Link key={item.id} className="quiz-alt" href={href(getLoadoutPath(item.loadout))}>
+                      <span className="quiz-tier" data-tier={item.tier}>{item.tier}</span>
+                      <strong>{item.weapon}</strong>
+                      <span>{item.category}{item.metaScore ? ` / meta ${item.metaScore}` : ''}</span>
+                    </Link>
+                  ) : (
+                    <article key={item.id} className="quiz-alt">
+                      <span className="quiz-tier" data-tier={item.tier}>{item.tier}</span>
+                      <strong>{item.weapon}</strong>
+                      <span>{item.category}{item.metaScore ? ` / meta ${item.metaScore}` : ''}</span>
+                    </article>
+                  )
                 ))}
               </div>
             </div>
@@ -318,6 +372,7 @@ export default function LoadoutQuiz({ loadouts, locale }: Props) {
         .quiz-back:hover { color: #163cff; }
         .quiz-result-head span { color: #163cff; font-size: 0.7rem; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; }
         .quiz-result-head p { margin: 0.4rem 0 0; color: rgba(16,16,14,0.6); font-size: 0.84rem; }
+        .quiz-ai-note { display: block; margin-top: 0.45rem; color: rgba(16,16,14,0.48); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
         .quiz-primary { margin-top: 1.4rem; border-top: 1px solid rgba(16,16,14,0.12); padding-top: 1.4rem; }
         .quiz-primary-meta { display: flex; align-items: center; gap: 0.8rem; font-size: 0.74rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(16,16,14,0.55); }
         .quiz-primary-meta strong { margin-left: auto; color: #163cff; font-size: 1.6rem; }
@@ -330,6 +385,7 @@ export default function LoadoutQuiz({ loadouts, locale }: Props) {
         .quiz-attachments { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 1rem; }
         .quiz-attachments span { border: 1px solid rgba(16,16,14,0.14); padding: 0.3rem 0.6rem; font-size: 0.74rem; color: rgba(16,16,14,0.7); }
         .quiz-cta { display: inline-grid; min-height: 44px; place-items: center; margin-top: 1.3rem; padding: 0 1.4rem; border: 1px solid #163cff; background: #163cff; color: #fff; font-size: 0.74rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; }
+        .quiz-ai-build { display: inline-grid; min-height: 36px; place-items: center; margin-top: 1.3rem; padding: 0 0.9rem; border: 1px solid rgba(22,60,255,0.45); color: #163cff; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
         .quiz-alts { margin-top: 1.8rem; }
         .quiz-alts-label { font-size: 0.68rem; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(16,16,14,0.5); }
         .quiz-alts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-top: 0.7rem; }
@@ -341,6 +397,7 @@ export default function LoadoutQuiz({ loadouts, locale }: Props) {
         :root[data-theme="dark"] .quiz-head p,
         :root[data-theme="dark"] .quiz-options button span,
         :root[data-theme="dark"] .quiz-result-head p,
+        :root[data-theme="dark"] .quiz-ai-note,
         :root[data-theme="dark"] .quiz-primary-meta,
         :root[data-theme="dark"] .quiz-why,
         :root[data-theme="dark"] .quiz-attachments span,

@@ -19,16 +19,16 @@ Current generated files:
 
 ```text
 dist\wzpro-companion-installer\WZPRO Companion Setup.exe
-SHA256: 47A1E14FD7171A1A341DC4E554E836A64D8E157425EAEBE2A97AE59ECBA7B8DF
-Size: 34,513,063 bytes
+SHA256: 662F5FAE45762C5349E5A1BB3DE0673E457EC746ADA71632F24E1D189B0F5A55
+Size: 34,521,098 bytes
 
 dist\wzpro-companion\WZPRO Companion.exe
-SHA256: 435345F581B29AE13E621A4F149A042E4ABA913394C800C8F7FD5EAA1D812405
-Size: 109,056 bytes
+SHA256: F7D552339BA138829379FC1318DCF619840BF88B329F5AEDFE0FE27CAB8017F0
+Size: 123,904 bytes
 
 dist\wzpro-companion\WZPRO Companion.zip
-SHA256: DDAA83E5C668F02672C3BC8727A3D12975FAB6115B78FEB85633E874107A3400
-Size: 53,541,867 bytes
+SHA256: CC29ED15E807954159E25954E9D51F23FF3C555C923722FD094B836DA9FD8840
+Size: 53,547,291 bytes
 ```
 
 This installer uses Inno Setup 6 and installs:
@@ -40,6 +40,18 @@ This installer uses Inno Setup 6 and installs:
 - the bundled font and icon assets
 
 Without a code-signing certificate, Windows Smart App Control can still block the installer or the app. The installer makes distribution cleaner, but it does not replace signing.
+
+For Store submissions, prefer a versioned URL:
+
+```text
+https://wzprometa.com/downloads/wzpro-companion/v0.1.0/WZPRO-Companion-Setup.exe
+```
+
+The latest URL remains:
+
+```text
+https://wzprometa.com/downloads/WZPRO-Companion-Setup.exe
+```
 
 ## Microsoft Defender submission
 

@@ -3,14 +3,9 @@
 import { FormEvent, useMemo, useState } from 'react';
 import type { UserProfile } from '@/lib/profileStore';
 import { getProfileModerationError } from '@/lib/profileValidation';
+import { useCurrentLocale } from '@/lib/useCurrentLocale';
 
 type ProfileForm = Omit<UserProfile, 'userId' | 'email' | 'updatedAt'>;
-
-const inputDeviceOptions = [
-  ['', 'Select device'],
-  ['controller', 'Controller'],
-  ['keyboard-mouse', 'Keyboard + mouse'],
-] as const;
 
 const platformOptions = [
   ['', 'Select platform'],
@@ -26,17 +21,6 @@ const languageOptions = [
   ['en', 'English'],
 ] as const;
 
-const themeOptions = [
-  ['system', 'System'],
-  ['light', 'Light'],
-  ['dark', 'Dark'],
-] as const;
-
-const loadoutDisplayOptions = [
-  ['compact', 'Compact'],
-  ['detailed', 'Detailed'],
-] as const;
-
 function initials(value: string) {
   return value
     .split(/\s+/)
@@ -47,6 +31,123 @@ function initials(value: string) {
 }
 
 export default function AccountProfileForm({ profile }: { profile: UserProfile }) {
+  const locale = useCurrentLocale();
+  const isFr = locale === 'fr';
+  const t = isFr ? {
+    general: 'Details generaux',
+    profilePicture: 'Photo de profil',
+    profilePictureUrl: 'URL de la photo de profil',
+    localImage: 'Image locale selectionnee',
+    description: 'Description',
+    profileBanner: 'Banniere du profil',
+    bannerHelp: 'Affichee en haut de votre profil public.',
+    bannerImage: 'Image de banniere',
+    bannerImageUrl: 'URL de l image de banniere',
+    socials: 'Liens sociaux',
+    socialsHelp: 'Entre des liens directs, uniquement des URL completes.',
+    youtube: 'Chaine YouTube',
+    twitch: 'Chaine Twitch',
+    kick: 'Chaine Kick',
+    discord: 'Serveur Discord',
+    twitter: 'Compte X / Twitter',
+    tiktok: 'Compte TikTok',
+    instagram: 'Compte Instagram',
+    otherLink: 'Autre lien',
+    otherDetails: 'Autres details',
+    otherHelp: 'Ces champs pourront etre affiches plus tard sur les profils publics.',
+    inputDevice: 'Peripherique',
+    mainPlatform: 'Plateforme principale',
+    sitePreferences: 'Preferences du site',
+    siteHelp: 'Parametres d affichage par defaut du compte.',
+    language: 'Langue',
+    theme: 'Theme',
+    loadoutDisplay: 'Affichage des classes',
+    mainPublicLoadout: 'ID de la classe publique principale',
+    selectedFromLoadouts: 'Selectionnee depuis la section classes',
+    publicProfile: 'Profil public',
+    publicHint: 'Ajoutez un pseudo et activez le profil public pour apparaitre dans la recherche.',
+    showSocials: 'Afficher les liens sociaux',
+    showStats: 'Afficher les stats du tracker',
+    showActivision: 'Afficher l ID Activision',
+    showPlatform: 'Afficher l ID de plateforme',
+    showEmail: 'Afficher l email',
+    saving: 'Sauvegarde...',
+    saveProfile: 'Sauvegarder le profil',
+    switchPrivate: 'Passer en prive',
+    switchPublic: 'Passer en public',
+    imageType: 'Choisissez une image PNG, JPG, WEBP ou GIF.',
+    imageSize: 'L image doit faire moins de 500 Ko.',
+    imageReady: 'Image prete. Sauvegardez pour la conserver.',
+    imageReadError: 'Impossible de lire cette image.',
+    saveError: 'Impossible de sauvegarder le profil.',
+    profileSaved: 'Profil sauvegarde.',
+    selectDevice: 'Choisir un peripherique',
+    controller: 'Manette',
+    keyboardMouse: 'Clavier + souris',
+    selectPlatform: 'Choisir une plateforme',
+    system: 'Systeme',
+    light: 'Clair',
+    dark: 'Sombre',
+    compact: 'Compact',
+    detailed: 'Detaille',
+  } : {
+    general: 'General details',
+    profilePicture: 'Profile picture',
+    profilePictureUrl: 'Profile picture URL',
+    localImage: 'Local image selected',
+    description: 'Description',
+    profileBanner: 'Profile banner',
+    bannerHelp: 'Displayed at the top of your public profile.',
+    bannerImage: 'Banner image',
+    bannerImageUrl: 'Banner image URL',
+    socials: 'Social links',
+    socialsHelp: 'Enter direct links, full URLs only.',
+    youtube: 'Youtube channel',
+    twitch: 'Twitch channel',
+    kick: 'Kick channel',
+    discord: 'Discord server',
+    twitter: 'Twitter channel',
+    tiktok: 'Tiktok channel',
+    instagram: 'Instagram channel',
+    otherLink: 'Other link',
+    otherDetails: 'Other details',
+    otherHelp: 'These fields can be displayed on public profiles later.',
+    inputDevice: 'Input device',
+    mainPlatform: 'Main platform',
+    sitePreferences: 'Site preferences',
+    siteHelp: 'Default account display settings.',
+    language: 'Language',
+    theme: 'Theme',
+    loadoutDisplay: 'Loadout display',
+    mainPublicLoadout: 'Main public loadout ID',
+    selectedFromLoadouts: 'Selected from loadouts section',
+    publicProfile: 'Public profile',
+    publicHint: 'Add a pseudo and enable public profile to appear in search.',
+    showSocials: 'Show social links',
+    showStats: 'Show tracker stats',
+    showActivision: 'Show Activision ID',
+    showPlatform: 'Show platform account ID',
+    showEmail: 'Show email',
+    saving: 'Saving...',
+    saveProfile: 'Save profile',
+    switchPrivate: 'Switch to private',
+    switchPublic: 'Switch to public',
+    imageType: 'Choose a PNG, JPG, WEBP or GIF image.',
+    imageSize: 'Image must be under 500 KB.',
+    imageReady: 'Image ready. Save to keep it.',
+    imageReadError: 'Unable to read this image.',
+    saveError: 'Unable to save profile.',
+    profileSaved: 'Profile saved.',
+    selectDevice: 'Select device',
+    controller: 'Controller',
+    keyboardMouse: 'Keyboard + mouse',
+    selectPlatform: 'Select platform',
+    system: 'System',
+    light: 'Light',
+    dark: 'Dark',
+    compact: 'Compact',
+    detailed: 'Detailed',
+  };
   const [form, setForm] = useState<ProfileForm>({
     profilePicture: profile.profilePicture,
     profileBanner: profile.profileBanner,
@@ -91,13 +192,13 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
     if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
       setStatus('error');
-      setMessage('Choose a PNG, JPG, WEBP or GIF image.');
+      setMessage(t.imageType);
       return;
     }
 
     if (file.size > 500_000) {
       setStatus('error');
-      setMessage('Image must be under 500 KB.');
+      setMessage(t.imageSize);
       return;
     }
 
@@ -106,11 +207,11 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
       const result = typeof reader.result === 'string' ? reader.result : '';
       updateField(field, result);
       setStatus('idle');
-      setMessage('Image ready. Save to keep it.');
+      setMessage(t.imageReady);
     };
     reader.onerror = () => {
       setStatus('error');
-      setMessage('Unable to read this image.');
+      setMessage(t.imageReadError);
     };
     reader.readAsDataURL(file);
   }
@@ -140,7 +241,7 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
     if (!res.ok) {
       setStatus('error');
-      setMessage(data.error || 'Unable to save profile.');
+      setMessage(data.error || t.saveError);
       return;
     }
 
@@ -175,14 +276,14 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
       statsEntries: data.profile.statsEntries,
     });
     setStatus('saved');
-    setMessage('Profile saved.');
+    setMessage(t.profileSaved);
   }
 
   return (
     <form className="account-profile-form" onSubmit={save}>
       <section className="account-edit-block">
         <div className="account-edit-head">
-          <h2>General details</h2>
+          <h2>{t.general}</h2>
         </div>
         <div className="account-general-grid">
           <div className="account-avatar-card">
@@ -200,7 +301,7 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
             <strong>{previewName}</strong>
           </div>
           <label>
-            Profile picture
+            {t.profilePicture}
             <input
               accept="image/png,image/jpeg,image/webp,image/gif"
               onChange={(event) => selectProfileImage(event.target.files?.[0] || null, 'profilePicture')}
@@ -208,11 +309,11 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
             />
           </label>
           <label>
-            Profile picture URL
+            {t.profilePictureUrl}
             <input
               value={form.profilePicture.startsWith('data:image/') ? '' : form.profilePicture}
               onChange={(event) => updateField('profilePicture', event.target.value)}
-              placeholder={form.profilePicture.startsWith('data:image/') ? 'Local image selected' : 'https://...'}
+              placeholder={form.profilePicture.startsWith('data:image/') ? t.localImage : 'https://...'}
               type="url"
             />
           </label>
@@ -222,15 +323,15 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
           </label>
         </div>
         <label>
-          Description
+          {t.description}
           <textarea value={form.description} onChange={(event) => updateField('description', event.target.value)} />
         </label>
       </section>
 
       <section className="account-edit-block">
         <div className="account-edit-head">
-          <h2>Profile banner</h2>
-          <p>Displayed at the top of your public profile.</p>
+          <h2>{t.profileBanner}</h2>
+          <p>{t.bannerHelp}</p>
         </div>
         <div
           className="account-banner-preview"
@@ -240,7 +341,7 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
         </div>
         <div className="account-two-col">
           <label>
-            Banner image
+            {t.bannerImage}
             <input
               accept="image/png,image/jpeg,image/webp,image/gif"
               onChange={(event) => selectProfileImage(event.target.files?.[0] || null, 'profileBanner')}
@@ -248,11 +349,11 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
             />
           </label>
           <label>
-            Banner image URL
+            {t.bannerImageUrl}
             <input
               value={form.profileBanner.startsWith('data:image/') ? '' : form.profileBanner}
               onChange={(event) => updateField('profileBanner', event.target.value)}
-              placeholder={form.profileBanner.startsWith('data:image/') ? 'Local image selected' : 'https://...'}
+              placeholder={form.profileBanner.startsWith('data:image/') ? t.localImage : 'https://...'}
               type="url"
             />
           </label>
@@ -261,40 +362,40 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
       <section className="account-edit-block">
         <div className="account-edit-head">
-          <h2>Social links</h2>
-          <p>Enter direct links, full URLs only.</p>
+          <h2>{t.socials}</h2>
+          <p>{t.socialsHelp}</p>
         </div>
         <div className="account-two-col">
           <label>
-            Youtube channel
+            {t.youtube}
             <input value={form.youtube} onChange={(event) => updateField('youtube', event.target.value)} placeholder="https://youtube.com/..." type="url" />
           </label>
           <label>
-            Twitch channel
+            {t.twitch}
             <input value={form.twitch} onChange={(event) => updateField('twitch', event.target.value)} placeholder="https://twitch.tv/..." type="url" />
           </label>
           <label>
-            Kick channel
+            {t.kick}
             <input value={form.kick} onChange={(event) => updateField('kick', event.target.value)} placeholder="https://kick.com/..." type="url" />
           </label>
           <label>
-            Discord server
+            {t.discord}
             <input value={form.discord} onChange={(event) => updateField('discord', event.target.value)} placeholder="https://discord.gg/..." type="url" />
           </label>
           <label>
-            Twitter channel
+            {t.twitter}
             <input value={form.twitter} onChange={(event) => updateField('twitter', event.target.value)} placeholder="https://x.com/..." type="url" />
           </label>
           <label>
-            Tiktok channel
+            {t.tiktok}
             <input value={form.tiktok} onChange={(event) => updateField('tiktok', event.target.value)} placeholder="https://tiktok.com/..." type="url" />
           </label>
           <label>
-            Instagram channel
+            {t.instagram}
             <input value={form.instagram} onChange={(event) => updateField('instagram', event.target.value)} placeholder="https://instagram.com/..." type="url" />
           </label>
           <label>
-            Other link
+            {t.otherLink}
             <input value={form.otherLink} onChange={(event) => updateField('otherLink', event.target.value)} placeholder="https://..." type="url" />
           </label>
         </div>
@@ -302,20 +403,23 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
       <section className="account-edit-block">
         <div className="account-edit-head">
-          <h2>Other details</h2>
-          <p>These fields can be displayed on public profiles later.</p>
+          <h2>{t.otherDetails}</h2>
+          <p>{t.otherHelp}</p>
         </div>
         <div className="account-two-col">
           <label>
-            Input device
+            {t.inputDevice}
             <select value={form.inputDevice} onChange={(event) => updateField('inputDevice', event.target.value as ProfileForm['inputDevice'])}>
-              {inputDeviceOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              <option value="">{t.selectDevice}</option>
+              <option value="controller">{t.controller}</option>
+              <option value="keyboard-mouse">{t.keyboardMouse}</option>
             </select>
           </label>
           <label>
-            Main platform
+            {t.mainPlatform}
             <select value={form.mainPlatform} onChange={(event) => updateField('mainPlatform', event.target.value as ProfileForm['mainPlatform'])}>
-              {platformOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              <option value="">{t.selectPlatform}</option>
+              {platformOptions.slice(1).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </label>
           <label>
@@ -339,34 +443,37 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
       <section className="account-edit-block">
         <div className="account-edit-head">
-          <h2>Site preferences</h2>
-          <p>Default account display settings.</p>
+          <h2>{t.sitePreferences}</h2>
+          <p>{t.siteHelp}</p>
         </div>
         <div className="account-two-col">
           <label>
-            Language
+            {t.language}
             <select value={form.siteLanguage} onChange={(event) => updateField('siteLanguage', event.target.value)}>
               {languageOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </label>
           <label>
-            Theme
+            {t.theme}
             <select value={form.siteTheme} onChange={(event) => updateField('siteTheme', event.target.value)}>
-              {themeOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              <option value="system">{t.system}</option>
+              <option value="light">{t.light}</option>
+              <option value="dark">{t.dark}</option>
             </select>
           </label>
           <label>
-            Loadout display
+            {t.loadoutDisplay}
             <select value={form.loadoutDisplayMode} onChange={(event) => updateField('loadoutDisplayMode', event.target.value)}>
-              {loadoutDisplayOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              <option value="compact">{t.compact}</option>
+              <option value="detailed">{t.detailed}</option>
             </select>
           </label>
           <label>
-            Main public loadout ID
+            {t.mainPublicLoadout}
             <input
               value={form.featuredLoadoutId}
               onChange={(event) => updateField('featuredLoadoutId', event.target.value)}
-              placeholder="Selected from loadouts section"
+              placeholder={t.selectedFromLoadouts}
             />
           </label>
         </div>
@@ -374,20 +481,20 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
       <section className="account-edit-block">
         <div className="account-edit-head">
-          <h2>Public profile</h2>
+          <h2>{t.publicProfile}</h2>
           <p>
             {form.pseudo && form.privacy.publicProfile
               ? `/profile/${form.pseudo}`
-              : 'Add a pseudo and enable public profile to appear in search.'}
+              : t.publicHint}
           </p>
         </div>
         <div className="account-privacy-grid">
           {([
-            ['socials', 'Show social links'],
-            ['stats', 'Show tracker stats'],
-            ['activisionId', 'Show Activision ID'],
-            ['platformId', 'Show platform account ID'],
-            ['email', 'Show email'],
+            ['socials', t.showSocials],
+            ['stats', t.showStats],
+            ['activisionId', t.showActivision],
+            ['platformId', t.showPlatform],
+            ['email', t.showEmail],
           ] as const).map(([key, label]) => (
             <label key={key} className="account-toggle">
               <input
@@ -403,13 +510,13 @@ export default function AccountProfileForm({ profile }: { profile: UserProfile }
 
       <div className="account-profile-actions">
         <div className="account-profile-action-buttons">
-          <button type="submit" disabled={status === 'saving'}>{status === 'saving' ? 'Saving...' : 'Save profile'}</button>
+          <button type="submit" disabled={status === 'saving'}>{status === 'saving' ? t.saving : t.saveProfile}</button>
           <button
             className={`account-public-switch ${form.privacy.publicProfile ? 'is-public' : 'is-private'}`}
             onClick={() => updateField('privacy', { ...form.privacy, publicProfile: !form.privacy.publicProfile })}
             type="button"
           >
-            {form.privacy.publicProfile ? 'Switch to private' : 'Switch to public'}
+            {form.privacy.publicProfile ? t.switchPrivate : t.switchPublic}
           </button>
         </div>
         {message && <p className={status === 'error' ? 'is-error' : undefined}>{message}</p>}

@@ -1,4 +1,4 @@
-export default function ThemeScript() {
+export default function ThemeScript({ nonce }: { nonce?: string }) {
   const script = `
 (() => {
   try {
@@ -15,5 +15,5 @@ export default function ThemeScript() {
 })();
 `;
 
-  return <script dangerouslySetInnerHTML={{ __html: script }} />;
+  return <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: script }} />;
 }

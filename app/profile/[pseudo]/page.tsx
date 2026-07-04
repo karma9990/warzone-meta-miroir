@@ -10,6 +10,7 @@ import { calculateMetaScore, formatMetaDate, getLoadoutSlug } from '@/lib/loadou
 import { getStatsSummary } from '@/lib/statsSummary';
 import { getUserSession } from '@/lib/userAuth';
 import { getRequestLocale } from '@/lib/requestLocale';
+import { withLocalePath } from '@/lib/i18n';
 import { getLoadoutPath } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
@@ -133,7 +134,11 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
   return (
     <main className="public-profile-main">
       <nav className="public-profile-topbar" aria-label={isFr ? 'Navigation du profil' : 'Profile navigation'}>
-        <Link className="public-profile-back" href="/">WZPRO Meta</Link>
+        <Link className="public-profile-back" href={`${withLocalePath('/account', locale)}#public-profile-settings`}>
+          <span aria-hidden="true">←</span>
+          {isFr ? 'Retour settings compte' : 'Account settings'}
+        </Link>
+        <Link href="/">WZPRO Meta</Link>
         <Link href="/community">{isFr ? 'Communaute' : 'Community'}</Link>
         <Link href="/#all-loadouts">{isFr ? 'Classes' : 'Loadouts'}</Link>
       </nav>
@@ -327,10 +332,17 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
 
       <style>{`
         .public-profile-main {
+          --profile-blue: #163cff;
+          --profile-blue-panel: rgba(8, 22, 132, 0.92);
+          --profile-blue-card: rgba(0,0,0,0.96);
+          --profile-blue-soft: rgba(22, 60, 255, 0.16);
+          --profile-blue-line: rgba(118, 148, 255, 0.42);
+          --profile-blue-muted: rgba(224, 232, 255, 0.72);
+          --profile-blue-faint: rgba(224, 232, 255, 0.54);
           width: min(1180px, calc(100% - 40px));
           margin: 0 auto;
           padding: 2rem 0 6rem;
-          color: var(--tm-ink, #10100e);
+          color: #ffffff;
           font-family: var(--font-mono, monospace);
         }
         .public-profile-topbar {
@@ -349,6 +361,9 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           text-transform: uppercase;
         }
         .public-profile-back {
+          display: inline-flex;
+          gap: 0.35rem;
+          align-items: center;
           margin-right: auto;
           opacity: 0.9 !important;
         }
@@ -359,8 +374,8 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           gap: 1.2rem;
           align-items: stretch;
           min-height: 360px;
-          border: 1px solid rgba(16,16,14,0.16);
-          background: rgba(239,238,232,0.78);
+          border: 1px solid var(--profile-blue-line);
+          background: #000000;
           overflow: hidden;
         }
         .public-profile-cover {
@@ -399,11 +414,11 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           width: 132px;
           height: 132px;
           place-items: center;
-          border: 1px solid rgba(22,60,255,0.36);
+          border: 1px solid rgba(255,255,255,0.62);
           border-radius: 999px;
-          background: rgba(16,16,14,0.1);
+          background: rgba(255,255,255,0.12);
           background-size: cover;
-          color: #163cff;
+          color: #ffffff;
           font-size: 2rem;
           font-style: normal;
           font-weight: 950;
@@ -418,7 +433,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         .public-profile-kicker,
         .public-profile-panel-head > span,
         .public-profile-snapshot span {
-          color: #163cff;
+          color: #dce6ff;
           font-size: 0.62rem;
           font-weight: 950;
           letter-spacing: 0.16em;
@@ -436,7 +451,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         .public-profile-empty p {
           max-width: 720px;
           margin: 0;
-          color: rgba(16,16,14,0.62);
+          color: var(--profile-blue-muted);
           font-size: 0.82rem;
           line-height: 1.75;
         }
@@ -448,8 +463,9 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           margin-top: 1rem;
         }
         .public-profile-badges b {
-          border: 1px solid rgba(22,60,255,0.26);
-          color: #163cff;
+          border: 1px solid rgba(255,255,255,0.36);
+          background: rgba(255,255,255,0.08);
+          color: #ffffff;
           font-size: 0.62rem;
           padding: 0.34rem 0.5rem;
           text-transform: uppercase;
@@ -462,9 +478,9 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           display: inline-grid;
           min-height: 38px;
           place-items: center;
-          border: 1px solid rgba(16,16,14,0.16);
+          border: 1px solid var(--profile-blue-line);
           background: transparent;
-          color: #10100e;
+          color: #ffffff;
           cursor: pointer;
           font: inherit;
           font-size: 0.62rem;
@@ -473,22 +489,26 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           text-decoration: none;
           text-transform: uppercase;
         }
-        .public-profile-actions button:first-child,
         .public-profile-primary-link {
-          border-color: #163cff;
-          background: #163cff;
+          border-color: var(--profile-blue-line);
+          background: transparent;
+          color: #ffffff;
+        }
+        .public-profile-panel-head a,
+        .public-profile-empty a {
+          background: rgba(255,255,255,0.08);
           color: #fff;
         }
         .public-profile-actions .is-muted {
-          color: rgba(16,16,14,0.52);
+          color: var(--profile-blue-faint);
         }
         .public-profile-snapshot {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 1px;
           margin-top: 1rem;
-          border: 1px solid rgba(16,16,14,0.14);
-          background: rgba(16,16,14,0.14);
+          border: 1px solid var(--profile-blue-line);
+          background: rgba(118,148,255,0.38);
         }
         .public-profile-snapshot article {
           display: grid;
@@ -496,17 +516,18 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           min-height: 116px;
           align-content: center;
           padding: 1rem;
-          background: rgba(239,238,232,0.82);
+          background: var(--profile-blue-card);
+          box-shadow: inset 0 0 0 1px rgba(118,148,255,0.12);
         }
         .public-profile-snapshot strong {
           overflow-wrap: anywhere;
-          color: #10100e;
+          color: #ffffff;
           font-size: clamp(1.25rem, 2.4vw, 2rem);
           line-height: 1;
           text-transform: uppercase;
         }
         .public-profile-snapshot small {
-          color: rgba(16,16,14,0.48);
+          color: var(--profile-blue-faint);
           font-size: 0.62rem;
           text-transform: uppercase;
         }
@@ -523,8 +544,8 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           gap: 1rem;
         }
         .public-profile-panel {
-          border: 1px solid rgba(16,16,14,0.14);
-          background: rgba(239,238,232,0.78);
+          border: 1px solid var(--profile-blue-line);
+          background: var(--profile-blue-panel);
           padding: 1rem;
         }
         .public-profile-panel-head {
@@ -548,22 +569,22 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           gap: 0.8rem;
           align-items: center;
           min-height: 110px;
-          border: 1px solid rgba(16,16,14,0.10);
+          border: 1px solid rgba(118,148,255,0.28);
           color: inherit;
           padding: 0.65rem;
           text-decoration: none;
         }
         .public-profile-loadout-card.is-featured {
-          border-color: rgba(22,60,255,0.42);
-          background: rgba(22,60,255,0.045);
+          border-color: rgba(255,255,255,0.54);
+          background: var(--profile-blue-soft);
         }
         .public-profile-loadout-tier {
           display: grid;
           width: 38px;
           height: 38px;
           place-items: center;
-          border: 1px solid rgba(22,60,255,0.28);
-          color: #163cff;
+          border: 1px solid rgba(255,255,255,0.42);
+          color: #ffffff;
           font-weight: 950;
         }
         .public-profile-loadout-art {
@@ -576,7 +597,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           height: auto;
           max-height: 82px;
           object-fit: contain;
-          filter: grayscale(1) contrast(1.06) drop-shadow(0 8px 8px rgba(16,16,14,0.16));
+          filter: drop-shadow(0 8px 12px rgba(0,0,0,0.28));
         }
         .public-profile-loadout-body {
           display: grid;
@@ -591,7 +612,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         .public-profile-loadout-body small,
         .public-profile-loadout-body em,
         .public-profile-loadout-score small {
-          color: rgba(16,16,14,0.52);
+          color: var(--profile-blue-faint);
           font-size: 0.62rem;
           font-style: normal;
           line-height: 1.45;
@@ -600,7 +621,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
         .public-profile-loadout-score {
           display: grid;
           justify-items: end;
-          color: #163cff;
+          color: #ffffff;
           font-size: 1.3rem;
           font-weight: 950;
         }
@@ -609,8 +630,8 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 1px;
-          border: 1px solid rgba(16,16,14,0.12);
-          background: rgba(16,16,14,0.12);
+          border: 1px solid var(--profile-blue-line);
+          background: rgba(118,148,255,0.34);
         }
         .public-profile-lfg {
           grid-template-columns: 1fr;
@@ -623,19 +644,20 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           min-height: 82px;
           align-content: center;
           padding: 0.85rem;
-          background: rgba(239,238,232,0.82);
+          background: var(--profile-blue-card);
+          box-shadow: inset 0 0 0 1px rgba(118,148,255,0.12);
         }
         .public-profile-performance-grid span,
         .public-profile-lfg span,
         .public-profile-details dt {
-          color: rgba(16,16,14,0.48);
+          color: var(--profile-blue-faint);
           font-size: 0.58rem;
           text-transform: uppercase;
         }
         .public-profile-performance-grid strong,
         .public-profile-lfg strong {
           overflow-wrap: anywhere;
-          color: #10100e;
+          color: #ffffff;
           font-size: 1.15rem;
           text-transform: uppercase;
         }
@@ -649,18 +671,18 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           grid-template-columns: 1fr auto auto auto;
           gap: 0.6rem;
           align-items: center;
-          border-top: 1px solid rgba(16,16,14,0.10);
+          border-top: 1px solid rgba(118,148,255,0.28);
           padding-top: 0.55rem;
         }
         .public-profile-history small,
         .public-profile-history em {
-          color: rgba(16,16,14,0.48);
+          color: var(--profile-blue-faint);
           font-size: 0.62rem;
           font-style: normal;
           text-transform: uppercase;
         }
         .public-profile-history b {
-          color: #163cff;
+          color: #dce6ff;
         }
         .public-profile-primary-link {
           width: 100%;
@@ -685,7 +707,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           grid-template-columns: 36px minmax(0, 1fr);
           gap: 0.7rem;
           align-items: center;
-          border: 1px solid rgba(16,16,14,0.1);
+          border: 1px solid rgba(118,148,255,0.28);
           color: inherit;
           padding: 0.65rem;
           text-decoration: none;
@@ -695,8 +717,8 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           width: 36px;
           height: 36px;
           place-items: center;
-          border: 1px solid rgba(22,60,255,0.24);
-          color: #163cff;
+          border: 1px solid rgba(255,255,255,0.42);
+          color: #ffffff;
           font-size: 0.68rem;
         }
         .public-profile-socials span {
@@ -705,7 +727,7 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           gap: 0.16rem;
         }
         .public-profile-socials small {
-          color: rgba(16,16,14,0.46);
+          color: var(--profile-blue-faint);
           font-size: 0.58rem;
           text-transform: uppercase;
         }
@@ -719,7 +741,8 @@ export default async function PublicProfilePage({ params }: ProfilePageProps) {
           display: grid;
           gap: 0.65rem;
           padding: 1rem;
-          border: 1px solid rgba(16,16,14,0.10);
+          border: 1px solid rgba(118,148,255,0.28);
+          background: rgba(255,255,255,0.04);
         }
         .public-profile-empty strong {
           text-transform: uppercase;
